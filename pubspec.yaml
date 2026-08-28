@@ -1,0 +1,31 @@
+name: crow_pict_manege
+description: "画像・動画のメタ情報を一覧・閲覧・編集するアプリケーション。"
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # メタ情報の読み書きエンジン。pure Dart なので全プラットフォームで同一挙動になる。
+  crowexif:
+    path: ../crowexif
+
+  # 非同期・派生状態の依存関係を明示するため。
+  flutter_riverpod: ^3.0.0
+  # フォルダ選択（デスクトップのネイティブダイアログ）。
+  file_selector: ^1.0.3
+  # 撮影日時などのロケール依存表示。
+  intl: ^0.20.2
+  path: ^1.9.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
