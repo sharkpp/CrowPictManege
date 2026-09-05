@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/hex_dump.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/pinned_fields.dart';
@@ -27,6 +31,9 @@ class MetadataPanel extends ConsumerStatefulWidget {
 class _MetadataPanelState extends ConsumerState<MetadataPanel> {
   String _query = '';
 
+  /// 生値を出すか、表示値を出すか（SPEC FR-V3）。
+  bool _raw = false;
+
   /// 絞り込み欄を出すのに要る高さ。下回る場合は中身を出す方を選ぶ。
   static const _minHeightForQuery = 120.0;
 
@@ -46,19 +53,28 @@ class _MetadataPanelState extends ConsumerState<MetadataPanel> {
 
     final paths = [for (final asset in assets) asset.path];
     final tags = ref.watch(mergedTagsProvider(tagTargetsKey(paths)));
-    final fields = mergeFields([for (final asset in assets) summaryFields(asset)]);
+    final fields = mergeFields([
+      for (final asset in assets) summaryFields(asset),
+    ]);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Header(assets: assets, fields: fields, tags: tags.value ?? const []),
+        _Header(
+          assets: assets,
+          fields: fields,
+          tags: tags.value ?? const [],
+          raw: _raw,
+        ),
         const Divider(height: 1),
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) => Column(
               children: [
                 if (constraints.maxHeight >= _minHeightForQuery)
-                  _QueryField(
+                  _QueryRow(
+                    raw: _raw,
+                    onRawChanged: (value) => setState(() => _raw = value),
                     onChanged: (value) =>
                         setState(() => _query = value.toLowerCase()),
                   ),
@@ -68,6 +84,7 @@ class _MetadataPanelState extends ConsumerState<MetadataPanel> {
                     fields: fields,
                     tags: tags,
                     query: _query,
+                    raw: _raw,
                     truncated: paths.length > maxTagTargets,
                   ),
                 ),
@@ -80,23 +97,45 @@ class _MetadataPanelState extends ConsumerState<MetadataPanel> {
   }
 }
 
-class _QueryField extends StatelessWidget {
-  const _QueryField({required this.onChanged});
+/// 絞り込みと、生値／表示値の切替（SPEC FR-V3）。
+class _QueryRow extends StatelessWidget {
+  const _QueryRow({
+    required this.raw,
+    required this.onRawChanged,
+    required this.onChanged,
+  });
 
+  final bool raw;
+  final ValueChanged<bool> onRawChanged;
   final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      child: TextField(
-        decoration: const InputDecoration(
-          isDense: true,
-          prefixIcon: Icon(Icons.search, size: 18),
-          hintText: 'タグ名・値で絞り込み',
-          border: OutlineInputBorder(),
-        ),
-        onChanged: onChanged,
+      padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              decoration: const InputDecoration(
+                isDense: true,
+                prefixIcon: Icon(Icons.search, size: 18),
+                hintText: 'タグ名・値で絞り込み',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: onChanged,
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              raw ? Icons.code : Icons.code_off,
+              size: 18,
+              color: raw ? Theme.of(context).colorScheme.primary : null,
+            ),
+            tooltip: raw ? '表示値に戻す' : '生値を出す',
+            onPressed: () => onRawChanged(!raw),
+          ),
+        ],
       ),
     );
   }
@@ -109,6 +148,7 @@ class _Body extends StatelessWidget {
     required this.fields,
     required this.tags,
     required this.query,
+    required this.raw,
     required this.truncated,
   });
 
@@ -116,6 +156,7 @@ class _Body extends StatelessWidget {
   final Map<String, String> fields;
   final AsyncValue<List<TagRecord>> tags;
   final String query;
+  final bool raw;
   final bool truncated;
 
   @override
@@ -127,7 +168,8 @@ class _Body extends StatelessWidget {
         : [
             for (final tag in all)
               if (tag.name.toLowerCase().contains(query) ||
-                  tag.printValue.toLowerCase().contains(query))
+                  tag.printValue.toLowerCase().contains(query) ||
+                  tag.rawValue.toLowerCase().contains(query))
                 tag,
           ];
     final groups = <String, List<TagRecord>>{};
@@ -177,7 +219,7 @@ class _Body extends StatelessWidget {
                 dense: true,
                 title: Text('$name (${entries.length})'),
                 children: [
-                  for (final tag in entries) _TagRow(tag: tag),
+                  for (final tag in entries) _TagRow(tag: tag, raw: raw),
                 ],
               );
             },
@@ -220,8 +262,9 @@ class _Pinned extends ConsumerWidget {
               Expanded(
                 child: Text(
                   '要約',
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(color: theme.colorScheme.outline),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
                 ),
               ),
               _AddFieldMenu(pinned: pinned, fields: fields),
@@ -233,8 +276,9 @@ class _Pinned extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
             child: Text(
               'タグの 📌 を押すと、その項目をここに出します',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.outline),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
           )
         else
@@ -300,8 +344,9 @@ class _PinnedRow extends StatelessWidget {
               row.label,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.outline),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
           ),
           Expanded(
@@ -331,11 +376,13 @@ class _Header extends ConsumerWidget {
     required this.assets,
     required this.fields,
     required this.tags,
+    required this.raw,
   });
 
   final List<MediaAsset> assets;
   final Map<String, String> fields;
   final List<TagRecord> tags;
+  final bool raw;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -343,7 +390,7 @@ class _Header extends ConsumerWidget {
     final title = assets.length == 1
         ? assets.first.name
         : '${assets.length} 件を選択'
-            '（合計 ${formatBytes(assets.fold(0, (sum, a) => sum + a.size))}）';
+              '（合計 ${formatBytes(assets.fold(0, (sum, a) => sum + a.size))}）';
     final errors = [
       for (final asset in assets)
         if (asset.error != null) asset.error!,
@@ -365,7 +412,13 @@ class _Header extends ConsumerWidget {
                 ),
               ),
               _SimilarButton(assets: assets),
-              _CopyMenu(assets: assets, fields: fields, tags: tags),
+              _ExportButton(
+                assets: assets,
+                fields: fields,
+                tags: tags,
+                raw: raw,
+              ),
+              _CopyMenu(assets: assets, fields: fields, tags: tags, raw: raw),
             ],
           ),
           if (errors.isNotEmpty)
@@ -373,8 +426,9 @@ class _Header extends ConsumerWidget {
               errors.length == 1
                   ? errors.first
                   : '${errors.length} 件で読み取りに失敗しました',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.error),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
         ],
       ),
@@ -400,8 +454,8 @@ class _SimilarButton extends ConsumerWidget {
       tooltip: seeds.isEmpty
           ? '画像を選ぶと似た画像を探せます'
           : seeds.length == 1
-              ? 'この画像に似た画像を探す'
-              : '選んだ ${seeds.length} 枚に似た画像を探す',
+          ? 'この画像に似た画像を探す'
+          : '選んだ ${seeds.length} 枚に似た画像を探す',
       onPressed: seeds.isEmpty
           ? null
           : () => ref.read(searchProvider.notifier).startSimilar(seeds),
@@ -412,16 +466,91 @@ class _SimilarButton extends ConsumerWidget {
 /// コピーの対象（SPEC FR-V6）。
 enum _CopyTarget { summary, selectedTags, allTags, everything }
 
-class _CopyMenu extends ConsumerWidget {
-  const _CopyMenu({
+/// 書き出しの形式（SPEC FR-V5）。
+enum _ExportFormat {
+  json('JSON', 'json'),
+  csv('CSV', 'csv');
+
+  const _ExportFormat(this.label, this.extension);
+  final String label;
+  final String extension;
+}
+
+/// 表示中のメタ情報をファイルへ書き出す（SPEC FR-V5）。
+class _ExportButton extends StatelessWidget {
+  const _ExportButton({
     required this.assets,
     required this.fields,
     required this.tags,
+    required this.raw,
   });
 
   final List<MediaAsset> assets;
   final Map<String, String> fields;
   final List<TagRecord> tags;
+  final bool raw;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_ExportFormat>(
+      icon: const Icon(Icons.save_alt, size: 20),
+      tooltip: 'ファイルへ書き出す',
+      enabled: tags.isNotEmpty,
+      onSelected: (format) => _export(context, format),
+      itemBuilder: (context) => [
+        for (final format in _ExportFormat.values)
+          PopupMenuItem(value: format, child: Text('${format.label} で書き出す')),
+      ],
+    );
+  }
+
+  Future<void> _export(BuildContext context, _ExportFormat format) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final location = await getSaveLocation(
+      suggestedName: '${_baseName()}.${format.extension}',
+      confirmButtonText: '書き出す',
+    );
+    if (location == null) return;
+
+    try {
+      await File(location.path).writeAsString(_text(format));
+      messenger?.showSnackBar(
+        SnackBar(
+          content: Text('${format.label} で書き出しました'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } on Object catch (error) {
+      messenger?.showSnackBar(SnackBar(content: Text('書き出しに失敗しました: $error')));
+    }
+  }
+
+  /// 書き出し先の既定の名前。1 件ならその名前、複数なら件数で分かるようにする。
+  String _baseName() =>
+      assets.length == 1 ? assets.first.name : '${assets.length}件のメタ情報';
+
+  String _text(_ExportFormat format) => switch (format) {
+    _ExportFormat.json => metadataAsJson(fields, tags, raw: raw),
+    // CSV は 1 つの表にしかできないので、要約とタグを続けて並べる。
+    _ExportFormat.csv =>
+      '${fieldsAsCsv(fields)}\r\n\r\n${tagsAsCsv(tags, raw: raw)}',
+  };
+}
+
+class _CopyMenu extends ConsumerWidget {
+  const _CopyMenu({
+    required this.assets,
+    required this.fields,
+    required this.tags,
+    required this.raw,
+  });
+
+  final List<MediaAsset> assets;
+  final Map<String, String> fields;
+  final List<TagRecord> tags;
+
+  /// 画面が生値を出しているか。コピーも画面に合わせる（SPEC FR-V3）。
+  final bool raw;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -482,13 +611,17 @@ class _CopyMenu extends ConsumerWidget {
       case _CopyTarget.summary:
         return asJson ? fieldsAsJson(summary) : fieldsAsTable(summary);
       case _CopyTarget.selectedTags:
-        return asJson ? tagsAsJson(selectedTags) : tagsAsTable(selectedTags);
+        return asJson
+            ? tagsAsJson(selectedTags, raw: raw)
+            : tagsAsTable(selectedTags, raw: raw);
       case _CopyTarget.allTags:
-        return asJson ? tagsAsJson(tags) : tagsAsTable(tags);
+        return asJson
+            ? tagsAsJson(tags, raw: raw)
+            : tagsAsTable(tags, raw: raw);
       case _CopyTarget.everything:
         return asJson
-            ? metadataAsJson(summary, tags)
-            : '${fieldsAsTable(summary)}\n\n${tagsAsTable(tags)}';
+            ? metadataAsJson(summary, tags, raw: raw)
+            : '${fieldsAsTable(summary)}\n\n${tagsAsTable(tags, raw: raw)}';
     }
   }
 
@@ -508,59 +641,151 @@ class _CopyMenu extends ConsumerWidget {
   }
 }
 
-class _TagRow extends ConsumerWidget {
-  const _TagRow({required this.tag});
+class _TagRow extends ConsumerStatefulWidget {
+  const _TagRow({required this.tag, required this.raw});
 
   final TagRecord tag;
 
+  /// 生値を出すか（SPEC FR-V3）。
+  final bool raw;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_TagRow> createState() => _TagRowState();
+}
+
+class _TagRowState extends ConsumerState<_TagRow> {
+  bool _dumping = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final tag = widget.tag;
     final theme = Theme.of(context);
     final key = '${tag.group}:${tag.name}';
     final selected = ref.watch(tagSelectionProvider).contains(key);
     final pinned = ref.watch(settingsProvider).pinned.contains(key);
-    final mixed = tag.printValue == mixedValueLabel;
+    final value = widget.raw ? tag.rawValue : tag.printValue;
+    final mixed = value == mixedValueLabel;
+    final dump = _dump(tag);
 
-    return InkWell(
-      onTap: () => ref.read(tagSelectionProvider.notifier).toggle(key),
-      child: Container(
-        color: selected ? theme.colorScheme.primaryContainer : null,
-        padding: const EdgeInsets.only(left: 16, right: 4),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 150,
-              child: Tooltip(
-                message: '${tag.subGroup} / ${tag.description}',
-                child: Text(tag.name, style: theme.textTheme.bodySmall),
+    return Container(
+      color: selected ? theme.colorScheme.primaryContainer : null,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: () => ref.read(tagSelectionProvider.notifier).toggle(key),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16, right: 4),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: Tooltip(
+                      message: '${tag.subGroup} / ${tag.description}',
+                      child: Text(tag.name, style: theme.textTheme.bodySmall),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      value,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: tag.isBinary || mixed
+                            ? theme.colorScheme.outline
+                            : null,
+                        fontStyle: mixed ? FontStyle.italic : null,
+                      ),
+                    ),
+                  ),
+                  // 16 進ダンプの開閉（SPEC FR-V3）。
+                  if (dump != null)
+                    IconButton(
+                      icon: Icon(
+                        Icons.memory,
+                        size: 16,
+                        color: _dumping
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outlineVariant,
+                      ),
+                      tooltip: _dumping ? '16 進ダンプを閉じる' : '16 進ダンプ',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => setState(() => _dumping = !_dumping),
+                    ),
+                  // 要約への出し入れ（SPEC FR-V2）。
+                  IconButton(
+                    icon: Icon(
+                      pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                      size: 16,
+                      color: pinned ? theme.colorScheme.primary : null,
+                    ),
+                    tooltip: pinned ? '要約から外す' : '要約に出す',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () =>
+                        ref.read(settingsProvider.notifier).togglePin(key),
+                  ),
+                ],
               ),
             ),
-            Expanded(
+          ),
+          if (_dumping && dump != null) _HexDump(tag: tag, bytes: dump),
+        ],
+      ),
+    );
+  }
+
+  /// ダンプに出すバイト列。
+  ///
+  /// ファイルに入っていたバイトを持つタグ（バイナリタグ）だけに出す。
+  /// 文字列や数値は生値の切替で中身が見えるので、行を増やさない。
+  Uint8List? _dump(TagRecord tag) => tag.bytes;
+}
+
+/// 16 進ダンプ（SPEC FR-V3）。
+class _HexDump extends StatelessWidget {
+  const _HexDump({required this.tag, required this.bytes});
+
+  final TagRecord tag;
+  final Uint8List bytes;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final total = tag.byteLength ?? bytes.length;
+    final truncated = total > bytes.length;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 0, 8, 6),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (truncated)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                tag.printValue,
+                '全 $total バイトのうち先頭 ${bytes.length} バイト',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: tag.isBinary || mixed
-                      ? theme.colorScheme.outline
-                      : null,
-                  fontStyle: mixed ? FontStyle.italic : null,
+                  color: theme.colorScheme.outline,
                 ),
               ),
             ),
-            // 要約への出し入れ（SPEC FR-V2）。
-            IconButton(
-              icon: Icon(
-                pinned ? Icons.push_pin : Icons.push_pin_outlined,
-                size: 16,
-                color: pinned ? theme.colorScheme.primary : null,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SelectableText(
+              hexDump(bytes),
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 11,
+                height: 1.4,
               ),
-              tooltip: pinned ? '要約から外す' : '要約に出す',
-              visualDensity: VisualDensity.compact,
-              onPressed: () =>
-                  ref.read(settingsProvider.notifier).togglePin(key),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

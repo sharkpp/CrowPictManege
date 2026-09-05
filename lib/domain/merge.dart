@@ -33,6 +33,8 @@ Map<String, String> mergeFields(List<Map<String, String>> perAsset) {
 ///
 /// 同じ `Group:Name` の値が食い違えば [mixedValueLabel] に置き換える。
 /// バイナリタグは値の比較ができないので、1 件でも食い違えば同様に扱う。
+/// 16 進ダンプのバイト列は 1 件のときだけ持つ。複数の対象を並べて 1 本の
+/// ダンプにはできないためである。
 List<TagRecord> mergeTagRecords(List<List<TagRecord>> perAsset) {
   if (perAsset.isEmpty) return const [];
   if (perAsset.length == 1) return perAsset.first;
@@ -40,14 +42,18 @@ List<TagRecord> mergeTagRecords(List<List<TagRecord>> perAsset) {
   // 最初に見つけた定義を代表として使い、値だけを畳む。
   final represent = <String, TagRecord>{};
   final perAssetValues = <Map<String, String>>[];
+  final perAssetRaw = <Map<String, String>>[];
   for (final tags in perAsset) {
     final values = <String, String>{};
+    final raw = <String, String>{};
     for (final tag in tags) {
       final key = '${tag.group}:${tag.name}';
       represent.putIfAbsent(key, () => tag);
       values[key] = tag.printValue;
+      raw[key] = tag.rawValue;
     }
     perAssetValues.add(values);
+    perAssetRaw.add(raw);
   }
 
   final merged = <TagRecord>[];
@@ -61,6 +67,7 @@ List<TagRecord> mergeTagRecords(List<List<TagRecord>> perAsset) {
       name: tag.name,
       description: tag.description,
       printValue: value ?? mixedValueLabel,
+      rawValue: _mergedValue(entry.key, perAssetRaw) ?? mixedValueLabel,
       isBinary: tag.isBinary && value != null,
     ));
   }

@@ -78,24 +78,43 @@ AssetSummary readSummarySync(String path, {Duration? defaultOffset}) {
 /// ファイルのメタ情報ではないのでツリーには出さない（SPEC FR-V7）。
 const _engineGroup = 'CrowExif';
 
+/// 16 進ダンプに載せるバイト数の上限。
+///
+/// 埋め込み JPEG のようなタグは数 MB になる。全部を Isolate の境界を越えて
+/// 運んでも読めないので、先頭だけを持つ（SPEC FR-V3）。
+const _dumpLimit = 512;
+
 /// [readAllTags] の同期版。Isolate の中から呼ぶ。
 List<TagRecord> readAllTagsSync(String path) {
   final metadata = readFile(path, options: const ReadOptions(composite: true));
   return [
     for (final entry in metadata.uniqueEntries)
       if (entry.groups.family0 != _engineGroup)
-      TagRecord(
-        group: entry.groups.family0,
-        subGroup: entry.groups.family1,
-        category: entry.groups.family2,
-        name: entry.name,
-        description: entry.description,
-        printValue: entry.isBinary
-            ? '(バイナリ ${entry.binaryPlaceholder!.length} バイト)'
-            : formatValueForText(entry.printValue),
-        isBinary: entry.isBinary,
-      ),
+        TagRecord(
+          group: entry.groups.family0,
+          subGroup: entry.groups.family1,
+          category: entry.groups.family2,
+          name: entry.name,
+          description: entry.description,
+          printValue: entry.isBinary
+              ? '(バイナリ ${entry.binaryPlaceholder!.length} バイト)'
+              : formatValueForText(entry.printValue),
+          // 変換前の値。表示値と同じなら切替に意味はない（SPEC FR-V3）。
+          rawValue: entry.isBinary
+              ? '(バイナリ ${entry.binaryPlaceholder!.length} バイト)'
+              : formatValueForText(entry.value ?? entry.printValue),
+          bytes: _dumpBytes(entry.binaryPlaceholder),
+          byteLength: entry.binaryPlaceholder?.length,
+          isBinary: entry.isBinary,
+        ),
   ];
+}
+
+/// ダンプに載せる先頭部分を切り出す。
+Uint8List? _dumpBytes(Uint8List? bytes) {
+  if (bytes == null) return null;
+  if (bytes.length <= _dumpLimit) return Uint8List.fromList(bytes);
+  return Uint8List.fromList(bytes.sublist(0, _dumpLimit));
 }
 
 /// タグを名前で引ける形に均す。値は数値・文字列のいずれかに揃える。

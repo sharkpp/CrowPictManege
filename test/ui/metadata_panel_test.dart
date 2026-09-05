@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/domain/models.dart';
@@ -33,55 +35,84 @@ class _FakeMetadata implements MetadataPort {
 
   @override
   Future<List<TagRecord>> readAllTags(String path) async => [
-        for (var i = 0; i < 30; i++)
-          TagRecord(
-            group: 'EXIF',
-            subGroup: 'IFD0',
-            category: 'other',
-            name: 'Tag$i',
-            description: 'タグ $i',
-            printValue: '値 $i',
-          ),
-      ];
+    for (var i = 0; i < 30; i++)
+      TagRecord(
+        group: 'EXIF',
+        subGroup: 'IFD0',
+        category: 'other',
+        name: 'Tag$i',
+        description: 'タグ $i',
+        printValue: '値 $i',
+      ),
+    // 表示値と生値が食い違うタグ（SPEC FR-V3）。
+    TagRecord(
+      group: 'EXIF',
+      subGroup: 'IFD0',
+      category: 'other',
+      name: 'ExposureTime',
+      description: '露出時間',
+      printValue: '1/125',
+      rawValue: '0.008',
+    ),
+    // 16 進ダンプを持つバイナリタグ（SPEC FR-V3）。
+    TagRecord(
+      group: 'EXIF',
+      subGroup: 'IFD1',
+      category: 'preview',
+      name: 'ThumbnailImage',
+      description: 'サムネイル',
+      printValue: '(バイナリ 2 バイト)',
+      bytes: Uint8List.fromList([0x41, 0x42]),
+      byteLength: 2,
+      isBinary: true,
+    ),
+  ];
 }
 
 /// 要約（ピン留め）と全タグの表示（SPEC FR-V1、FR-V2）。
 void main() {
-  Future<ProviderContainer> pumpPanel(WidgetTester tester, double height) async {
+  Future<ProviderContainer> pumpPanel(
+    WidgetTester tester,
+    double height,
+  ) async {
     // パネルの全体が画面に入るよう、窓の方を合わせる。
     tester.view.physicalSize = Size(500, height + 40);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    final container = ProviderContainer(overrides: [
-      displayedAssetsProvider.overrideWithValue([_asset]),
-      metadataPortProvider.overrideWithValue(_FakeMetadata()),
-      // 設定はプロセス内に閉じたカタログへ保存する。
-      catalogProvider.overrideWith((ref) {
-        final catalog = DriftCatalog(CatalogDatabase.memory());
-        ref.onDispose(catalog.close);
-        return catalog;
-      }),
-    ]);
+    final container = ProviderContainer(
+      overrides: [
+        displayedAssetsProvider.overrideWithValue([_asset]),
+        metadataPortProvider.overrideWithValue(_FakeMetadata()),
+        // 設定はプロセス内に閉じたカタログへ保存する。
+        catalogProvider.overrideWith((ref) {
+          final catalog = DriftCatalog(CatalogDatabase.memory());
+          ref.onDispose(catalog.close);
+          return catalog;
+        }),
+      ],
+    );
     addTearDown(container.dispose);
-    container
-        .read(selectionProvider.notifier)
-        .tap(_asset.path, [_asset.path], SelectionGesture.replace);
+    container.read(selectionProvider.notifier).tap(_asset.path, [
+      _asset.path,
+    ], SelectionGesture.replace);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 380,
-              height: height,
-              child: const MetadataPanel(),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 380,
+                height: height,
+                child: const MetadataPanel(),
+              ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     return container;
   }
@@ -104,11 +135,11 @@ void main() {
 
     // 同じスクロールをたどると全タグに届く。
     await tester.scrollUntilVisible(
-      find.text('EXIF (30)'),
+      find.text('EXIF (32)'),
       120,
       scrollable: scrollable,
     );
-    expect(find.text('EXIF (30)'), findsOneWidget);
+    expect(find.text('EXIF (32)'), findsOneWidget);
   });
 
   testWidgets('高さが低くても溢れない', (tester) async {
@@ -150,6 +181,42 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tag0'), findsWidgets);
     expect(find.text('値 0'), findsWidgets);
+  });
+
+  testWidgets('生値に切り替えると変換前の値を出す（SPEC FR-V3）', (tester) async {
+    await pumpPanel(tester, 700);
+
+    await tester.scrollUntilVisible(
+      find.text('1/125'),
+      120,
+      scrollable: scrollable,
+    );
+    expect(find.text('0.008'), findsNothing);
+
+    await tester.tap(find.byTooltip('生値を出す'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('0.008'), findsOneWidget);
+    expect(find.text('1/125'), findsNothing);
+  });
+
+  testWidgets('16 進ダンプはバイナリタグに出せる（SPEC FR-V3）', (tester) async {
+    await pumpPanel(tester, 700);
+
+    await tester.scrollUntilVisible(
+      find.byTooltip('16 進ダンプ'),
+      120,
+      scrollable: scrollable,
+    );
+    expect(find.byTooltip('16 進ダンプ'), findsOneWidget, reason: 'バイナリタグだけ');
+
+    await tester.ensureVisible(find.byTooltip('16 進ダンプ'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('16 進ダンプ'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('41 42'), findsOneWidget);
+    expect(find.textContaining('|AB|'), findsOneWidget);
   });
 
   testWidgets('要約からは外せる', (tester) async {

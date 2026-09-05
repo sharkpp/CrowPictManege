@@ -201,14 +201,34 @@ class TagRecord {
     required this.name,
     required this.description,
     required this.printValue,
+    String? rawValue,
+    this.bytes,
+    this.byteLength,
     this.isBinary = false,
-  });
+  }) : rawValue = rawValue ?? printValue;
 
   final String group;
   final String subGroup;
   final String category;
   final String name;
   final String description;
+
+  /// 人が読む形の値。
   final String printValue;
+
+  /// 変換前の値（SPEC FR-V3）。表示値と同じこともある。
+  final String rawValue;
+
+  /// 16 進ダンプに出すバイト列（SPEC FR-V3）。
+  ///
+  /// バイナリタグは大きいことがあるので先頭だけを持つ。全長は [byteLength]。
+  final Uint8List? bytes;
+
+  /// ファイルに入っているバイト数。[bytes] より大きいことがある。
+  final int? byteLength;
+
   final bool isBinary;
+
+  /// 表示値と生値が食い違うか。切替に意味があるかの判断に使う。
+  bool get hasDistinctRaw => rawValue != printValue;
 }

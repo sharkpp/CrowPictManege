@@ -2,21 +2,32 @@ import 'package:crow_pict_manege/domain/merge.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-TagRecord tag(String group, String name, String value, {bool binary = false}) =>
-    TagRecord(
-      group: group,
-      subGroup: group,
-      category: 'other',
-      name: name,
-      description: name,
-      printValue: value,
-      isBinary: binary,
-    );
+TagRecord tag(
+  String group,
+  String name,
+  String value, {
+  bool binary = false,
+  String? raw,
+}) => TagRecord(
+  group: group,
+  subGroup: group,
+  category: 'other',
+  name: name,
+  description: name,
+  printValue: value,
+  rawValue: raw,
+  isBinary: binary,
+);
 
 void main() {
   group('mergeFields', () {
     test('1 件ならそのまま返す', () {
-      expect(mergeFields([{'機材': 'X-T5'}]), {'機材': 'X-T5'});
+      expect(
+        mergeFields([
+          {'機材': 'X-T5'},
+        ]),
+        {'機材': 'X-T5'},
+      );
     });
 
     test('共通の値はそのまま、食い違う値は「複数の値」になる', () {
@@ -66,7 +77,9 @@ void main() {
         [tag('EXIF', 'CreateDate', '2024'), tag('XMP', 'CreateDate', '2024')],
         [tag('EXIF', 'CreateDate', '2024'), tag('XMP', 'CreateDate', '2025')],
       ]);
-      final byKey = {for (final t in merged) '${t.group}:${t.name}': t.printValue};
+      final byKey = {
+        for (final t in merged) '${t.group}:${t.name}': t.printValue,
+      };
       expect(byKey['EXIF:CreateDate'], '2024');
       expect(byKey['XMP:CreateDate'], mixedValueLabel);
     });
