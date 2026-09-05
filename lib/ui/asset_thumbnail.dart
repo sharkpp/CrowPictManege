@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models.dart';
+import '../domain/orientation.dart';
 import '../domain/supported_formats.dart';
 import '../state/library.dart';
 
@@ -12,11 +13,23 @@ import '../state/library.dart';
 ///
 /// 埋め込みプレビューを優先し、無い場合にのみデコードする（SPEC FR-B5）。
 /// デコードは表示寸法を指定して行い、原寸には展開しない。
+///
+/// 向きの扱いは 2 通りある。ファイルを復号した画像は Flutter が Exif の
+/// Orientation を適用して返すのでそのまま出す。埋め込みサムネイルは
+/// 向きの情報を持たないので、[MediaAsset] の Orientation でこちらが回す。
 class AssetThumbnail extends ConsumerStatefulWidget {
-  const AssetThumbnail({super.key, required this.asset, required this.size});
+  const AssetThumbnail({
+    super.key,
+    required this.asset,
+    required this.size,
+    this.fit = BoxFit.cover,
+  });
 
   final MediaAsset asset;
   final double size;
+
+  /// 一覧では切り抜き、ギャラリーでは全体を収める。
+  final BoxFit fit;
 
   @override
   ConsumerState<AssetThumbnail> createState() => _AssetThumbnailState();
@@ -68,30 +81,44 @@ class _AssetThumbnailState extends ConsumerState<AssetThumbnail> {
     if (upgrade) {
       return Image.file(
         File(widget.asset.path),
-        fit: BoxFit.cover,
+        fit: widget.fit,
         cacheWidth: pixels,
         gaplessPlayback: true,
         frameBuilder: (context, child, frame, wasSynchronous) {
           if (frame != null || wasSynchronous) return child;
           return bytes == null
               ? _placeholder(context)
-              : Image.memory(bytes, fit: BoxFit.cover, cacheWidth: pixels);
+              : _oriented(
+                  Image.memory(bytes, fit: widget.fit, cacheWidth: pixels),
+                );
         },
-        errorBuilder: (context, _, _) =>
-            bytes == null ? _placeholder(context) : Image.memory(bytes, fit: BoxFit.cover),
+        errorBuilder: (context, _, _) => bytes == null
+            ? _placeholder(context)
+            : _oriented(Image.memory(bytes, fit: widget.fit)),
       );
     }
 
     if (bytes != null) {
-      return Image.memory(
+      return _oriented(Image.memory(
         bytes,
-        fit: BoxFit.cover,
+        fit: widget.fit,
         cacheWidth: pixels,
         gaplessPlayback: true,
         errorBuilder: (context, _, _) => _placeholder(context),
-      );
+      ));
     }
     return _placeholder(context);
+  }
+
+  /// 埋め込みサムネイルを正しい向きにする。
+  Widget _oriented(Widget child) {
+    final transform = orientationTransform(widget.asset.summary?.orientation);
+    if (transform.quarterTurns == 0 && !transform.mirrored) return child;
+    // 回転を先に、鏡映を後に掛ける。
+    return Transform.flip(
+      flipX: transform.mirrored,
+      child: RotatedBox(quarterTurns: transform.quarterTurns, child: child),
+    );
   }
 
   Widget _placeholder(BuildContext context) {
