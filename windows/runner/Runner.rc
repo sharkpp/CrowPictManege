@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "net.sharkpp" "\0"
-            VALUE "FileDescription", "crow_pict_manege" "\0"
+            VALUE "FileDescription", "Crow Exif Manage" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "crow_pict_manege" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 net.sharkpp. All rights reserved." "\0"
             VALUE "OriginalFilename", "crow_pict_manege.exe" "\0"
-            VALUE "ProductName", "crow_pict_manege" "\0"
+            VALUE "ProductName", "Crow Exif Manage" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'app_info.dart';
 import 'ui/browse_page.dart';
 
 void main() {
@@ -13,7 +14,7 @@ class CrowPictManegeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CrowPictManege',
+      title: appDisplayName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF3F6E8C),

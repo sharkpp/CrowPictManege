@@ -68,16 +68,22 @@ AssetSummary readSummarySync(String path, {Duration? defaultOffset}) {
     height: tags.integer('ImageHeight') ?? tags.integer('ExifImageHeight'),
     duration: _duration(tags),
     rotation: tags.integer('Rotation'),
+    orientation: tags.integer('IFD0:Orientation') ?? tags.integer('Orientation'),
     embeddedThumbnail: _embeddedThumbnail(metadata),
     warnings: metadata.warnings,
   );
 }
+
+/// crowexif 自身のバージョンを載せる疑似グループ。
+/// ファイルのメタ情報ではないのでツリーには出さない（SPEC FR-V7）。
+const _engineGroup = 'CrowExif';
 
 /// [readAllTags] の同期版。Isolate の中から呼ぶ。
 List<TagRecord> readAllTagsSync(String path) {
   final metadata = readFile(path, options: const ReadOptions(composite: true));
   return [
     for (final entry in metadata.uniqueEntries)
+      if (entry.groups.family0 != _engineGroup)
       TagRecord(
         group: entry.groups.family0,
         subGroup: entry.groups.family1,

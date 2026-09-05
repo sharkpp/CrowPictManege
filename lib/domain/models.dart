@@ -119,6 +119,7 @@ class AssetSummary {
     this.height,
     this.duration,
     this.rotation,
+    this.orientation,
     this.embeddedThumbnail,
     this.warnings = const [],
   });
@@ -130,7 +131,12 @@ class AssetSummary {
   final int? width;
   final int? height;
   final Duration? duration;
+
+  /// 動画の回転角（QuickTime）。
   final int? rotation;
+
+  /// Exif の Orientation（1〜8）。埋め込みサムネイルを出す向きに使う。
+  final int? orientation;
 
   /// Exif サムネイルや RAW プレビューなど、ファイルに入っていた表示用画像。
   final Uint8List? embeddedThumbnail;
