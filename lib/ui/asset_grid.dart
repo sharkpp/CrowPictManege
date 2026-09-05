@@ -1,23 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/folder_view.dart';
 import '../domain/models.dart';
-import '../state/library.dart';
+import '../state/selection.dart';
 import 'asset_thumbnail.dart';
+import 'folder_tile.dart';
 import 'format.dart';
 
-/// グリッド表示（SPEC FR-B2）。
+/// サムネイル表示（SPEC FR-B2、FR-B10）。
 ///
 /// 表示範囲だけを構築するので、件数が増えても構築コストは一定に保たれる。
+/// フォルダ表示のときは下位フォルダを先に並べる（SPEC FR-B11）。
 class AssetGrid extends ConsumerWidget {
-  const AssetGrid({super.key, required this.assets, required this.tileSize});
+  const AssetGrid({
+    super.key,
+    required this.assets,
+    required this.tileSize,
+    this.folders = const [],
+  });
 
   final List<MediaAsset> assets;
   final double tileSize;
+  final List<FolderGroup> folders;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(selectedPathProvider);
+    final selection = ref.watch(selectionProvider);
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
@@ -26,15 +35,22 @@ class AssetGrid extends ConsumerWidget {
         crossAxisSpacing: 8,
         childAspectRatio: 0.82,
       ),
-      itemCount: assets.length,
+      itemCount: folders.length + assets.length,
       itemBuilder: (context, index) {
-        final asset = assets[index];
+        if (index < folders.length) {
+          return FolderTile(folder: folders[index], size: tileSize);
+        }
+        final asset = assets[index - folders.length];
         return _GridTile(
           asset: asset,
           size: tileSize,
-          selected: asset.path == selected,
-          onTap: () =>
-              ref.read(selectedPathProvider.notifier).select(asset.path),
+          selected: selection.contains(asset.path),
+          primary: selection.primary == asset.path,
+          onTap: () => ref.read(selectionProvider.notifier).tap(
+                asset.path,
+                [for (final a in assets) a.path],
+                gestureFromKeyboard(),
+              ),
         );
       },
     );
@@ -46,12 +62,16 @@ class _GridTile extends StatelessWidget {
     required this.asset,
     required this.size,
     required this.selected,
+    required this.primary,
     required this.onTap,
   });
 
   final MediaAsset asset;
   final double size;
   final bool selected;
+
+  /// 選択集合のうちメタ情報の主対象になっている 1 件。
+  final bool primary;
   final VoidCallback onTap;
 
   @override
@@ -64,8 +84,13 @@ class _GridTile extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
+          color: selected ? theme.colorScheme.primaryContainer : null,
           border: Border.all(
-            color: selected ? theme.colorScheme.primary : Colors.transparent,
+            color: selected
+                ? (primary
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.primary.withValues(alpha: 0.45))
+                : Colors.transparent,
             width: 2,
           ),
         ),
@@ -78,7 +103,13 @@ class _GridTile extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    AssetThumbnail(asset: asset, size: size),
+                    ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
+                    // 切り抜かず、縦位置・横位置が分かるように収める（SPEC FR-B2）。
+                    AssetThumbnail(
+                      asset: asset,
+                      size: size,
+                      fit: BoxFit.contain,
+                    ),
                     if (asset.summary?.duration != null)
                       Positioned(
                         right: 4,
