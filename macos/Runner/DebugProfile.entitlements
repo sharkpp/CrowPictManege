@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- 配布は .dmg（署名・公証）とする。ブックマークと履歴（FR-B14、FR-B15）が
+	     再起動後も同じフォルダを開けることを要求するため、サンドボックスは用いない。 -->
 	<key>com.apple.security.app-sandbox</key>
-	<true/>
+	<false/>
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
 	<key>com.apple.security.cs.allow-jit</key>

@@ -22,10 +22,27 @@ dependencies:
   intl: ^0.20.2
   path: ^1.9.0
 
+  # 設定・キャッシュの保存先（OS ごとのアプリ領域）。
+  path_provider: ^2.1.6
+  # ウィンドウへのフォルダのドロップを受け取る（FR-B16）。
+  desktop_drop: ^0.8.2
+  # 知覚ハッシュのための縮小・グレースケール化（FR-Q4）。pure Dart なので Isolate で回せる。
+  image: ^4.9.2
+  # カタログ（設定・ブックマーク・履歴・キャッシュ）。SQLite を全プラットフォームで共有する。
+  drift: ^2.34.3
+  # 地図表示。OSM のラスタタイルを使う（SPEC FR-M7）。
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+  # 近いマーカーの集約（SPEC FR-M1）。pure Dart。
+  supercluster: ^3.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  # drift のテーブル定義からアクセサを生成する。
+  drift_dev: ^2.34.0
+  build_runner: ^2.15.1
 
 flutter:
   uses-material-design: true
