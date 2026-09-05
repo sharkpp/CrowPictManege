@@ -51,3 +51,16 @@ String describeTimeBasis(CapturedAt captured) {
 
 String formatCoordinates(GeoPoint point) =>
     '${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}';
+
+/// 履歴の「いつ訪れたか」を短く表す。
+String formatRelativeTime(DateTime at) {
+  final elapsed = DateTime.now().difference(at);
+  if (elapsed.inMinutes < 1) return 'たった今';
+  if (elapsed.inHours < 1) return '${elapsed.inMinutes} 分前';
+  if (elapsed.inDays < 1) return '${elapsed.inHours} 時間前';
+  if (elapsed.inDays < 30) return '${elapsed.inDays} 日前';
+  return _dateTimeShort.format(at);
+}
+
+/// ファイル更新時刻などの素の日時。
+String formatDateTime(DateTime value) => _dateTimeShort.format(value);
