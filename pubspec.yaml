@@ -28,6 +28,8 @@ dependencies:
   desktop_drop: ^0.8.2
   # 知覚ハッシュのための縮小・グレースケール化（FR-Q4）。pure Dart なので Isolate で回せる。
   image: ^4.9.2
+  # 内容ハッシュ（SPEC §4.1、FR-B9）。pure Dart。
+  crypto: ^3.0.7
   # カタログ（設定・ブックマーク・履歴・キャッシュ）。SQLite を全プラットフォームで共有する。
   drift: ^2.34.3
   # 地図表示。OSM のラスタタイルを使う（SPEC FR-M7）。

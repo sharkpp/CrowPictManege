@@ -15,6 +15,7 @@ class CachedAsset {
     this.thumbnail,
     this.error,
     this.perceptualHash,
+    this.contentHash,
   });
 
   final String path;
@@ -30,7 +31,11 @@ class CachedAsset {
   /// 類似画像検索の知覚ハッシュ（SPEC FR-Q6）。未計算なら null。
   final int? perceptualHash;
 
-  CachedAsset copyWith({int? perceptualHash}) => CachedAsset(
+  /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
+  final String? contentHash;
+
+  CachedAsset copyWith({int? perceptualHash, String? contentHash}) =>
+      CachedAsset(
         path: path,
         size: size,
         fileModifiedAt: fileModifiedAt,
@@ -38,6 +43,7 @@ class CachedAsset {
         thumbnail: thumbnail,
         error: error,
         perceptualHash: perceptualHash ?? this.perceptualHash,
+        contentHash: contentHash ?? this.contentHash,
       );
 
   /// 実ファイルの属性と一致しているか。

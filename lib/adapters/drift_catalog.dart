@@ -91,6 +91,7 @@ class DriftCatalog implements CatalogPort {
           thumbnail: row.thumbnail,
           error: row.error,
           perceptualHash: row.perceptualHash,
+          contentHash: row.contentHash,
         );
       }
     }
@@ -114,6 +115,7 @@ class DriftCatalog implements CatalogPort {
               thumbnail: entry.thumbnail,
               error: entry.error,
               perceptualHash: entry.perceptualHash,
+              contentHash: entry.contentHash,
               updatedAt: DateTime.now(),
             ),
         ],

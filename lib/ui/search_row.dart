@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../domain/duplicates.dart';
 import '../domain/perceptual_hash.dart';
 import '../domain/search.dart';
 import '../state/search.dart';
@@ -36,6 +37,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
     final notifier = ref.read(searchQueryProvider.notifier);
 
     if (search.isSimilar) return const _SimilarRow();
+    if (search.isDuplicates) return const _DuplicateRow();
 
     return SizedBox(
       height: 44,
@@ -76,23 +78,26 @@ class _SearchRowState extends ConsumerState<SearchRow> {
             selected: {query.mode},
             showSelectedIcon: false,
             style: const ButtonStyle(visualDensity: VisualDensity.compact),
-            onSelectionChanged: (value) =>
-                notifier.update((current) => current.copyWith(mode: value.first)),
+            onSelectionChanged: (value) => notifier.update(
+              (current) => current.copyWith(mode: value.first),
+            ),
           ),
           const SizedBox(width: 12),
           // 範囲（SPEC FR-Q3）。
           FilterChip(
             label: const Text('現在のフォルダ'),
             selected: query.includeCurrent,
-            onSelected: (value) => notifier
-                .update((current) => current.copyWith(includeCurrent: value)),
+            onSelected: (value) => notifier.update(
+              (current) => current.copyWith(includeCurrent: value),
+            ),
           ),
           const SizedBox(width: 6),
           FilterChip(
             label: const Text('ブックマーク'),
             selected: query.includeBookmarks,
-            onSelected: (value) => notifier
-                .update((current) => current.copyWith(includeBookmarks: value)),
+            onSelected: (value) => notifier.update(
+              (current) => current.copyWith(includeBookmarks: value),
+            ),
           ),
           const SizedBox(width: 8),
           if (search.running)
@@ -151,6 +156,65 @@ class _SimilarRow extends ConsumerWidget {
           else
             Text('${search.results.length} 件'),
           const Spacer(),
+          TextButton.icon(
+            onPressed: notifier.clear,
+            icon: const Icon(Icons.close, size: 16),
+            label: const Text('やめる'),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+}
+
+/// 重複候補の状態（SPEC FR-B9）。
+///
+/// 結果は組ごとに隣り合わせて 1 本の並びに出す。何組あるか、どの根拠で
+/// まとまったかをここに出す。
+class _DuplicateRow extends ConsumerWidget {
+  const _DuplicateRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final search = ref.watch(searchProvider);
+    final notifier = ref.read(searchProvider.notifier);
+    final byReason = <DuplicateReason, int>{};
+    for (final group in search.duplicates) {
+      byReason.update(group.reason, (n) => n + 1, ifAbsent: () => 1);
+    }
+
+    return SizedBox(
+      height: 44,
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          const Icon(Icons.copy_all, size: 18),
+          const SizedBox(width: 8),
+          const Text('重複候補'),
+          const SizedBox(width: 12),
+          if (search.running)
+            Text('調べています… ${search.scanned} 件')
+          else if (search.duplicates.isEmpty)
+            const Text('見つかりませんでした')
+          else
+            Text('${search.duplicates.length} 組 / ${search.results.length} 件'),
+          const SizedBox(width: 12),
+          for (final entry in byReason.entries)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Chip(
+                label: Text('${entry.key.label} ${entry.value} 組'),
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          const Spacer(),
+          if (search.running)
+            TextButton.icon(
+              onPressed: notifier.stop,
+              icon: const Icon(Icons.stop, size: 16),
+              label: const Text('中止'),
+            ),
           TextButton.icon(
             onPressed: notifier.clear,
             icon: const Icon(Icons.close, size: 16),

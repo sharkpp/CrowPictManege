@@ -766,6 +766,17 @@ class $CachedAssetEntriesTable extends CachedAssetEntries
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _contentHashMeta = const VerificationMeta(
+    'contentHash',
+  );
+  @override
+  late final GeneratedColumn<String> contentHash = GeneratedColumn<String>(
+    'content_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -786,6 +797,7 @@ class $CachedAssetEntriesTable extends CachedAssetEntries
     thumbnail,
     error,
     perceptualHash,
+    contentHash,
     updatedAt,
   ];
   @override
@@ -854,6 +866,15 @@ class $CachedAssetEntriesTable extends CachedAssetEntries
         ),
       );
     }
+    if (data.containsKey('content_hash')) {
+      context.handle(
+        _contentHashMeta,
+        contentHash.isAcceptableOrUnknown(
+          data['content_hash']!,
+          _contentHashMeta,
+        ),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -899,6 +920,10 @@ class $CachedAssetEntriesTable extends CachedAssetEntries
         DriftSqlType.int,
         data['${effectivePrefix}perceptual_hash'],
       ),
+      contentHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_hash'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -923,6 +948,9 @@ class CachedAssetEntry extends DataClass
   final Uint8List? thumbnail;
   final String? error;
   final int? perceptualHash;
+
+  /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
+  final String? contentHash;
   final DateTime updatedAt;
   const CachedAssetEntry({
     required this.path,
@@ -932,6 +960,7 @@ class CachedAssetEntry extends DataClass
     this.thumbnail,
     this.error,
     this.perceptualHash,
+    this.contentHash,
     required this.updatedAt,
   });
   @override
@@ -951,6 +980,9 @@ class CachedAssetEntry extends DataClass
     }
     if (!nullToAbsent || perceptualHash != null) {
       map['perceptual_hash'] = Variable<int>(perceptualHash);
+    }
+    if (!nullToAbsent || contentHash != null) {
+      map['content_hash'] = Variable<String>(contentHash);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -973,6 +1005,9 @@ class CachedAssetEntry extends DataClass
       perceptualHash: perceptualHash == null && nullToAbsent
           ? const Value.absent()
           : Value(perceptualHash),
+      contentHash: contentHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contentHash),
       updatedAt: Value(updatedAt),
     );
   }
@@ -990,6 +1025,7 @@ class CachedAssetEntry extends DataClass
       thumbnail: serializer.fromJson<Uint8List?>(json['thumbnail']),
       error: serializer.fromJson<String?>(json['error']),
       perceptualHash: serializer.fromJson<int?>(json['perceptualHash']),
+      contentHash: serializer.fromJson<String?>(json['contentHash']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -1004,6 +1040,7 @@ class CachedAssetEntry extends DataClass
       'thumbnail': serializer.toJson<Uint8List?>(thumbnail),
       'error': serializer.toJson<String?>(error),
       'perceptualHash': serializer.toJson<int?>(perceptualHash),
+      'contentHash': serializer.toJson<String?>(contentHash),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -1016,6 +1053,7 @@ class CachedAssetEntry extends DataClass
     Value<Uint8List?> thumbnail = const Value.absent(),
     Value<String?> error = const Value.absent(),
     Value<int?> perceptualHash = const Value.absent(),
+    Value<String?> contentHash = const Value.absent(),
     DateTime? updatedAt,
   }) => CachedAssetEntry(
     path: path ?? this.path,
@@ -1027,6 +1065,7 @@ class CachedAssetEntry extends DataClass
     perceptualHash: perceptualHash.present
         ? perceptualHash.value
         : this.perceptualHash,
+    contentHash: contentHash.present ? contentHash.value : this.contentHash,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   CachedAssetEntry copyWithCompanion(CachedAssetEntriesCompanion data) {
@@ -1042,6 +1081,9 @@ class CachedAssetEntry extends DataClass
       perceptualHash: data.perceptualHash.present
           ? data.perceptualHash.value
           : this.perceptualHash,
+      contentHash: data.contentHash.present
+          ? data.contentHash.value
+          : this.contentHash,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -1056,6 +1098,7 @@ class CachedAssetEntry extends DataClass
           ..write('thumbnail: $thumbnail, ')
           ..write('error: $error, ')
           ..write('perceptualHash: $perceptualHash, ')
+          ..write('contentHash: $contentHash, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -1070,6 +1113,7 @@ class CachedAssetEntry extends DataClass
     $driftBlobEquality.hash(thumbnail),
     error,
     perceptualHash,
+    contentHash,
     updatedAt,
   );
   @override
@@ -1083,6 +1127,7 @@ class CachedAssetEntry extends DataClass
           $driftBlobEquality.equals(other.thumbnail, this.thumbnail) &&
           other.error == this.error &&
           other.perceptualHash == this.perceptualHash &&
+          other.contentHash == this.contentHash &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -1094,6 +1139,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
   final Value<Uint8List?> thumbnail;
   final Value<String?> error;
   final Value<int?> perceptualHash;
+  final Value<String?> contentHash;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const CachedAssetEntriesCompanion({
@@ -1104,6 +1150,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     this.thumbnail = const Value.absent(),
     this.error = const Value.absent(),
     this.perceptualHash = const Value.absent(),
+    this.contentHash = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1115,6 +1162,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     this.thumbnail = const Value.absent(),
     this.error = const Value.absent(),
     this.perceptualHash = const Value.absent(),
+    this.contentHash = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : path = Value(path),
@@ -1129,6 +1177,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     Expression<Uint8List>? thumbnail,
     Expression<String>? error,
     Expression<int>? perceptualHash,
+    Expression<String>? contentHash,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -1140,6 +1189,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
       if (thumbnail != null) 'thumbnail': thumbnail,
       if (error != null) 'error': error,
       if (perceptualHash != null) 'perceptual_hash': perceptualHash,
+      if (contentHash != null) 'content_hash': contentHash,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1153,6 +1203,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     Value<Uint8List?>? thumbnail,
     Value<String?>? error,
     Value<int?>? perceptualHash,
+    Value<String?>? contentHash,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -1164,6 +1215,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
       thumbnail: thumbnail ?? this.thumbnail,
       error: error ?? this.error,
       perceptualHash: perceptualHash ?? this.perceptualHash,
+      contentHash: contentHash ?? this.contentHash,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1193,6 +1245,9 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     if (perceptualHash.present) {
       map['perceptual_hash'] = Variable<int>(perceptualHash.value);
     }
+    if (contentHash.present) {
+      map['content_hash'] = Variable<String>(contentHash.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -1212,6 +1267,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
           ..write('thumbnail: $thumbnail, ')
           ..write('error: $error, ')
           ..write('perceptualHash: $perceptualHash, ')
+          ..write('contentHash: $contentHash, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1709,6 +1765,7 @@ typedef $$CachedAssetEntriesTableCreateCompanionBuilder =
       Value<Uint8List?> thumbnail,
       Value<String?> error,
       Value<int?> perceptualHash,
+      Value<String?> contentHash,
       required DateTime updatedAt,
       Value<int> rowid,
     });
@@ -1721,6 +1778,7 @@ typedef $$CachedAssetEntriesTableUpdateCompanionBuilder =
       Value<Uint8List?> thumbnail,
       Value<String?> error,
       Value<int?> perceptualHash,
+      Value<String?> contentHash,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -1766,6 +1824,11 @@ class $$CachedAssetEntriesTableFilterComposer
 
   ColumnFilters<int> get perceptualHash => $composableBuilder(
     column: $table.perceptualHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1819,6 +1882,11 @@ class $$CachedAssetEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -1856,6 +1924,11 @@ class $$CachedAssetEntriesTableAnnotationComposer
 
   GeneratedColumn<int> get perceptualHash => $composableBuilder(
     column: $table.perceptualHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentHash => $composableBuilder(
+    column: $table.contentHash,
     builder: (column) => column,
   );
 
@@ -1910,6 +1983,7 @@ class $$CachedAssetEntriesTableTableManager
                 Value<Uint8List?> thumbnail = const Value.absent(),
                 Value<String?> error = const Value.absent(),
                 Value<int?> perceptualHash = const Value.absent(),
+                Value<String?> contentHash = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CachedAssetEntriesCompanion(
@@ -1920,6 +1994,7 @@ class $$CachedAssetEntriesTableTableManager
                 thumbnail: thumbnail,
                 error: error,
                 perceptualHash: perceptualHash,
+                contentHash: contentHash,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -1932,6 +2007,7 @@ class $$CachedAssetEntriesTableTableManager
                 Value<Uint8List?> thumbnail = const Value.absent(),
                 Value<String?> error = const Value.absent(),
                 Value<int?> perceptualHash = const Value.absent(),
+                Value<String?> contentHash = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => CachedAssetEntriesCompanion.insert(
@@ -1942,6 +2018,7 @@ class $$CachedAssetEntriesTableTableManager
                 thumbnail: thumbnail,
                 error: error,
                 perceptualHash: perceptualHash,
+                contentHash: contentHash,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),

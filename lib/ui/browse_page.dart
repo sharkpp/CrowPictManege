@@ -201,6 +201,12 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           PopupMenuButton<void>(
             tooltip: 'その他',
             itemBuilder: (context) => [
+              // 重複候補（SPEC FR-B9）。いま開いているフォルダの走査結果を見る。
+              PopupMenuItem(
+                enabled: rootPath != null,
+                onTap: ref.read(searchProvider.notifier).startDuplicates,
+                child: const Text('重複候補を探す'),
+              ),
               PopupMenuItem(
                 onTap: () => showSettingsDialog(context),
                 child: const Text('設定'),

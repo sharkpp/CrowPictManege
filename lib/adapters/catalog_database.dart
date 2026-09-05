@@ -49,6 +49,9 @@ class CachedAssetEntries extends Table {
   BlobColumn get thumbnail => blob().nullable()();
   TextColumn get error => text().nullable()();
   IntColumn get perceptualHash => integer().nullable()();
+
+  /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
+  TextColumn get contentHash => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override
@@ -68,7 +71,7 @@ class CatalogDatabase extends _$CatalogDatabase {
   CatalogDatabase.memory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -76,6 +79,13 @@ class CatalogDatabase extends _$CatalogDatabase {
         onUpgrade: (m, from, to) async {
           // 2: 対象キャッシュ（FR-B17）を追加した。
           if (from < 2) await m.createTable(cachedAssetEntries);
+          // 3: 重複検出の内容ハッシュ（FR-B9）を足した。
+          if (from < 3) {
+            await m.addColumn(
+              cachedAssetEntries,
+              cachedAssetEntries.contentHash,
+            );
+          }
         },
       );
 
