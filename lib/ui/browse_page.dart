@@ -17,6 +17,7 @@ import '../state/search.dart';
 import '../state/selection.dart';
 import '../state/settings.dart';
 import 'asset_gallery.dart';
+import 'asset_preview.dart';
 import 'asset_map.dart';
 import 'asset_grid.dart';
 import 'asset_list.dart';
@@ -63,23 +64,37 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
     final library = ref.watch(libraryProvider);
     final searching = ref.watch(searchProvider).active;
     // 検索中はフォルダを並べず、結果だけを出す（SPEC §5.9）。
-    final folders =
-        searching ? const <FolderGroup>[] : ref.watch(folderListingProvider).folders;
+    final folders = searching
+        ? const <FolderGroup>[]
+        : ref.watch(folderListingProvider).folders;
     final assets = ref.watch(displayedAssetsProvider);
     final listing = FolderListing(folders: folders, assets: assets);
     final wide = MediaQuery.sizeOf(context).width >= 1200;
 
+    // 検索欄などに入力している間は、一覧のキー操作を働かせない。
+    VoidCallback unlessTyping(VoidCallback action) =>
+        () => _typingInTextField() ? null : action();
+
     return CallbackShortcuts(
       bindings: {
         // 全選択・選択解除・送り（SPEC FR-B8、FR-B10、NFR-6）。
-        const SingleActivator(LogicalKeyboardKey.keyA, meta: true): () =>
-            _selectAll(assets),
-        const SingleActivator(LogicalKeyboardKey.keyA, control: true): () =>
-            _selectAll(assets),
-        const SingleActivator(LogicalKeyboardKey.escape):
-            ref.read(selectionProvider.notifier).clear,
-        const SingleActivator(LogicalKeyboardKey.arrowRight): () => _step(assets, 1),
-        const SingleActivator(LogicalKeyboardKey.arrowLeft): () => _step(assets, -1),
+        const SingleActivator(LogicalKeyboardKey.keyA, meta: true):
+            unlessTyping(() => _selectAll(assets)),
+        const SingleActivator(LogicalKeyboardKey.keyA, control: true):
+            unlessTyping(() => _selectAll(assets)),
+        const SingleActivator(LogicalKeyboardKey.escape): unlessTyping(
+          ref.read(selectionProvider.notifier).clear,
+        ),
+        const SingleActivator(LogicalKeyboardKey.arrowRight): unlessTyping(
+          () => _step(assets, 1),
+        ),
+        const SingleActivator(LogicalKeyboardKey.arrowLeft): unlessTyping(
+          () => _step(assets, -1),
+        ),
+        // 単体プレビューを開く（SPEC FR-B7、NFR-6）。
+        const SingleActivator(LogicalKeyboardKey.enter): unlessTyping(
+          () => _preview(assets),
+        ),
       },
       child: Focus(
         autofocus: true,
@@ -93,9 +108,29 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
     );
   }
 
+  /// いまテキスト入力にフォーカスがあるか。
+  bool _typingInTextField() {
+    final context = FocusManager.instance.primaryFocus?.context;
+    if (context == null) return false;
+    return context.widget is EditableText ||
+        context.findAncestorWidgetOfExactType<EditableText>() != null;
+  }
+
   void _selectAll(List<MediaAsset> assets) => ref
       .read(selectionProvider.notifier)
       .selectAll([for (final asset in assets) asset.path]);
+
+  /// 主対象を全面で開く。何も選んでいなければ先頭を選んでから開く。
+  void _preview(List<MediaAsset> assets) {
+    if (assets.isEmpty) return;
+    final selection = ref.read(selectionProvider);
+    if (selection.primary == null) {
+      ref.read(selectionProvider.notifier).tap(assets.first.path, [
+        for (final asset in assets) asset.path,
+      ], SelectionGesture.replace);
+    }
+    showAssetPreview(context);
+  }
 
   void _step(List<MediaAsset> assets, int delta) => ref
       .read(selectionProvider.notifier)
@@ -209,9 +244,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
     final search = ref.watch(searchProvider);
     if (listing.assets.isEmpty && listing.folders.isEmpty) {
       if (search.active) {
-        return Center(
-          child: Text(search.running ? '検索しています…' : '見つかりませんでした'),
-        );
+        return Center(child: Text(search.running ? '検索しています…' : '見つかりませんでした'));
       }
       if (library.scanning) {
         return const Center(child: CircularProgressIndicator());
@@ -226,10 +259,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       children: [
         Expanded(child: _view(listing)),
         const VerticalDivider(width: 1),
-        SizedBox(
-          width: wide ? 380 : 320,
-          child: const MetadataPanel(),
-        ),
+        SizedBox(width: wide ? 380 : 320, child: const MetadataPanel()),
       ],
     );
   }
@@ -317,8 +347,9 @@ class _StatusBar extends StatelessWidget {
           if (state.errorCount > 0)
             Text(
               'エラー ${state.errorCount} 件',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.error),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
             ),
           const SizedBox(width: 12),
         ],

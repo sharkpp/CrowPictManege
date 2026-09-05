@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models.dart';
 import '../state/selection.dart';
+import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
 import 'format.dart';
 
@@ -45,16 +46,20 @@ class _Large extends StatelessWidget {
     return Stack(
       children: [
         Positioned.fill(
-          child: LayoutBuilder(
-            builder: (context, constraints) => InteractiveViewer(
-              maxScale: 8,
-              child: Center(
-                // 表示寸法を指定して復号する。原寸には展開しない（SPEC FR-B5）。
-                child: AssetThumbnail(
-                  key: ValueKey(asset.path),
-                  asset: asset,
-                  size: constraints.maxWidth,
-                  fit: BoxFit.contain,
+          // 二度押しで全面の単体プレビューへ移る（SPEC FR-B7）。
+          child: GestureDetector(
+            onDoubleTap: () => showAssetPreview(context),
+            child: LayoutBuilder(
+              builder: (context, constraints) => InteractiveViewer(
+                maxScale: 8,
+                child: Center(
+                  // 表示寸法を指定して復号する。原寸には展開しない（SPEC FR-B5）。
+                  child: AssetThumbnail(
+                    key: ValueKey(asset.path),
+                    asset: asset,
+                    size: constraints.maxWidth,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
@@ -80,6 +85,12 @@ class _Large extends StatelessWidget {
                 Text(
                   formatCapturedAt(asset.summary?.capturedAt),
                   style: theme.textTheme.bodySmall,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.fullscreen, size: 20),
+                  tooltip: '全面で見る',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => showAssetPreview(context),
                 ),
               ],
             ),
@@ -148,10 +159,10 @@ class _FilmstripState extends ConsumerState<_Filmstrip> {
             padding: const EdgeInsets.symmetric(horizontal: 2),
             child: InkWell(
               onTap: () => ref.read(selectionProvider.notifier).tap(
-                    asset.path,
-                    [for (final a in widget.assets) a.path],
-                    gestureFromKeyboard(),
-                  ),
+                asset.path,
+                [for (final a in widget.assets) a.path],
+                gestureFromKeyboard(),
+              ),
               child: Container(
                 decoration: BoxDecoration(
                   border: Border.all(

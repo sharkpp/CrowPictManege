@@ -9,6 +9,7 @@ import '../domain/settings.dart';
 import '../state/library.dart';
 import '../state/selection.dart';
 import '../state/settings.dart';
+import 'asset_preview.dart';
 import 'column_display.dart';
 import 'column_filter_dialog.dart';
 import 'column_settings_dialog.dart';
@@ -19,11 +20,7 @@ import 'folder_tile.dart';
 /// 列は設定で並べ替え・表示切替・幅の変更ができ（FR-B18）、
 /// 各列にフィルタを持つ（FR-B19）。見出し行と本体を分け、本体は表示範囲だけを構築する。
 class AssetList extends ConsumerWidget {
-  const AssetList({
-    super.key,
-    required this.assets,
-    this.folders = const [],
-  });
+  const AssetList({super.key, required this.assets, this.folders = const []});
 
   final List<MediaAsset> assets;
   final List<FolderGroup> folders;
@@ -53,10 +50,17 @@ class AssetList extends ConsumerWidget {
                 layouts: layouts,
                 selected: selection.contains(asset.path),
                 onTap: () => ref.read(selectionProvider.notifier).tap(
-                      asset.path,
-                      [for (final a in assets) a.path],
-                      gestureFromKeyboard(),
-                    ),
+                  asset.path,
+                  [for (final a in assets) a.path],
+                  gestureFromKeyboard(),
+                ),
+                // 二度押しで単体プレビューを開く（SPEC FR-B7）。
+                onOpen: () {
+                  ref.read(selectionProvider.notifier).tap(asset.path, [
+                    for (final a in assets) a.path,
+                  ], SelectionGesture.replace);
+                  showAssetPreview(context);
+                },
               );
             },
           ),
@@ -91,10 +95,7 @@ class _Header extends ConsumerWidget {
           children: [
             const SizedBox(width: 12),
             for (final layout in layouts)
-              _HeaderCell(
-                layout: layout,
-                filter: filters[layout.column],
-              ),
+              _HeaderCell(layout: layout, filter: filters[layout.column]),
             const Spacer(),
             SizedBox(
               width: _trailingWidth,
@@ -159,9 +160,11 @@ class _HeaderCell extends ConsumerWidget {
             behavior: HitTestBehavior.opaque,
             onHorizontalDragUpdate: (details) => ref
                 .read(settingsProvider.notifier)
-                .update((current) => current.copyWith(
-                      columns: _resized(current, details.delta.dx),
-                    )),
+                .update(
+                  (current) => current.copyWith(
+                    columns: _resized(current, details.delta.dx),
+                  ),
+                ),
             child: SizedBox(
               width: _handleWidth,
               child: Center(
@@ -179,13 +182,11 @@ class _HeaderCell extends ConsumerWidget {
   }
 
   List<ColumnLayout> _resized(AppSettings settings, double delta) => [
-        for (final current in settings.columnLayouts)
-          current.column == layout.column
-              ? current.copyWith(
-                  width: (current.width + delta).clamp(40, 600),
-                )
-              : current,
-      ];
+    for (final current in settings.columnLayouts)
+      current.column == layout.column
+          ? current.copyWith(width: (current.width + delta).clamp(40, 600))
+          : current,
+  ];
 }
 
 class _Row extends StatelessWidget {
@@ -194,12 +195,14 @@ class _Row extends StatelessWidget {
     required this.layouts,
     required this.selected,
     required this.onTap,
+    required this.onOpen,
   });
 
   final MediaAsset asset;
   final List<ColumnLayout> layouts;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +210,7 @@ class _Row extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onDoubleTap: onOpen,
       child: Container(
         color: selected ? theme.colorScheme.primaryContainer : null,
         alignment: Alignment.centerLeft,

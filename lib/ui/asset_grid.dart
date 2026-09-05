@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/folder_view.dart';
 import '../domain/models.dart';
 import '../state/selection.dart';
+import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
 import 'folder_tile.dart';
 import 'format.dart';
@@ -46,11 +47,16 @@ class AssetGrid extends ConsumerWidget {
           size: tileSize,
           selected: selection.contains(asset.path),
           primary: selection.primary == asset.path,
-          onTap: () => ref.read(selectionProvider.notifier).tap(
-                asset.path,
-                [for (final a in assets) a.path],
-                gestureFromKeyboard(),
-              ),
+          onTap: () => ref.read(selectionProvider.notifier).tap(asset.path, [
+            for (final a in assets) a.path,
+          ], gestureFromKeyboard()),
+          // 二度押しで単体プレビューを開く（SPEC FR-B7）。
+          onOpen: () {
+            ref.read(selectionProvider.notifier).tap(asset.path, [
+              for (final a in assets) a.path,
+            ], SelectionGesture.replace);
+            showAssetPreview(context);
+          },
         );
       },
     );
@@ -64,6 +70,7 @@ class _GridTile extends StatelessWidget {
     required this.selected,
     required this.primary,
     required this.onTap,
+    required this.onOpen,
   });
 
   final MediaAsset asset;
@@ -73,6 +80,7 @@ class _GridTile extends StatelessWidget {
   /// 選択集合のうちメタ情報の主対象になっている 1 件。
   final bool primary;
   final VoidCallback onTap;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +88,7 @@ class _GridTile extends StatelessWidget {
     final captured = asset.summary?.capturedAt;
     return InkWell(
       onTap: onTap,
+      onDoubleTap: onOpen,
       borderRadius: BorderRadius.circular(8),
       child: Container(
         decoration: BoxDecoration(
@@ -88,8 +97,8 @@ class _GridTile extends StatelessWidget {
           border: Border.all(
             color: selected
                 ? (primary
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.primary.withValues(alpha: 0.45))
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.primary.withValues(alpha: 0.45))
                 : Colors.transparent,
             width: 2,
           ),
@@ -103,7 +112,9 @@ class _GridTile extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    ColoredBox(color: theme.colorScheme.surfaceContainerHighest),
+                    ColoredBox(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                    ),
                     // 切り抜かず、縦位置・横位置が分かるように収める（SPEC FR-B2）。
                     AssetThumbnail(
                       asset: asset,
