@@ -5,10 +5,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../adapters/crowexif_metadata.dart';
 import '../adapters/file_system_source.dart';
+import '../domain/cached_asset.dart';
+import '../domain/column_filter.dart';
+import '../domain/columns.dart';
+import '../domain/folder_view.dart';
+import '../domain/merge.dart';
 import '../domain/models.dart';
+import '../domain/settings.dart';
 import '../ports/metadata_port.dart';
+import '../services/parallel.dart';
 import '../services/summary_loader.dart';
 import '../services/thumbnail_cache.dart';
+import 'places.dart';
+import 'selection.dart';
+import 'settings.dart';
 
 final metadataPortProvider = Provider<MetadataPort>(
   (ref) => const CrowexifMetadata(),
@@ -23,14 +33,35 @@ final allTagsProvider = FutureProvider.family<List<TagRecord>, String>(
   (ref, path) => ref.watch(metadataPortProvider).readAllTags(path),
 );
 
-enum SortMode {
-  capturedAt('撮影時刻'),
-  name('ファイル名'),
-  size('サイズ');
+/// 複数選択時に全タグを読む対象の上限。これを超える分は読まない。
+const maxTagTargets = 100;
 
-  const SortMode(this.label);
-  final String label;
-}
+/// 選択集合の全タグを畳んだ結果（SPEC FR-V4）。
+///
+/// family のキーは値として等しくなければならないため、パスの一覧は
+/// [tagTargetsKey] で 1 本の文字列にして渡す。
+final mergedTagsProvider = FutureProvider.family<List<TagRecord>, String>(
+  (ref, key) async {
+    final paths = key.split('\n');
+    if (paths.length == 1) {
+      return ref.watch(allTagsProvider(paths.first).future);
+    }
+    final port = ref.watch(metadataPortProvider);
+    final perAsset = await mapWithConcurrency(
+      paths,
+      4,
+      port.readAllTags,
+      onError: (_, _) => const <TagRecord>[],
+    );
+    return mergeTagRecords([
+      for (final tags in perAsset)
+        if (tags.isNotEmpty) tags,
+    ]);
+  },
+);
+
+String tagTargetsKey(Iterable<String> paths) =>
+    paths.take(maxTagTargets).join('\n');
 
 @immutable
 class LibraryState {
@@ -117,35 +148,84 @@ class LibraryNotifier extends Notifier<LibraryState> {
   }
 
   Future<void> _analyze(int generation) async {
-    final loader = SummaryLoader(
-      ref.read(metadataPortProvider),
-      concurrency: _concurrency,
-    );
-    final cache = ref.read(thumbnailCacheProvider);
+    final catalog = ref.read(catalogProvider);
+    final thumbnails = ref.read(thumbnailCacheProvider);
     final index = {
       for (var i = 0; i < state.assets.length; i++) state.assets[i].path: i,
     };
 
-    await for (final batch
-        in loader.run([for (final asset in state.assets) asset.path])) {
+    // まずキャッシュで埋める。2 回目以降の表示を待たせないため（SPEC FR-B17）。
+    final cached = await catalog.cachedAssets(index.keys.toList());
+    if (generation != _generation) return;
+    final pending = <String>[];
+    {
+      final assets = List.of(state.assets);
+      var analyzed = 0;
+      var errors = 0;
+      for (var i = 0; i < assets.length; i++) {
+        final asset = assets[i];
+        final entry = cached[asset.path];
+        if (entry == null || !entry.matches(asset.size, asset.fileModifiedAt)) {
+          pending.add(asset.path);
+          continue;
+        }
+        if (entry.summary != null) {
+          thumbnails.put(asset.path, entry.thumbnail);
+          assets[i] = asset.withSummary(entry.summary!);
+        } else {
+          assets[i] = asset.withError(entry.error ?? '読み取りに失敗しました');
+          errors++;
+        }
+        analyzed++;
+      }
+      state = state.copyWith(
+        assets: assets,
+        analyzed: analyzed,
+        errorCount: errors,
+        scanning: pending.isNotEmpty,
+      );
+    }
+
+    if (pending.isEmpty) {
+      state = state.copyWith(scanning: false);
+      _dropMissingFromSelection();
+      return;
+    }
+
+    final loader = SummaryLoader(
+      ref.read(metadataPortProvider),
+      concurrency: _concurrency,
+    );
+
+    await for (final batch in loader.run(pending)) {
       if (generation != _generation) return;
       final assets = List.of(state.assets);
       var analyzed = state.analyzed;
       var errors = state.errorCount;
+      final toStore = <CachedAsset>[];
 
       for (final entry in batch.entries) {
         final at = index[entry.key];
         if (at == null) continue;
+        final asset = assets[at];
         final (summary, error) = entry.value;
         if (summary != null) {
           // サムネイルは上限付きキャッシュへ移し、一覧の側では保持しない。
-          cache.put(entry.key, summary.embeddedThumbnail);
-          assets[at] = assets[at].withSummary(summary);
+          thumbnails.put(entry.key, summary.embeddedThumbnail);
+          assets[at] = asset.withSummary(summary);
         } else {
-          assets[at] = assets[at].withError(error ?? '読み取りに失敗しました');
+          assets[at] = asset.withError(error ?? '読み取りに失敗しました');
           errors++;
         }
         analyzed++;
+        toStore.add(CachedAsset(
+          path: asset.path,
+          size: asset.size,
+          fileModifiedAt: asset.fileModifiedAt,
+          summary: summary,
+          thumbnail: summary?.embeddedThumbnail,
+          error: summary == null ? (error ?? '読み取りに失敗しました') : null,
+        ));
       }
 
       state = state.copyWith(
@@ -154,10 +234,17 @@ class LibraryNotifier extends Notifier<LibraryState> {
         errorCount: errors,
         scanning: analyzed < assets.length,
       );
+      await catalog.storeCachedAssets(toStore);
     }
     if (generation != _generation) return;
     state = state.copyWith(scanning: false);
+    _dropMissingFromSelection();
   }
+
+  /// 走査のやり直しで消えた対象を選択集合から落とす。
+  void _dropMissingFromSelection() => ref
+      .read(selectionProvider.notifier)
+      .keepOnly({for (final asset in state.assets) asset.path});
 
   static int get _concurrency {
     final cores = defaultTargetPlatform == TargetPlatform.iOS ||
@@ -171,20 +258,10 @@ class LibraryNotifier extends Notifier<LibraryState> {
 final libraryProvider =
     NotifierProvider<LibraryNotifier, LibraryState>(LibraryNotifier.new);
 
-final sortModeProvider =
-    NotifierProvider<SortModeNotifier, SortMode>(SortModeNotifier.new);
-
-class SortModeNotifier extends Notifier<SortMode> {
-  @override
-  SortMode build() => SortMode.capturedAt;
-
-  void set(SortMode mode) => state = mode;
-}
-
 /// 並べ替えた一覧。並べ替えは元の一覧か指定が変わった時だけ行う。
 final sortedAssetsProvider = Provider<List<MediaAsset>>((ref) {
   final assets = List.of(ref.watch(libraryProvider).assets);
-  switch (ref.watch(sortModeProvider)) {
+  switch (ref.watch(settingsProvider).sortMode) {
     case SortMode.capturedAt:
       assets.sort((a, b) => a.sortKey.compareTo(b.sortKey));
     case SortMode.name:
@@ -195,12 +272,58 @@ final sortedAssetsProvider = Provider<List<MediaAsset>>((ref) {
   return assets;
 });
 
-final selectedPathProvider =
-    NotifierProvider<SelectedPathNotifier, String?>(SelectedPathNotifier.new);
+/// 列フィルタ（SPEC FR-B19）。列ごとに 1 つ持ち、すべてを満たすものを残す。
+final columnFiltersProvider = NotifierProvider<ColumnFiltersNotifier,
+    Map<AssetColumn, ColumnFilter>>(ColumnFiltersNotifier.new);
 
-class SelectedPathNotifier extends Notifier<String?> {
+class ColumnFiltersNotifier
+    extends Notifier<Map<AssetColumn, ColumnFilter>> {
   @override
-  String? build() => null;
+  Map<AssetColumn, ColumnFilter> build() => const {};
 
-  void select(String? path) => state = path;
+  void set(AssetColumn column, ColumnFilter filter) {
+    final filters = Map.of(state);
+    if (filter.isActive) {
+      filters[column] = filter;
+    } else {
+      filters.remove(column);
+    }
+    state = filters;
+  }
+
+  void clear(AssetColumn column) {
+    final filters = Map.of(state)..remove(column);
+    state = filters;
+  }
+
+  void clearAll() => state = const {};
 }
+
+/// 列フィルタを通した一覧。フィルタが無いときは並べ替えた一覧をそのまま返す。
+final filteredAssetsProvider = Provider<List<MediaAsset>>((ref) {
+  final filters = ref.watch(columnFiltersProvider);
+  final assets = ref.watch(sortedAssetsProvider);
+  if (filters.isEmpty) return assets;
+  return [
+    for (final asset in assets)
+      if (matchesColumnFilters(filters, asset)) asset,
+  ];
+});
+
+/// いま画面に出す中身（SPEC FR-B11）。
+///
+/// 平坦展開なら走査した全対象、フォルダ表示なら現在のフォルダの直下だけ。
+/// 走査そのものは常に再帰で 1 回だけ行い、この派生で切り替える。
+final folderListingProvider = Provider<FolderListing>((ref) {
+  final settings = ref.watch(settingsProvider);
+  final root = ref.watch(libraryProvider).rootPath;
+  final assets = ref.watch(filteredAssetsProvider);
+  if (root == null || settings.folderMode == FolderMode.flat) {
+    return FolderListing(folders: const [], assets: assets);
+  }
+  return folderListing(
+    root,
+    assets,
+    previewCount: settings.folderThumbnails,
+  );
+});
