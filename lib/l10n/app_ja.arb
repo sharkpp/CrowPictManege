@@ -724,5 +724,20 @@
         "type": "String"
       }
     }
-  }
+  },
+  "tagEditTitle": "{tag} を直す",
+  "@tagEditTitle": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "tagEditValue": "値",
+  "tagEditKindDateTime": "日時",
+  "tagEditKindNumber": "数値",
+  "tagEditKindText": "文字",
+  "tagEdit": "値を直す",
+  "tagClear": "このタグを消す",
+  "tagEditQueued": "編集に積んだ"
 }

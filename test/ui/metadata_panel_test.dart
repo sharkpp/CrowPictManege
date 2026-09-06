@@ -2,8 +2,10 @@ import 'dart:typed_data';
 
 import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
+import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/ports/metadata_port.dart';
+import 'package:crow_pict_manege/state/edits.dart';
 import 'package:crow_pict_manege/state/library.dart';
 import 'package:crow_pict_manege/state/places.dart';
 import 'package:crow_pict_manege/state/search.dart';
@@ -242,5 +244,71 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('撮影時刻'), findsNothing);
+  });
+
+  group('タグの直接編集（SPEC FR-E1）', () {
+    /// タグの行を選ぶ。編集の操作は選んだ行にだけ出す。
+    Future<void> selectTag(WidgetTester tester, String name) async {
+      await tester.ensureVisible(find.text(name));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('選んでいない行には編集の操作を出さない', (tester) async {
+      await pumpPanel(tester, 700);
+      await tester.ensureVisible(find.text('Tag0'));
+      await tester.pumpAndSettle();
+      expect(find.byTooltip('値を直す'), findsNothing);
+    });
+
+    testWidgets('選んだ行から値を直すと、編集に積まれる', (tester) async {
+      final container = await pumpPanel(tester, 700);
+      await selectTag(tester, 'Tag0');
+
+      await tester.tap(find.byTooltip('値を直す'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, '直した値');
+      await tester.tap(find.widgetWithText(FilledButton, '積む'));
+      await tester.pumpAndSettle();
+
+      final edit = container.read(editQueueProvider).edits.single as SetTag;
+      expect(edit.name, 'Tag0');
+      expect(edit.group, 'IFD0', reason: '下位グループを書き先にする');
+      expect(edit.value, '直した値');
+    });
+
+    testWidgets('選んだ行を消すと、消す操作が積まれる', (tester) async {
+      final container = await pumpPanel(tester, 700);
+      await selectTag(tester, 'Tag0');
+
+      await tester.tap(find.byTooltip('このタグを消す'));
+      await tester.pumpAndSettle();
+
+      expect(
+        (container.read(editQueueProvider).edits.single as ClearTag).name,
+        'Tag0',
+      );
+    });
+
+    testWidgets('バイナリのタグは直せない', (tester) async {
+      await pumpPanel(tester, 700);
+      await selectTag(tester, 'ThumbnailImage');
+      expect(find.byTooltip('値を直す'), findsNothing);
+    });
+
+    testWidgets('読めない値のままでは決められない', (tester) async {
+      final container = await pumpPanel(tester, 700);
+      await selectTag(tester, 'ExposureTime');
+
+      await tester.tap(find.byTooltip('値を直す'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, '速い');
+      await tester.tap(find.widgetWithText(FilledButton, '積む'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('値を読めない'), findsOneWidget);
+      expect(container.read(editQueueProvider).isEmpty, isTrue);
+    });
   });
 }

@@ -1723,6 +1723,54 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{source} から時刻を取り込む'**
   String editOpAdoptTime(String source);
+
+  /// No description provided for @tagEditTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'{tag} を直す'**
+  String tagEditTitle(String tag);
+
+  /// No description provided for @tagEditValue.
+  ///
+  /// In ja, this message translates to:
+  /// **'値'**
+  String get tagEditValue;
+
+  /// No description provided for @tagEditKindDateTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'日時'**
+  String get tagEditKindDateTime;
+
+  /// No description provided for @tagEditKindNumber.
+  ///
+  /// In ja, this message translates to:
+  /// **'数値'**
+  String get tagEditKindNumber;
+
+  /// No description provided for @tagEditKindText.
+  ///
+  /// In ja, this message translates to:
+  /// **'文字'**
+  String get tagEditKindText;
+
+  /// No description provided for @tagEdit.
+  ///
+  /// In ja, this message translates to:
+  /// **'値を直す'**
+  String get tagEdit;
+
+  /// No description provided for @tagClear.
+  ///
+  /// In ja, this message translates to:
+  /// **'このタグを消す'**
+  String get tagClear;
+
+  /// No description provided for @tagEditQueued.
+  ///
+  /// In ja, this message translates to:
+  /// **'編集に積んだ'**
+  String get tagEditQueued;
 }
 
 class _AppLocalizationsDelegate

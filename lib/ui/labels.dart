@@ -7,6 +7,7 @@ import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/search.dart';
 import '../domain/settings.dart';
+import '../domain/tag_edit.dart';
 import '../ports/metadata_write_port.dart';
 import '../l10n/l10n.dart';
 import 'format.dart';
@@ -221,4 +222,11 @@ extension AppLabels on AppLocalizations {
     if (parts.isEmpty) parts.add('0 $editUnitSeconds');
     return '${delta.isNegative ? '-' : '+'}${parts.join(' ')}';
   }
+
+  /// 値の型に出す言葉（SPEC FR-E1）。
+  String tagValueKindLabel(TagValueKind kind) => switch (kind) {
+    TagValueKind.dateTime => tagEditKindDateTime,
+    TagValueKind.number => tagEditKindNumber,
+    TagValueKind.text => tagEditKindText,
+  };
 }

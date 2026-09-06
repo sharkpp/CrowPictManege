@@ -270,5 +270,13 @@
   "editAdoptionFileName": "File name",
   "editAdoptionFileModified": "File modified time",
   "editOpDistributeTime": "Assign from {start}, every {interval} s",
-  "editOpAdoptTime": "Take the time from {source}"
+  "editOpAdoptTime": "Take the time from {source}",
+  "tagEditTitle": "Edit {tag}",
+  "tagEditValue": "Value",
+  "tagEditKindDateTime": "Date and time",
+  "tagEditKindNumber": "Number",
+  "tagEditKindText": "Text",
+  "tagEdit": "Edit the value",
+  "tagClear": "Remove this tag",
+  "tagEditQueued": "Queued for editing"
 }

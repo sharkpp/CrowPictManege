@@ -198,6 +198,7 @@ class TagRecord {
     required this.description,
     required this.printValue,
     String? rawValue,
+    this.format,
     this.bytes,
     this.byteLength,
     this.isBinary = false,
@@ -214,6 +215,10 @@ class TagRecord {
 
   /// 変換前の値（SPEC FR-V3）。表示値と同じこともある。
   final String rawValue;
+
+  /// ファイルに入っている記録形式（`int16u` `string` `rational64u` など）。
+  /// 値を直接編集するときの入力補助を決めるのに使う（SPEC FR-E1）。
+  final String? format;
 
   /// 16 進ダンプに出すバイト列（SPEC FR-V3）。
   ///

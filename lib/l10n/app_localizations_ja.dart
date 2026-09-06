@@ -935,4 +935,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String editOpAdoptTime(String source) {
     return '$source から時刻を取り込む';
   }
+
+  @override
+  String tagEditTitle(String tag) {
+    return '$tag を直す';
+  }
+
+  @override
+  String get tagEditValue => '値';
+
+  @override
+  String get tagEditKindDateTime => '日時';
+
+  @override
+  String get tagEditKindNumber => '数値';
+
+  @override
+  String get tagEditKindText => '文字';
+
+  @override
+  String get tagEdit => '値を直す';
+
+  @override
+  String get tagClear => 'このタグを消す';
+
+  @override
+  String get tagEditQueued => '編集に積んだ';
 }

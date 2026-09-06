@@ -72,6 +72,7 @@ List<TagRecord> mergeTagRecords(List<List<TagRecord>> perAsset) {
         description: tag.description,
         printValue: value ?? mixedValueMark,
         rawValue: _mergedValue(entry.key, perAssetRaw) ?? mixedValueMark,
+        format: tag.format,
         isBinary: tag.isBinary && value != null,
       ),
     );

@@ -1013,4 +1013,30 @@ class AppLocalizationsEn extends AppLocalizations {
   String editOpAdoptTime(String source) {
     return 'Take the time from $source';
   }
+
+  @override
+  String tagEditTitle(String tag) {
+    return 'Edit $tag';
+  }
+
+  @override
+  String get tagEditValue => 'Value';
+
+  @override
+  String get tagEditKindDateTime => 'Date and time';
+
+  @override
+  String get tagEditKindNumber => 'Number';
+
+  @override
+  String get tagEditKindText => 'Text';
+
+  @override
+  String get tagEdit => 'Edit the value';
+
+  @override
+  String get tagClear => 'Remove this tag';
+
+  @override
+  String get tagEditQueued => 'Queued for editing';
 }

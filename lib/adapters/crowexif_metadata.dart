@@ -107,6 +107,7 @@ List<TagRecord> readAllTagsSync(String path) {
           rawValue: entry.isBinary
               ? ''
               : formatValueForText(entry.value ?? entry.printValue),
+          format: entry.format,
           bytes: _dumpBytes(entry.binaryPlaceholder),
           byteLength: entry.binaryPlaceholder?.length,
           isBinary: entry.isBinary,

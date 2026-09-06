@@ -8,16 +8,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/hex_dump.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
+import '../domain/edit.dart';
 import '../domain/pinned_fields.dart';
 import '../domain/summary_field.dart';
+import '../domain/supported_formats.dart';
+import '../domain/tag_edit.dart';
 import '../domain/tag_export.dart';
 import '../l10n/l10n.dart';
+import '../state/edits.dart';
 import '../state/library.dart';
 import '../state/search.dart';
 import '../state/selection.dart';
 import '../state/settings.dart';
 import 'format.dart';
 import 'summary_fields.dart';
+import 'tag_edit_dialog.dart';
 import 'labels.dart';
 
 /// 右パネル（SPEC FR-V1、FR-V2、FR-V4）。
@@ -748,6 +753,21 @@ class _TagRowState extends ConsumerState<_TagRow> {
                       ),
                     ),
                   ),
+                  // 値の直接編集（SPEC FR-E1）。選んだ行にだけ出す。
+                  if (selected && _canEdit(tag)) ...[
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 16),
+                      tooltip: l10n.tagEdit,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _edit(tag),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.backspace_outlined, size: 16),
+                      tooltip: l10n.tagClear,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _clear(tag),
+                    ),
+                  ],
                   // 16 進ダンプの開閉（SPEC FR-V3）。
                   if (dump != null)
                     IconButton(
@@ -785,6 +805,37 @@ class _TagRowState extends ConsumerState<_TagRow> {
       ),
     );
   }
+
+  /// このタグを直接編集できるか（SPEC FR-E1、§8）。
+  ///
+  /// タグ自身が編集を受け付けることに加え、選んでいる対象が 1 つでも
+  /// 書ける形式でなければ意味がない。
+  bool _canEdit(TagRecord tag) {
+    if (!isEditableTag(tag)) return false;
+    final selection = ref.watch(selectionProvider);
+    return selection.paths.any(canWriteMetadata);
+  }
+
+  Future<void> _edit(TagRecord tag) async {
+    final value = await showTagEditDialog(context, tag);
+    if (value == null || !mounted) return;
+    ref
+        .read(editQueueProvider.notifier)
+        .add(SetTag(group: writeGroupOf(tag), name: tag.name, value: value));
+    _tellQueued();
+  }
+
+  void _clear(TagRecord tag) {
+    ref
+        .read(editQueueProvider.notifier)
+        .add(ClearTag(group: writeGroupOf(tag), name: tag.name));
+    _tellQueued();
+  }
+
+  /// 積んだことを知らせる。書き込むのは適用の時（SPEC FR-E5）。
+  void _tellQueued() => ScaffoldMessenger.maybeOf(
+    context,
+  )?.showSnackBar(SnackBar(content: Text(context.l10n.tagEditQueued)));
 
   /// ダンプに出すバイト列。
   ///
