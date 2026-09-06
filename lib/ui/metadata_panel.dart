@@ -343,16 +343,22 @@ class _AddFieldMenu extends ConsumerWidget {
   }
 }
 
-class _PinnedRow extends StatelessWidget {
+class _PinnedRow extends ConsumerWidget {
   const _PinnedRow({required this.row, required this.onUnpin});
 
   final PinnedRow row;
   final VoidCallback onUnpin;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final mixed = row.value == mixedValueMark;
+    // 要約に出したタグは、そのまま値を直せる（SPEC FR-E1）。
+    final tag = row.tag;
+    final editable =
+        tag != null &&
+        isEditableTag(tag) &&
+        ref.watch(selectionProvider).paths.any(canWriteMetadata);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 2, 4, 2),
@@ -379,6 +385,13 @@ class _PinnedRow extends StatelessWidget {
               ),
             ),
           ),
+          if (editable)
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 16),
+              tooltip: context.l10n.tagEdit,
+              visualDensity: VisualDensity.compact,
+              onPressed: () => _edit(context, ref, tag),
+            ),
           IconButton(
             icon: const Icon(Icons.push_pin, size: 16),
             tooltip: context.l10n.summaryRemoveField,
@@ -389,6 +402,17 @@ class _PinnedRow extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _edit(BuildContext context, WidgetRef ref, TagRecord tag) async {
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final queued = context.l10n.tagEditQueued;
+  final value = await showTagEditDialog(context, tag);
+  if (value == null) return;
+  ref
+      .read(editQueueProvider.notifier)
+      .add(SetTag(group: writeGroupOf(tag), name: tag.name, value: value));
+  messenger?.showSnackBar(SnackBar(content: Text(queued)));
 }
 
 /// 対象の名前とコピー操作（SPEC FR-V6）。

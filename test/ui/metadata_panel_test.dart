@@ -310,5 +310,24 @@ void main() {
       expect(find.text('値を読めない'), findsOneWidget);
       expect(container.read(editQueueProvider).isEmpty, isTrue);
     });
+
+    testWidgets('要約に出したタグも、そこから直せる', (tester) async {
+      final container = await pumpPanel(tester, 700);
+      // タグを要約へ出す。要約の行は常に見えている。
+      container.read(settingsProvider.notifier).togglePin('EXIF:Tag0');
+      await tester.pumpAndSettle();
+
+      // タグツリー側の行は選んでいないので、出ているのは要約の行だけ。
+      await tester.tap(find.byTooltip('値を直す'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).last, '要約から直した');
+      await tester.tap(find.widgetWithText(FilledButton, '積む'));
+      await tester.pumpAndSettle();
+
+      expect(
+        (container.read(editQueueProvider).edits.single as SetTag).value,
+        '要約から直した',
+      );
+    });
   });
 }

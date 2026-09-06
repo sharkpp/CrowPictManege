@@ -64,11 +64,16 @@ class PinnedRow {
     required this.key,
     required this.label,
     required this.value,
+    this.tag,
   });
 
   final String key;
   final String label;
   final String value;
+
+  /// 元のタグ。派生値の行では null。
+  /// 要約からそのまま値を直せるようにするために持つ（SPEC FR-E1）。
+  final TagRecord? tag;
 }
 
 /// ピン留めの並びを、表示できる行の列にする。
@@ -93,11 +98,13 @@ List<PinnedRow> pinnedRows(
       );
       continue;
     }
+    final tag = byKey[key];
     rows.add(
       PinnedRow(
         key: key,
         label: nameOfPinnedKey(key),
-        value: byKey[key]?.printValue ?? (loading ? '…' : '—'),
+        value: tag?.printValue ?? (loading ? '…' : '—'),
+        tag: tag,
       ),
     );
   }
