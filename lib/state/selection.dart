@@ -99,6 +99,27 @@ class SelectionNotifier extends Notifier<Selection> {
     );
   }
 
+  /// 選択集合はそのままに、主対象だけを移す（SPEC FR-M10）。
+  ///
+  /// 地図のまとまりの中を送るときに使う。送っても集合からは外れない。
+  void focus(String path) {
+    if (!state.contains(path)) return;
+    state = Selection(paths: state.paths, primary: path, anchor: state.anchor);
+  }
+
+  /// 1 件だけ選択から外す（SPEC FR-M12）。
+  void remove(String path) {
+    if (!state.contains(path)) return;
+    final paths = Set.of(state.paths)..remove(path);
+    state = Selection(
+      paths: paths,
+      primary: state.primary == path
+          ? (paths.isEmpty ? null : paths.first)
+          : state.primary,
+      anchor: paths.contains(state.anchor) ? state.anchor : null,
+    );
+  }
+
   void clear() => state = const Selection();
 
   /// 主対象を [delta] だけ前後へ動かす（ギャラリーの送り、SPEC FR-B10）。

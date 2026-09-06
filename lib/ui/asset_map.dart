@@ -6,6 +6,7 @@ import 'package:supercluster/supercluster.dart';
 
 import '../domain/models.dart';
 import '../state/selection.dart';
+import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
 import 'format.dart';
 
@@ -72,7 +73,9 @@ class _AssetMapState extends ConsumerState<AssetMap> {
       return;
     }
     final bounds = _controller.camera.visibleBounds;
-    final anyVisible = _located.any((asset) => bounds.contains(_pointOf(asset)));
+    final anyVisible = _located.any(
+      (asset) => bounds.contains(_pointOf(asset)),
+    );
     if (!anyVisible) _fitAll();
   }
 
@@ -102,10 +105,10 @@ class _AssetMapState extends ConsumerState<AssetMap> {
   }
 
   CameraFit _fit() => CameraFit.coordinates(
-        coordinates: [for (final asset in _located) _pointOf(asset)],
-        padding: const EdgeInsets.all(48),
-        maxZoom: _fitMaxZoom,
-      );
+    coordinates: [for (final asset in _located) _pointOf(asset)],
+    padding: const EdgeInsets.all(48),
+    maxZoom: _fitMaxZoom,
+  );
 
   void _fitAll() {
     if (!_ready || _located.isEmpty) return;
@@ -124,9 +127,9 @@ class _AssetMapState extends ConsumerState<AssetMap> {
     }
     final leaves = _leavesOf(cluster);
     if (leaves.isEmpty) return;
-    ref.read(selectionProvider.notifier).selectPaths(
-          [for (final asset in leaves) asset.path],
-        );
+    ref.read(selectionProvider.notifier).selectPaths([
+      for (final asset in leaves) asset.path,
+    ]);
   }
 
   /// まとまりに含まれる対象を集める。まとまりの中のまとまりもたどる。
@@ -161,6 +164,8 @@ class _AssetMapState extends ConsumerState<AssetMap> {
             initialCameraFit: _fit(),
             maxZoom: _maxZoom,
             onMapReady: () => _ready = true,
+            // 何も無いところを押したら選択を解く（SPEC FR-M11）。
+            onTap: (_, _) => ref.read(selectionProvider.notifier).clear(),
           ),
           children: [
             TileLayer(
@@ -169,19 +174,16 @@ class _AssetMapState extends ConsumerState<AssetMap> {
               userAgentPackageName: 'net.sharkpp.crowpictmanege',
               maxZoom: _maxZoom,
               maxNativeZoom: _maxNativeZoom,
+              // 暗いテーマではタイルの色を反転させ、地図も暗くする（SPEC FR-M15）。
+              tileBuilder: theme.brightness == Brightness.dark
+                  ? darkModeTileBuilder
+                  : null,
             ),
             _Markers(index: index, ordered: ordered, onCluster: _openCluster),
             _SelectedPreview(located: _located),
+            // 操作は地図の子として置く。カメラが動けば自分で作り直される。
+            _MapControls(maxZoom: _maxZoom, onFitAll: _fitAll),
           ],
-        ),
-        Positioned(
-          right: 8,
-          top: 8,
-          child: _MapButton(
-            icon: Icons.fullscreen,
-            label: '全体を表示',
-            onPressed: _fitAll,
-          ),
         ),
         Positioned(
           left: 8,
@@ -201,9 +203,9 @@ class _AssetMapState extends ConsumerState<AssetMap> {
 }
 
 LatLng _pointOf(MediaAsset asset) => LatLng(
-      asset.summary!.location!.latitude,
-      asset.summary!.location!.longitude,
-    );
+  asset.summary!.location!.latitude,
+  asset.summary!.location!.longitude,
+);
 
 /// 表示範囲とズームに応じたマーカー（SPEC FR-M1）。
 ///
@@ -271,8 +273,8 @@ class _Markers extends ConsumerWidget {
 double _clusterDiameter(int count) => count < 10
     ? 34
     : count < 100
-        ? 42
-        : 50;
+    ? 42
+    : 50;
 
 class _ClusterPin extends StatelessWidget {
   const _ClusterPin({required this.count, required this.onTap});
@@ -287,23 +289,27 @@ class _ClusterPin extends StatelessWidget {
       child: Tooltip(
         message: '$count 件',
         child: Container(
-        decoration: BoxDecoration(
-          color: _clusterColor,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 2),
-          boxShadow: const [
-            BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 1)),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          '$count',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+          decoration: BoxDecoration(
+            color: _clusterColor,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black38,
+                blurRadius: 4,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
-        ),
+          alignment: Alignment.center,
+          child: Text(
+            '$count',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
@@ -328,70 +334,152 @@ class _AssetPin extends StatelessWidget {
       child: Tooltip(
         message: name,
         child: Center(
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: selected ? 26 : 18,
-          height: selected ? 26 : 18,
-          decoration: BoxDecoration(
-            color: selected ? _selectedPinColor : _pinColor,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: selected ? 3 : 2),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black38,
-                blurRadius: 4,
-                offset: Offset(0, 1),
-              ),
-            ],
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: selected ? 26 : 18,
+            height: selected ? 26 : 18,
+            decoration: BoxDecoration(
+              color: selected ? _selectedPinColor : _pinColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: selected ? 3 : 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black38,
+                  blurRadius: 4,
+                  offset: Offset(0, 1),
+                ),
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
   }
 }
 
-/// 選択中の 1 件をサムネイルで示す（SPEC FR-M2）。
+/// 選択中の 1 件をサムネイルで示す（SPEC FR-M2、FR-M10、FR-M12、FR-M13）。
+///
+/// 選択集合に位置を持つ対象が複数あるときは、＜ ／ ＞ で中を送る。
+/// 出していない対象のサムネイルは組み立てない。送った時点で読む。
 class _SelectedPreview extends ConsumerWidget {
   const _SelectedPreview({required this.located});
 
   /// 位置を持つ対象。ここに無い対象は地図に出せない。
   final List<MediaAsset> located;
 
+  static const _width = 200.0;
+  static const _height = 180.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final primary = ref.watch(selectionProvider).primary;
-    if (primary == null) return const MarkerLayer(markers: []);
+    final selection = ref.watch(selectionProvider);
+    if (selection.isEmpty) return const MarkerLayer(markers: []);
 
-    final asset =
-        located.where((asset) => asset.path == primary).firstOrNull;
-    if (asset == null) return const MarkerLayer(markers: []);
+    // 地図に出せる選択だけを、一覧と同じ並びで取る。
+    final group = [
+      for (final asset in located)
+        if (selection.contains(asset.path)) asset,
+    ];
+    if (group.isEmpty) return const MarkerLayer(markers: []);
+
+    var index = group.indexWhere((asset) => asset.path == selection.primary);
+    if (index < 0) index = 0;
+    final asset = group[index];
 
     return MarkerLayer(
       markers: [
         Marker(
           point: _pointOf(asset),
-          width: 180,
-          height: 150,
+          width: _width,
+          height: _height,
           // ピンの真上に出す。ピン自体は隠さない。
           alignment: Alignment.topCenter,
-          child: Card(
-            margin: const EdgeInsets.only(bottom: 16),
-            clipBehavior: Clip.antiAlias,
-            elevation: 4,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: _PreviewCard(
+            asset: asset,
+            position: index + 1,
+            total: group.length,
+            onStep: (delta) {
+              final next = (index + delta) % group.length;
+              ref.read(selectionProvider.notifier).focus(group[next].path);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 地図の上に出す 1 件のカード。
+class _PreviewCard extends ConsumerWidget {
+  const _PreviewCard({
+    required this.asset,
+    required this.position,
+    required this.total,
+    required this.onStep,
+  });
+
+  final MediaAsset asset;
+  final int position;
+  final int total;
+  final void Function(int delta) onStep;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      clipBehavior: Clip.antiAlias,
+      elevation: 4,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                Expanded(
-                  child: AssetThumbnail(
-                    asset: asset,
-                    size: 180,
-                    fit: BoxFit.contain,
+                // 送った先を持ち越さないよう、パスで作り直す（SPEC FR-M10）。
+                AssetThumbnail(
+                  key: ValueKey(asset.path),
+                  asset: asset,
+                  size: _SelectedPreview._width,
+                  fit: BoxFit.contain,
+                ),
+                // 中心の拡大（SPEC FR-M13）。一覧の二度押しと同じ動き。
+                Center(
+                  child: _RoundButton(
+                    icon: Icons.play_arrow,
+                    tooltip: '拡大して見る',
+                    onPressed: () => showAssetPreview(context),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                // 選択から外す（SPEC FR-M12）。
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: _RoundButton(
+                    icon: Icons.close,
+                    tooltip: '選択から外す',
+                    small: true,
+                    onPressed: () =>
+                        ref.read(selectionProvider.notifier).remove(asset.path),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 2, 6, 4),
+            child: Row(
+              children: [
+                // まとまりの中の送り（SPEC FR-M10）。
+                if (total > 1)
+                  _StepButton(
+                    icon: Icons.chevron_left,
+                    tooltip: '前の 1 件',
+                    onPressed: () => onStep(-1),
+                  ),
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -402,18 +490,163 @@ class _SelectedPreview extends ConsumerWidget {
                         style: theme.textTheme.bodySmall,
                       ),
                       Text(
-                        formatCapturedAt(asset.summary?.capturedAt, short: true),
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.outline),
+                        total > 1
+                            ? '$position / $total · '
+                                  '${formatCapturedAt(asset.summary?.capturedAt, short: true)}'
+                            : formatCapturedAt(
+                                asset.summary?.capturedAt,
+                                short: true,
+                              ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.outline,
+                        ),
                       ),
                     ],
                   ),
                 ),
+                if (total > 1)
+                  _StepButton(
+                    icon: Icons.chevron_right,
+                    tooltip: '次の 1 件',
+                    onPressed: () => onStep(1),
+                  ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// サムネイルの上に重ねる丸いボタン。地図とサムネイルの両方の上で見えるようにする。
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+    this.small = false,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+  final bool small;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: small ? 16 : 24),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.black54,
+        foregroundColor: Colors.white,
+        minimumSize: small ? const Size(28, 28) : const Size(40, 40),
+        padding: EdgeInsets.zero,
+      ),
+      onPressed: onPressed,
+    );
+  }
+}
+
+class _StepButton extends StatelessWidget {
+  const _StepButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(icon, size: 18),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+      onPressed: onPressed,
+    );
+  }
+}
+
+/// 地図の操作（SPEC FR-M9、FR-M14）。
+///
+/// 地図の子として置くので、カメラが動けば自分で作り直される。
+class _MapControls extends StatelessWidget {
+  const _MapControls({required this.maxZoom, required this.onFitAll});
+
+  final double maxZoom;
+  final VoidCallback onFitAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final camera = MapCamera.of(context);
+    final controller = MapController.of(context);
+    final north = camera.rotation.abs() < 0.01;
+
+    void zoomBy(double delta) => controller.move(
+      camera.center,
+      (camera.zoom + delta).clamp(camera.minZoom ?? 0, maxZoom),
+    );
+
+    // 右下に寄せる。左下は出典の表示に使う。
+    return Align(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _MapButton(
+              icon: Icons.add,
+              label: '拡大',
+              onPressed: camera.zoom >= maxZoom ? null : () => zoomBy(1),
+            ),
+            const SizedBox(height: 4),
+            Material(
+              color: theme.colorScheme.surface,
+              elevation: 2,
+              borderRadius: BorderRadius.circular(4),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Text(
+                  'z ${camera.zoom.toStringAsFixed(1)}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            _MapButton(
+              icon: Icons.remove,
+              label: '縮小',
+              onPressed: camera.zoom <= (camera.minZoom ?? 0)
+                  ? null
+                  : () => zoomBy(-1),
+            ),
+            const SizedBox(height: 8),
+            _MapButton(
+              icon: Icons.explore_outlined,
+              label: '北を上に戻す',
+              onPressed: north ? null : () => controller.rotate(0),
+            ),
+            const SizedBox(height: 8),
+            _MapButton(
+              icon: Icons.fullscreen,
+              label: '全体を表示',
+              onPressed: onFitAll,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -427,7 +660,9 @@ class _MapButton extends StatelessWidget {
 
   final IconData icon;
   final String label;
-  final VoidCallback onPressed;
+
+  /// null なら押せない状態にする（これ以上寄れない、すでに北向きなど）。
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
