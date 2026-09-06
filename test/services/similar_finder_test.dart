@@ -3,12 +3,12 @@ import 'package:crow_pict_manege/services/similar_finder.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 MediaAsset asset(String name, {AssetKind kind = AssetKind.image}) => MediaAsset(
-      path: '/root/$name',
-      name: name,
-      kind: kind,
-      size: 10,
-      fileModifiedAt: DateTime(2024),
-    );
+  path: '/root/$name',
+  name: name,
+  kind: kind,
+  size: 10,
+  fileModifiedAt: DateTime(2024),
+);
 
 /// 類似度による順位付け（SPEC FR-Q4、FR-Q5）。
 void main() {
@@ -37,22 +37,31 @@ void main() {
   });
 
   test('種が複数なら各種との最小距離で順位付ける', () {
-    final results =
-        rankBySimilarity(candidates, hashes, {seed.path, far.path}, 2);
-    expect(
-      results.map((a) => a.name).toSet(),
-      {'seed.jpg', 'near.jpg', 'far.jpg'},
-      reason: 'どちらかに近ければ入る',
-    );
+    final results = rankBySimilarity(candidates, hashes, {
+      seed.path,
+      far.path,
+    }, 2);
+    expect(results.map((a) => a.name).toSet(), {
+      'seed.jpg',
+      'near.jpg',
+      'far.jpg',
+    }, reason: 'どちらかに近ければ入る');
   });
 
   test('ハッシュが無い対象は結果に入らない', () {
-    final results = rankBySimilarity(candidates, {seed.path: 0}, {seed.path}, 8);
+    final results = rankBySimilarity(
+      candidates,
+      {seed.path: 0},
+      {seed.path},
+      8,
+    );
     expect(results.map((a) => a.name), ['seed.jpg']);
   });
 
   test('種のハッシュが無ければ何も返さない', () {
-    expect(rankBySimilarity(candidates, hashes, {'/root/unknown.jpg'}, 8),
-        isEmpty);
+    expect(
+      rankBySimilarity(candidates, hashes, {'/root/unknown.jpg'}, 8),
+      isEmpty,
+    );
   });
 }

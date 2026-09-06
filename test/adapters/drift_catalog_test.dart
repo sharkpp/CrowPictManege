@@ -15,25 +15,32 @@ void main() {
     await catalog.saveSetting('viewMode', 'list');
     await catalog.saveSetting('tileSize', '160');
 
-    expect(await catalog.loadSettings(), {'viewMode': 'list', 'tileSize': '160'});
+    expect(await catalog.loadSettings(), {
+      'viewMode': 'list',
+      'tileSize': '160',
+    });
   });
 
   test('ブックマークは登録順に並び、パスで外せる', () async {
-    await catalog.addBookmark(Bookmark(
-      path: '/photos/2024',
-      name: '2024',
-      addedAt: DateTime(2024, 1, 1),
-    ));
-    await catalog.addBookmark(Bookmark(
-      path: '/photos/2025',
-      name: '2025',
-      addedAt: DateTime(2025, 1, 1),
-    ));
-
-    expect(
-      (await catalog.bookmarks()).map((b) => b.path),
-      ['/photos/2024', '/photos/2025'],
+    await catalog.addBookmark(
+      Bookmark(
+        path: '/photos/2024',
+        name: '2024',
+        addedAt: DateTime(2024, 1, 1),
+      ),
     );
+    await catalog.addBookmark(
+      Bookmark(
+        path: '/photos/2025',
+        name: '2025',
+        addedAt: DateTime(2025, 1, 1),
+      ),
+    );
+
+    expect((await catalog.bookmarks()).map((b) => b.path), [
+      '/photos/2024',
+      '/photos/2025',
+    ]);
 
     await catalog.removeBookmark('/photos/2024');
     expect((await catalog.bookmarks()).single.name, '2025');

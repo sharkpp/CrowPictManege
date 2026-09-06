@@ -115,12 +115,14 @@ void main() {
 
   group('normalizeLocation', () {
     test('Composite の符号付き値を使う', () {
-      final point = normalizeLocation(TagValues({
-        'Composite:GPSLatitude': 35.681236,
-        'Composite:GPSLongitude': 139.767125,
-        'Composite:GPSAltitude': 12.5,
-        'EXIF:GPSHPositioningError': 5.0,
-      }));
+      final point = normalizeLocation(
+        TagValues({
+          'Composite:GPSLatitude': 35.681236,
+          'Composite:GPSLongitude': 139.767125,
+          'Composite:GPSAltitude': 12.5,
+          'EXIF:GPSHPositioningError': 5.0,
+        }),
+      );
 
       expect(point!.latitude, closeTo(35.681236, 1e-9));
       expect(point.longitude, closeTo(139.767125, 1e-9));
@@ -129,14 +131,16 @@ void main() {
     });
 
     test('Composite が無ければ Ref から符号を決める', () {
-      final point = normalizeLocation(TagValues({
-        'EXIF:GPSLatitude': 33.5,
-        'EXIF:GPSLatitudeRef': 'South',
-        'EXIF:GPSLongitude': 70.6,
-        'EXIF:GPSLongitudeRef': 'West',
-        'EXIF:GPSAltitude': 30.0,
-        'EXIF:GPSAltitudeRef': 1,
-      }));
+      final point = normalizeLocation(
+        TagValues({
+          'EXIF:GPSLatitude': 33.5,
+          'EXIF:GPSLatitudeRef': 'South',
+          'EXIF:GPSLongitude': 70.6,
+          'EXIF:GPSLongitudeRef': 'West',
+          'EXIF:GPSAltitude': 30.0,
+          'EXIF:GPSAltitudeRef': 1,
+        }),
+      );
 
       expect(point!.latitude, -33.5);
       expect(point.longitude, -70.6);
@@ -145,17 +149,21 @@ void main() {
 
     test('0,0 と範囲外は位置として扱わない', () {
       expect(
-        normalizeLocation(TagValues({
-          'Composite:GPSLatitude': 0.0,
-          'Composite:GPSLongitude': 0.0,
-        })),
+        normalizeLocation(
+          TagValues({
+            'Composite:GPSLatitude': 0.0,
+            'Composite:GPSLongitude': 0.0,
+          }),
+        ),
         isNull,
       );
       expect(
-        normalizeLocation(TagValues({
-          'Composite:GPSLatitude': 120.0,
-          'Composite:GPSLongitude': 10.0,
-        })),
+        normalizeLocation(
+          TagValues({
+            'Composite:GPSLatitude': 120.0,
+            'Composite:GPSLongitude': 10.0,
+          }),
+        ),
         isNull,
       );
     });

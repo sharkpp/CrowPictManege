@@ -20,13 +20,15 @@ void main() {
 
   /// カタログはプロセス内に閉じたものへ差し替える（アプリ領域を触らない）。
   ProviderContainer containerWith({MetadataPort? metadata}) {
-    final container = ProviderContainer(overrides: [
-      catalogProvider.overrideWith((ref) {
-        final catalog = DriftCatalog(database);
-        return catalog;
-      }),
-      if (metadata != null) metadataPortProvider.overrideWithValue(metadata),
-    ]);
+    final container = ProviderContainer(
+      overrides: [
+        catalogProvider.overrideWith((ref) {
+          final catalog = DriftCatalog(database);
+          return catalog;
+        }),
+        if (metadata != null) metadataPortProvider.overrideWithValue(metadata),
+      ],
+    );
     addTearDown(container.dispose);
     return container;
   }
@@ -87,21 +89,28 @@ void main() {
     expect(state.total, 3, reason: '対象外の拡張子は取り込まない');
     expect(state.analyzed, 3);
 
-    final tagged =
-        state.assets.firstWhere((asset) => asset.name == 'tagged.jpg');
+    final tagged = state.assets.firstWhere(
+      (asset) => asset.name == 'tagged.jpg',
+    );
     expect(tagged.summary!.capturedAt!.source, TimeSource.exifDateTimeOriginal);
-    expect(tagged.summary!.capturedAt!.wallClock,
-        DateTime(2024, 1, 15, 12, 34, 56));
+    expect(
+      tagged.summary!.capturedAt!.wallClock,
+      DateTime(2024, 1, 15, 12, 34, 56),
+    );
     expect(tagged.summary!.capturedAt!.offset, const Duration(hours: 9));
     expect(tagged.summary!.location!.latitude, closeTo(35.681236, 1e-6));
 
     final plain = state.assets.firstWhere((asset) => asset.name == 'plain.jpg');
-    expect(plain.summary!.capturedAt!.source, TimeSource.fileModified,
-        reason: 'タグが無ければファイル更新時刻で代用する');
+    expect(
+      plain.summary!.capturedAt!.source,
+      TimeSource.fileModified,
+      reason: 'タグが無ければファイル更新時刻で代用する',
+    );
     expect(plain.summary!.location, isNull);
 
-    final broken =
-        state.assets.firstWhere((asset) => asset.name == 'broken.jpg');
+    final broken = state.assets.firstWhere(
+      (asset) => asset.name == 'broken.jpg',
+    );
     expect(broken.error, isNotNull, reason: '読めない対象は理由を残す');
     expect(state.errorCount, 1);
   });
@@ -120,10 +129,13 @@ void main() {
     final state = second.read(libraryProvider);
     expect(state.analyzed, 3);
     expect(state.errorCount, 1, reason: '読めなかったこともキャッシュする');
-    final tagged =
-        state.assets.firstWhere((asset) => asset.name == 'tagged.jpg');
-    expect(tagged.summary!.capturedAt!.wallClock,
-        DateTime(2024, 1, 15, 12, 34, 56));
+    final tagged = state.assets.firstWhere(
+      (asset) => asset.name == 'tagged.jpg',
+    );
+    expect(
+      tagged.summary!.capturedAt!.wallClock,
+      DateTime(2024, 1, 15, 12, 34, 56),
+    );
     expect(tagged.summary!.location!.longitude, closeTo(139.767125, 1e-6));
   });
 

@@ -48,10 +48,7 @@ void main() {
       ).last;
 
   test('ファイル名で下位フォルダまで探す', () async {
-    final result = await search(
-      const SearchQuery(text: 'img_2'),
-      [root.path],
-    );
+    final result = await search(const SearchQuery(text: 'img_2'), [root.path]);
 
     expect(result.done, isTrue);
     expect(result.results.map((a) => a.name), ['IMG_2000.jpg']);
@@ -59,10 +56,10 @@ void main() {
   });
 
   test('範囲にブックマークのフォルダも含められる', () async {
-    final result = await search(
-      const SearchQuery(text: 'tagged'),
-      [root.path, bookmarked.path],
-    );
+    final result = await search(const SearchQuery(text: 'tagged'), [
+      root.path,
+      bookmarked.path,
+    ]);
 
     expect(result.results.map((a) => a.name), ['tagged.jpg']);
     expect(result.scanned, 3);

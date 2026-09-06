@@ -6,10 +6,7 @@ import 'merge_test.dart' show tag;
 
 /// 要約に出す項目（SPEC FR-V2）。
 void main() {
-  final tags = [
-    tag('EXIF', 'Make', 'FUJIFILM'),
-    tag('EXIF', 'Model', 'X-T5'),
-  ];
+  final tags = [tag('EXIF', 'Make', 'FUJIFILM'), tag('EXIF', 'Model', 'X-T5')];
   const fields = {
     SummaryField.capturedAt: '2024/01/15 12:34',
     SummaryField.camera: 'FUJIFILM X-T5',
@@ -20,7 +17,10 @@ void main() {
 
   group('キー', () {
     test('派生値と生のタグを見分けられる', () {
-      expect(isSummaryFieldKey(summaryFieldKey(SummaryField.capturedAt)), isTrue);
+      expect(
+        isSummaryFieldKey(summaryFieldKey(SummaryField.capturedAt)),
+        isTrue,
+      );
       expect(isSummaryFieldKey('EXIF:Make'), isFalse);
     });
 
@@ -72,35 +72,46 @@ void main() {
 
   group('pinnedRows', () {
     test('派生値はそのまま、タグは読めた値を出す', () {
-      final rows = pinnedRows([
-        'Summary:capturedAt',
-        'EXIF:Model',
-      ], fields, tags, labelOf: labelOf);
+      final rows = pinnedRows(
+        ['Summary:capturedAt', 'EXIF:Model'],
+        fields,
+        tags,
+        labelOf: labelOf,
+      );
 
       expect(rows.map((row) => row.label), ['capturedAt', 'Model']);
       expect(rows.map((row) => row.value), ['2024/01/15 12:34', 'X-T5']);
     });
 
     test('ピン留めの順に並ぶ', () {
-      final rows = pinnedRows([
-        'EXIF:Model',
-        'Summary:camera',
-      ], fields, tags, labelOf: labelOf);
+      final rows = pinnedRows(
+        ['EXIF:Model', 'Summary:camera'],
+        fields,
+        tags,
+        labelOf: labelOf,
+      );
       expect(rows.first.label, 'Model');
       expect(rows.last.label, 'camera');
     });
 
     test('この対象に無い項目も行としては残す', () {
-      final rows = pinnedRows([
-        'EXIF:LensModel',
-      ], fields, tags, labelOf: labelOf);
+      final rows = pinnedRows(
+        ['EXIF:LensModel'],
+        fields,
+        tags,
+        labelOf: labelOf,
+      );
       expect(rows.single.value, '—');
     });
 
     test('読み取り中のタグは値を待っていることが分かる', () {
-      final rows = pinnedRows([
-        'EXIF:Make',
-      ], fields, const [], labelOf: labelOf, loading: true);
+      final rows = pinnedRows(
+        ['EXIF:Make'],
+        fields,
+        const [],
+        labelOf: labelOf,
+        loading: true,
+      );
       expect(rows.single.value, '…');
     });
   });

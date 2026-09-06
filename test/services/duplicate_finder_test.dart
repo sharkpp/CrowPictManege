@@ -46,9 +46,10 @@ void main() {
     expect(progress.done, isTrue);
     expect(progress.groups, hasLength(1));
     expect(progress.groups.single.reason, DuplicateReason.content);
-    expect([
-      for (final asset in progress.groups.single.assets) asset.name,
-    ], ['a.jpg', 'b.jpg']);
+    expect(
+      [for (final asset in progress.groups.single.assets) asset.name],
+      ['a.jpg', 'b.jpg'],
+    );
   });
 
   test('大きさが違うファイルはハッシュを取らない', () async {

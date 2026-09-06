@@ -56,12 +56,18 @@ void main() {
     test('タグを指定した場合はそのタグだけを見る', () {
       expect(matchesTags(tags, TagQuery.parse('EXIF:Model=X-T5')), isTrue);
       expect(matchesTags(tags, TagQuery.parse('EXIF:Make=X-T5')), isFalse);
-      expect(matchesTags(tags, TagQuery.parse('Model=X-T5')), isTrue,
-          reason: 'グループを省いた指定も受ける');
+      expect(
+        matchesTags(tags, TagQuery.parse('Model=X-T5')),
+        isTrue,
+        reason: 'グループを省いた指定も受ける',
+      );
     });
 
     test('要約だけで当たる場合は全タグを読まなくてよい', () {
-      expect(matchesSummary(asset(model: 'X-T5'), TagQuery.parse('x-t5')), isTrue);
+      expect(
+        matchesSummary(asset(model: 'X-T5'), TagQuery.parse('x-t5')),
+        isTrue,
+      );
       expect(matchesSummary(asset(), TagQuery.parse('dsc_0001')), isTrue);
       expect(matchesSummary(asset(), TagQuery.parse('canon')), isFalse);
     });
@@ -77,10 +83,11 @@ void main() {
 
   group('検索範囲', () {
     test('入れ子の範囲は親だけを残す', () {
-      final roots = foldRoots(
-        ['/photos', '/photos/2024', '/other'],
-        separator: '/',
-      );
+      final roots = foldRoots([
+        '/photos',
+        '/photos/2024',
+        '/other',
+      ], separator: '/');
       expect(roots, ['/photos', '/other']);
     });
 
@@ -89,10 +96,10 @@ void main() {
     });
 
     test('名前が前方一致するだけの別フォルダは残す', () {
-      expect(
-        foldRoots(['/photos', '/photos-old'], separator: '/'),
-        ['/photos', '/photos-old'],
-      );
+      expect(foldRoots(['/photos', '/photos-old'], separator: '/'), [
+        '/photos',
+        '/photos-old',
+      ]);
     });
   });
 }

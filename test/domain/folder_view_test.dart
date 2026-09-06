@@ -3,12 +3,12 @@ import 'package:crow_pict_manege/domain/models.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 MediaAsset asset(String path, {AssetKind kind = AssetKind.image}) => MediaAsset(
-      path: path,
-      name: path.split('/').last,
-      kind: kind,
-      size: 1000,
-      fileModifiedAt: DateTime(2024),
-    );
+  path: path,
+  name: path.split('/').last,
+  kind: kind,
+  size: 1000,
+  fileModifiedAt: DateTime(2024),
+);
 
 /// 走査結果からフォルダ表示を作る（SPEC FR-B11、FR-B12）。
 void main() {

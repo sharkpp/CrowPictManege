@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   /// 左から右へ明るくなる並び。横の比較は常に「右の方が明るい」。
   List<int> gradient({int shift = 0}) => [
-        for (var y = 0; y < dHashHeight; y++)
-          for (var x = 0; x < dHashWidth; x++) (x * 20 + shift) % 256,
-      ];
+    for (var y = 0; y < dHashHeight; y++)
+      for (var x = 0; x < dHashWidth; x++) (x * 20 + shift) % 256,
+  ];
 
   test('輝度の数が合わなければ受け付けない', () {
     expect(() => differenceHash(const [1, 2, 3]), throwsArgumentError);
