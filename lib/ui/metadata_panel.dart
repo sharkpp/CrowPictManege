@@ -9,6 +9,7 @@ import '../domain/hex_dump.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/pinned_fields.dart';
+import '../domain/summary_field.dart';
 import '../domain/tag_export.dart';
 import '../state/library.dart';
 import '../state/search.dart';
@@ -153,7 +154,7 @@ class _Body extends StatelessWidget {
   });
 
   final List<MediaAsset> assets;
-  final Map<String, String> fields;
+  final Map<SummaryField, String> fields;
   final AsyncValue<List<TagRecord>> tags;
   final String query;
   final bool raw;
@@ -240,7 +241,7 @@ class _Pinned extends ConsumerWidget {
     required this.loading,
   });
 
-  final Map<String, String> fields;
+  final Map<SummaryField, String> fields;
   final List<TagRecord> tags;
   final bool loading;
 
@@ -248,7 +249,13 @@ class _Pinned extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final pinned = ref.watch(settingsProvider).pinned;
-    final rows = pinnedRows(pinned, fields, tags, loading: loading);
+    final rows = pinnedRows(
+      pinned,
+      fields,
+      tags,
+      labelOf: summaryFieldLabel,
+      loading: loading,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -299,24 +306,24 @@ class _AddFieldMenu extends ConsumerWidget {
   const _AddFieldMenu({required this.pinned, required this.fields});
 
   final List<String> pinned;
-  final Map<String, String> fields;
+  final Map<SummaryField, String> fields;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final addable = [
-      for (final label in fields.keys)
-        if (!pinned.contains(summaryFieldKey(label))) label,
+      for (final field in fields.keys)
+        if (!pinned.contains(summaryFieldKey(field))) field,
     ];
 
-    return PopupMenuButton<String>(
+    return PopupMenuButton<SummaryField>(
       icon: const Icon(Icons.add, size: 18),
       tooltip: '要約に項目を足す',
       enabled: addable.isNotEmpty,
-      onSelected: (label) =>
-          ref.read(settingsProvider.notifier).togglePin(summaryFieldKey(label)),
+      onSelected: (field) =>
+          ref.read(settingsProvider.notifier).togglePin(summaryFieldKey(field)),
       itemBuilder: (context) => [
-        for (final label in addable)
-          PopupMenuItem(value: label, child: Text(label)),
+        for (final field in addable)
+          PopupMenuItem(value: field, child: Text(summaryFieldLabel(field))),
       ],
     );
   }
@@ -380,7 +387,7 @@ class _Header extends ConsumerWidget {
   });
 
   final List<MediaAsset> assets;
-  final Map<String, String> fields;
+  final Map<SummaryField, String> fields;
   final List<TagRecord> tags;
   final bool raw;
 
@@ -486,7 +493,7 @@ class _ExportButton extends StatelessWidget {
   });
 
   final List<MediaAsset> assets;
-  final Map<String, String> fields;
+  final Map<SummaryField, String> fields;
   final List<TagRecord> tags;
   final bool raw;
 
@@ -529,11 +536,17 @@ class _ExportButton extends StatelessWidget {
   String _baseName() =>
       assets.length == 1 ? assets.first.name : '${assets.length}件のメタ情報';
 
+  /// 書き出しは画面に出ている言葉で並べる。
+  Map<String, String> get _labelled => {
+    for (final entry in fields.entries)
+      summaryFieldLabel(entry.key): entry.value,
+  };
+
   String _text(_ExportFormat format) => switch (format) {
-    _ExportFormat.json => metadataAsJson(fields, tags, raw: raw),
+    _ExportFormat.json => metadataAsJson(_labelled, tags, raw: raw),
     // CSV は 1 つの表にしかできないので、要約とタグを続けて並べる。
     _ExportFormat.csv =>
-      '${fieldsAsCsv(fields)}\r\n\r\n${tagsAsCsv(tags, raw: raw)}',
+      '${fieldsAsCsv(_labelled)}\r\n\r\n${tagsAsCsv(tags, raw: raw)}',
   };
 }
 
@@ -546,7 +559,7 @@ class _CopyMenu extends ConsumerWidget {
   });
 
   final List<MediaAsset> assets;
-  final Map<String, String> fields;
+  final Map<SummaryField, String> fields;
   final List<TagRecord> tags;
 
   /// 画面が生値を出しているか。コピーも画面に合わせる（SPEC FR-V3）。
@@ -600,7 +613,13 @@ class _CopyMenu extends ConsumerWidget {
   ) {
     // 要約は画面に出ている通り、ピン留めした並びでコピーする。
     final summary = {
-      for (final row in pinnedRows(pinned, fields, tags)) row.label: row.value,
+      for (final row in pinnedRows(
+        pinned,
+        fields,
+        tags,
+        labelOf: summaryFieldLabel,
+      ))
+        row.label: row.value,
     };
     final selectedTags = [
       for (final tag in tags)

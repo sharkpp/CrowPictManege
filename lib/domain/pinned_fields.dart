@@ -1,35 +1,43 @@
 import 'models.dart';
+import 'summary_field.dart';
 
 /// 要約に出す項目（SPEC FR-V2）。
 ///
 /// ピン留めのキーは 2 種類ある。
-/// 要約の派生値は `要約:撮影時刻`、crowexif が読んだ生のタグは `EXIF:Make`。
+/// 要約の派生値は `Summary:capturedAt`、crowexif が読んだ生のタグは `EXIF:Make`。
 /// 同じ書き方（`グループ:名前`）に揃えることで、並びを 1 本の列として持てる。
+/// どちらのキーも画面に出す言葉とは切り離す。設定に残すものだからである。
 
 /// 派生値のグループ名。
-const summaryGroup = '要約';
+const summaryGroup = 'Summary';
 
-String summaryFieldKey(String label) => '$summaryGroup:$label';
+String summaryFieldKey(SummaryField field) => '$summaryGroup:${field.id}';
 
 bool isSummaryFieldKey(String key) => key.startsWith('$summaryGroup:');
 
-/// キーから表示名（グループを除いた部分）を取る。
-String labelOfPinnedKey(String key) {
+/// キーの `グループ:` を除いた部分。
+String nameOfPinnedKey(String key) {
   final at = key.indexOf(':');
   return at < 0 ? key : key.substring(at + 1);
 }
 
+/// 派生値のキーなら、その種類。生のタグのキーなら null。
+SummaryField? summaryFieldOfKey(String key) =>
+    isSummaryFieldKey(key) ? SummaryField.byId(nameOfPinnedKey(key)) : null;
+
 /// 既定のピン留め。主要情報を最初から出す（SPEC FR-V2）。
+///
+/// [SummaryField] の識別子と揃っていることは単体テストで固定する。
 const defaultPinnedKeys = <String>[
-  '要約:撮影時刻',
-  '要約:時刻の根拠',
-  '要約:位置',
-  '要約:機材',
-  '要約:レンズ',
-  '要約:寸法',
-  '要約:長さ',
-  '要約:形式',
-  '要約:サイズ',
+  '$summaryGroup:capturedAt',
+  '$summaryGroup:timeBasis',
+  '$summaryGroup:location',
+  '$summaryGroup:camera',
+  '$summaryGroup:lens',
+  '$summaryGroup:dimensions',
+  '$summaryGroup:duration',
+  '$summaryGroup:fileType',
+  '$summaryGroup:size',
 ];
 
 /// 設定へ保存する形。キーに `,` は現れないのでカンマで並べる。
@@ -43,6 +51,8 @@ List<String> decodePinned(String? encoded) {
   for (final part in encoded.split(',')) {
     final key = part.trim();
     if (key.isEmpty || !key.contains(':') || keys.contains(key)) continue;
+    // 知らない派生値は捨てる。設定に残った古い名前を持ち越さない。
+    if (isSummaryFieldKey(key) && summaryFieldOfKey(key) == null) continue;
     keys.add(key);
   }
   return keys;
@@ -61,21 +71,35 @@ class PinnedRow {
 ///
 /// 値が引けない項目も並びからは外さない。何をピン留めしているかが
 /// 対象によって変わって見えないようにするため。
+/// 派生値の言葉は [labelOf] で受け取る。ここでは決めない（SPEC NFR-7）。
 List<PinnedRow> pinnedRows(
   List<String> pinned,
-  Map<String, String> fields,
+  Map<SummaryField, String> fields,
   List<TagRecord> tags, {
+  required String Function(SummaryField field) labelOf,
   bool loading = false,
 }) {
   final byKey = {for (final tag in tags) '${tag.group}:${tag.name}': tag};
-  return [
-    for (final key in pinned)
+  final rows = <PinnedRow>[];
+  for (final key in pinned) {
+    final field = summaryFieldOfKey(key);
+    if (field != null) {
+      rows.add(
+        PinnedRow(
+          key: key,
+          label: labelOf(field),
+          value: fields[field] ?? '—',
+        ),
+      );
+      continue;
+    }
+    rows.add(
       PinnedRow(
         key: key,
-        label: labelOfPinnedKey(key),
-        value: isSummaryFieldKey(key)
-            ? fields[labelOfPinnedKey(key)] ?? '—'
-            : byKey[key]?.printValue ?? (loading ? '…' : '—'),
+        label: nameOfPinnedKey(key),
+        value: byKey[key]?.printValue ?? (loading ? '…' : '—'),
       ),
-  ];
+    );
+  }
+  return rows;
 }

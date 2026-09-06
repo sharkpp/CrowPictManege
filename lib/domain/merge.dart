@@ -3,25 +3,25 @@ import 'models.dart';
 /// 値が複数の対象で食い違ったことを表す表示文字列（SPEC FR-V4）。
 const mixedValueLabel = '複数の値';
 
-/// 対象ごとの「ラベル→値」を 1 つに畳む。
+/// 対象ごとの「項目→値」を 1 つに畳む。
 ///
 /// 全対象で同じ値なら値そのまま、食い違えば [mixedValueLabel]。
-/// 一部の対象にしか無いラベルも食い違いとして扱う（値の有無自体が違うため）。
-/// ラベルの順序は最初に現れた順を保つ。
-Map<String, String> mergeFields(List<Map<String, String>> perAsset) {
+/// 一部の対象にしか無い項目も食い違いとして扱う（値の有無自体が違うため）。
+/// 項目の順序は最初に現れた順を保つ。
+Map<K, String> mergeFields<K>(List<Map<K, String>> perAsset) {
   if (perAsset.isEmpty) return const {};
   if (perAsset.length == 1) return Map.of(perAsset.first);
 
-  final merged = <String, String>{};
+  final merged = <K, String>{};
   for (final fields in perAsset) {
-    for (final label in fields.keys) {
-      merged.putIfAbsent(label, () => fields[label]!);
+    for (final key in fields.keys) {
+      merged.putIfAbsent(key, () => fields[key]!);
     }
   }
-  for (final label in merged.keys.toList()) {
+  for (final key in merged.keys.toList()) {
     for (final fields in perAsset) {
-      if (fields[label] != merged[label]) {
-        merged[label] = mixedValueLabel;
+      if (fields[key] != merged[key]) {
+        merged[key] = mixedValueLabel;
         break;
       }
     }
