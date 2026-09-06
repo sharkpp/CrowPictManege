@@ -37,3 +37,28 @@ bool isDecodableByFlutter(String path) {
     'webp',
   }.contains(path.substring(dot + 1).toLowerCase());
 }
+
+/// crowexif がメタ情報を書き込める形式（SPEC §3.1）。
+///
+/// 動画への書き込みは crowexif に ISO BMFF 書き込みが入るまで立たない
+/// （SPEC §3.2、§13）。
+const _writableExtensions = {
+  'jpg',
+  'jpeg',
+  'jpe',
+  'tif',
+  'tiff',
+  'png',
+  'webp',
+  'heic',
+  'heif',
+};
+
+/// この対象のメタ情報を書き換えられるか。
+///
+/// 書けない対象は編集の対象から外し、理由を添えて無効表示にする（SPEC §8）。
+bool canWriteMetadata(String path) {
+  final dot = path.lastIndexOf('.');
+  if (dot < 0 || dot == path.length - 1) return false;
+  return _writableExtensions.contains(path.substring(dot + 1).toLowerCase());
+}
