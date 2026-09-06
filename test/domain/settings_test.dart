@@ -50,8 +50,11 @@ void main() {
   });
 
   test('ピン留めした項目も保存される', () {
-    const settings = AppSettings(pinned: ['EXIF:Make', '要約:位置']);
-    expect(AppSettings.fromMap(settings.toMap()).pinned, ['EXIF:Make', '要約:位置']);
+    const settings = AppSettings(pinned: ['EXIF:Make', 'Summary:location']);
+    expect(AppSettings.fromMap(settings.toMap()).pinned, [
+      'EXIF:Make',
+      'Summary:location',
+    ]);
   });
 
   test('ピン留めを全部外した状態も保てる', () {
@@ -61,5 +64,13 @@ void main() {
 
   test('保存が無ければ既定のピン留めになる', () {
     expect(AppSettings.fromMap(const {}).pinned, defaultPinnedKeys);
+  });
+
+  test('古い形のピン留めは読まず、既定に戻す', () {
+    // キーが画面の言葉だった頃の値。読み替えずに捨てる（AGENTS.md）。
+    expect(
+      AppSettings.fromMap(const {'pinned': '要約:撮影時刻,要約:位置'}).pinned,
+      defaultPinnedKeys,
+    );
   });
 }

@@ -76,8 +76,14 @@ class AppSettings {
     'sortMode': sortMode.name,
     'tileSize': '$tileSize',
     'columns': encodeColumns(columnLayouts),
-    'pinned': encodePinned(pinned),
+    _pinnedKey: encodePinned(pinned),
   };
+
+  /// ピン留めの保存先。
+  ///
+  /// キーの形を変えたときは、この名前も変えて古い値を読まないようにする。
+  /// 古い値を読み替える道は作らない（AGENTS.md）。
+  static const _pinnedKey = 'pinnedFields';
 
   /// 読めない値・知らない値は既定値に落とす。設定の壊れで起動できなくならないため。
   factory AppSettings.fromMap(Map<String, String> map) {
@@ -94,7 +100,7 @@ class AppSettings {
       tileSize: (double.tryParse(map['tileSize'] ?? '') ?? defaults.tileSize)
           .clamp(96, 320),
       columns: decodeColumns(map['columns']),
-      pinned: decodePinned(map['pinned']),
+      pinned: decodePinned(map[_pinnedKey]),
     );
   }
 }
