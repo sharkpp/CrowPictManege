@@ -52,7 +52,8 @@ class _Large extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) => InteractiveViewer(
                 maxScale: 8,
-                child: Center(
+                // 枠いっぱいに収める。大きさを与えないと元の寸法のまま出る。
+                child: SizedBox.expand(
                   // 表示寸法を指定して復号する。原寸には展開しない（SPEC FR-B5）。
                   child: AssetThumbnail(
                     key: ValueKey(asset.path),
