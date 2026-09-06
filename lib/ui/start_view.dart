@@ -46,8 +46,9 @@ class StartView extends ConsumerWidget {
             Center(
               child: Text(
                 'ここへフォルダをドロップしても開けます',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
               ),
             ),
             if (message != null) ...[
@@ -55,8 +56,9 @@ class StartView extends ConsumerWidget {
               Center(
                 child: Text(
                   message!,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.error),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
                 ),
               ),
             ],
@@ -149,8 +151,9 @@ class _Section extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               title,
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(color: theme.colorScheme.outline),
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
           ],
         ),
@@ -160,8 +163,9 @@ class _Section extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Text(
               empty,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.outline),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
           )
         else
@@ -197,8 +201,9 @@ class _PlaceRow extends StatelessWidget {
         subtitle,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: theme.textTheme.bodySmall
-            ?.copyWith(color: theme.colorScheme.outline),
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.outline,
+        ),
       ),
       trailing: trailing,
       onTap: onOpen,

@@ -88,8 +88,7 @@ class DateRangeFilter extends ColumnFilter {
   bool get isActive => from != null || to != null;
 
   @override
-  String describe() =>
-      '${_text(from)} 〜 ${_text(to)}';
+  String describe() => '${_text(from)} 〜 ${_text(to)}';
 
   @override
   bool matches(AssetColumn column, MediaAsset asset) {
@@ -103,7 +102,7 @@ class DateRangeFilter extends ColumnFilter {
   static String _text(DateTime? value) => value == null
       ? ''
       : '${value.year}/${value.month.toString().padLeft(2, '0')}/'
-          '${value.day.toString().padLeft(2, '0')}';
+            '${value.day.toString().padLeft(2, '0')}';
 }
 
 /// 決まった値から選ぶ。
@@ -157,9 +156,9 @@ bool matchesColumnFilters(
 
 /// 型に合った空のフィルタ。
 ColumnFilter emptyFilterFor(ColumnValueType kind) => switch (kind) {
-      ColumnValueType.text => const TextFilter(''),
-      ColumnValueType.choice => const ChoiceFilter({}),
-      ColumnValueType.number || ColumnValueType.duration => const RangeFilter(),
-      ColumnValueType.dateTime => const DateRangeFilter(),
-      ColumnValueType.flag => const FlagFilter(null),
-    };
+  ColumnValueType.text => const TextFilter(''),
+  ColumnValueType.choice => const ChoiceFilter({}),
+  ColumnValueType.number || ColumnValueType.duration => const RangeFilter(),
+  ColumnValueType.dateTime => const DateRangeFilter(),
+  ColumnValueType.flag => const FlagFilter(null),
+};

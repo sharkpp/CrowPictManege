@@ -85,7 +85,10 @@ class SelectionNotifier extends Notifier<Selection> {
   }
 
   void invert(List<String> ordered) {
-    final paths = {for (final path in ordered) if (!state.contains(path)) path};
+    final paths = {
+      for (final path in ordered)
+        if (!state.contains(path)) path,
+    };
     state = Selection(paths: paths, primary: paths.isEmpty ? null : paths.last);
   }
 
@@ -126,8 +129,10 @@ class SelectionNotifier extends Notifier<Selection> {
   void step(List<String> ordered, int delta) {
     if (ordered.isEmpty) return;
     final current = ordered.indexOf(state.primary ?? '');
-    final next =
-        (current < 0 ? 0 : current + delta).clamp(0, ordered.length - 1);
+    final next = (current < 0 ? 0 : current + delta).clamp(
+      0,
+      ordered.length - 1,
+    );
     tap(ordered[next], ordered, SelectionGesture.replace);
   }
 
@@ -143,14 +148,15 @@ class SelectionNotifier extends Notifier<Selection> {
   }
 }
 
-final selectionProvider =
-    NotifierProvider<SelectionNotifier, Selection>(SelectionNotifier.new);
+final selectionProvider = NotifierProvider<SelectionNotifier, Selection>(
+  SelectionNotifier.new,
+);
 
 /// タグツリー上で選んだタグ（`Group:Name`）。コピーの対象になる（SPEC FR-V6）。
 final tagSelectionProvider =
     NotifierProvider<TagSelectionNotifier, Set<String>>(
-  TagSelectionNotifier.new,
-);
+      TagSelectionNotifier.new,
+    );
 
 class TagSelectionNotifier extends Notifier<Set<String>> {
   @override
@@ -164,4 +170,3 @@ class TagSelectionNotifier extends Notifier<Set<String>> {
 
   void clear() => state = const {};
 }
-

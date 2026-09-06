@@ -22,10 +22,9 @@ class DriftCatalog implements CatalogPort {
   }
 
   @override
-  Future<void> saveSetting(String key, String value) =>
-      _database.into(_database.settingEntries).insertOnConflictUpdate(
-            SettingEntry(key: key, value: value),
-          );
+  Future<void> saveSetting(String key, String value) => _database
+      .into(_database.settingEntries)
+      .insertOnConflictUpdate(SettingEntry(key: key, value: value));
 
   @override
   Future<List<Bookmark>> bookmarks() async {
@@ -39,26 +38,27 @@ class DriftCatalog implements CatalogPort {
   }
 
   @override
-  Future<void> addBookmark(Bookmark bookmark) =>
-      _database.into(_database.bookmarkEntries).insertOnConflictUpdate(
-            BookmarkEntry(
-              path: bookmark.path,
-              name: bookmark.name,
-              addedAt: bookmark.addedAt,
-            ),
-          );
+  Future<void> addBookmark(Bookmark bookmark) => _database
+      .into(_database.bookmarkEntries)
+      .insertOnConflictUpdate(
+        BookmarkEntry(
+          path: bookmark.path,
+          name: bookmark.name,
+          addedAt: bookmark.addedAt,
+        ),
+      );
 
   @override
-  Future<void> removeBookmark(String path) =>
-      (_database.delete(_database.bookmarkEntries)
-            ..where((row) => row.path.equals(path)))
-          .go();
+  Future<void> removeBookmark(String path) => (_database.delete(
+    _database.bookmarkEntries,
+  )..where((row) => row.path.equals(path))).go();
 
   @override
   Future<List<Visit>> recentVisits({int limit = 20}) async {
     final query = _database.select(_database.visitEntries)
       ..orderBy([
-        (row) => OrderingTerm(expression: row.visitedAt, mode: OrderingMode.desc),
+        (row) =>
+            OrderingTerm(expression: row.visitedAt, mode: OrderingMode.desc),
       ])
       ..limit(limit);
     final rows = await query.get();
@@ -68,10 +68,11 @@ class DriftCatalog implements CatalogPort {
   }
 
   @override
-  Future<void> recordVisit(String path) =>
-      _database.into(_database.visitEntries).insertOnConflictUpdate(
-            VisitEntry(path: path, visitedAt: DateTime.now()),
-          );
+  Future<void> recordVisit(String path) => _database
+      .into(_database.visitEntries)
+      .insertOnConflictUpdate(
+        VisitEntry(path: path, visitedAt: DateTime.now()),
+      );
 
   @override
   Future<Map<String, CachedAsset>> cachedAssets(List<String> paths) async {
@@ -102,24 +103,22 @@ class DriftCatalog implements CatalogPort {
   Future<void> storeCachedAssets(List<CachedAsset> entries) async {
     if (entries.isEmpty) return;
     await _database.batch((batch) {
-      batch.insertAllOnConflictUpdate(
-        _database.cachedAssetEntries,
-        [
-          for (final entry in entries)
-            CachedAssetEntry(
-              path: entry.path,
-              size: entry.size,
-              fileModifiedAt: entry.fileModifiedAt,
-              summary:
-                  entry.summary == null ? null : encodeSummary(entry.summary!),
-              thumbnail: entry.thumbnail,
-              error: entry.error,
-              perceptualHash: entry.perceptualHash,
-              contentHash: entry.contentHash,
-              updatedAt: DateTime.now(),
-            ),
-        ],
-      );
+      batch.insertAllOnConflictUpdate(_database.cachedAssetEntries, [
+        for (final entry in entries)
+          CachedAssetEntry(
+            path: entry.path,
+            size: entry.size,
+            fileModifiedAt: entry.fileModifiedAt,
+            summary: entry.summary == null
+                ? null
+                : encodeSummary(entry.summary!),
+            thumbnail: entry.thumbnail,
+            error: entry.error,
+            perceptualHash: entry.perceptualHash,
+            contentHash: entry.contentHash,
+            updatedAt: DateTime.now(),
+          ),
+      ]);
     });
   }
 

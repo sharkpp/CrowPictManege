@@ -64,15 +64,16 @@ Stream<SearchProgress> findSimilar({
         final asset = missing[i];
         hashes[asset.path] = hash;
         final entry = cached[asset.path];
-        toStore.add(entry != null &&
-                entry.matches(asset.size, asset.fileModifiedAt)
-            ? entry.copyWith(perceptualHash: hash)
-            : CachedAsset(
-                path: asset.path,
-                size: asset.size,
-                fileModifiedAt: asset.fileModifiedAt,
-                perceptualHash: hash,
-              ));
+        toStore.add(
+          entry != null && entry.matches(asset.size, asset.fileModifiedAt)
+              ? entry.copyWith(perceptualHash: hash)
+              : CachedAsset(
+                  path: asset.path,
+                  size: asset.size,
+                  fileModifiedAt: asset.fileModifiedAt,
+                  perceptualHash: hash,
+                ),
+        );
       }
       await catalog.storeCachedAssets(toStore);
     }

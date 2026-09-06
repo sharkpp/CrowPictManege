@@ -68,13 +68,14 @@ class _AssetThumbnailState extends ConsumerState<AssetThumbnail> {
   @override
   Widget build(BuildContext context) {
     if (_bytes == null) _request();
-    final pixels =
-        (widget.size * MediaQuery.devicePixelRatioOf(context)).round();
+    final pixels = (widget.size * MediaQuery.devicePixelRatioOf(context))
+        .round();
     final bytes = _bytes;
 
     // 埋め込みプレビューは 160px 前後しかないことが多い。表示がそれより大きい
     // ときは、まず埋め込みを出してから復号したものに差し替える。
-    final upgrade = widget.asset.kind == AssetKind.image &&
+    final upgrade =
+        widget.asset.kind == AssetKind.image &&
         isDecodableByFlutter(widget.asset.path) &&
         (bytes == null || pixels > _embeddedThumbnailPixels);
 
@@ -99,13 +100,15 @@ class _AssetThumbnailState extends ConsumerState<AssetThumbnail> {
     }
 
     if (bytes != null) {
-      return _oriented(Image.memory(
-        bytes,
-        fit: widget.fit,
-        cacheWidth: pixels,
-        gaplessPlayback: true,
-        errorBuilder: (context, _, _) => _placeholder(context),
-      ));
+      return _oriented(
+        Image.memory(
+          bytes,
+          fit: widget.fit,
+          cacheWidth: pixels,
+          gaplessPlayback: true,
+          errorBuilder: (context, _, _) => _placeholder(context),
+        ),
+      );
     }
     return _placeholder(context);
   }

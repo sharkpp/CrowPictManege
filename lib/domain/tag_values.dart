@@ -5,10 +5,10 @@
 /// この入れ物を直接組み立てて書ける。
 class TagValues {
   TagValues(this._qualified)
-      : _byName = {
-          for (final entry in _qualified.entries)
-            entry.key.substring(entry.key.indexOf(':') + 1): entry.value,
-        };
+    : _byName = {
+        for (final entry in _qualified.entries)
+          entry.key.substring(entry.key.indexOf(':') + 1): entry.value,
+      };
 
   final Map<String, Object?> _qualified;
   final Map<String, Object?> _byName;

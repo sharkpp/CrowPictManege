@@ -1,6 +1,10 @@
 /// ブックマークに登録したフォルダ（SPEC FR-B15）。
 class Bookmark {
-  const Bookmark({required this.path, required this.name, required this.addedAt});
+  const Bookmark({
+    required this.path,
+    required this.name,
+    required this.addedAt,
+  });
 
   final String path;
 

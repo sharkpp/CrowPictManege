@@ -35,10 +35,10 @@ class SettingsNotifier extends Notifier<AppSettings> {
 
   /// 要約への出し入れ（SPEC FR-V2）。既にあれば外す。
   void togglePin(String key) => update((current) {
-        final pinned = List.of(current.pinned);
-        if (!pinned.remove(key)) pinned.add(key);
-        return current.copyWith(pinned: pinned);
-      });
+    final pinned = List.of(current.pinned);
+    if (!pinned.remove(key)) pinned.add(key);
+    return current.copyWith(pinned: pinned);
+  });
 
   Future<void> _persist(AppSettings settings) async {
     final catalog = ref.read(catalogProvider);
@@ -48,5 +48,6 @@ class SettingsNotifier extends Notifier<AppSettings> {
   }
 }
 
-final settingsProvider =
-    NotifierProvider<SettingsNotifier, AppSettings>(SettingsNotifier.new);
+final settingsProvider = NotifierProvider<SettingsNotifier, AppSettings>(
+  SettingsNotifier.new,
+);

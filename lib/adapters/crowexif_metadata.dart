@@ -68,7 +68,8 @@ AssetSummary readSummarySync(String path, {Duration? defaultOffset}) {
     height: tags.integer('ImageHeight') ?? tags.integer('ExifImageHeight'),
     duration: _duration(tags),
     rotation: tags.integer('Rotation'),
-    orientation: tags.integer('IFD0:Orientation') ?? tags.integer('Orientation'),
+    orientation:
+        tags.integer('IFD0:Orientation') ?? tags.integer('Orientation'),
     embeddedThumbnail: _embeddedThumbnail(metadata),
     warnings: metadata.warnings,
   );
@@ -119,10 +120,10 @@ Uint8List? _dumpBytes(Uint8List? bytes) {
 
 /// タグを名前で引ける形に均す。値は数値・文字列のいずれかに揃える。
 TagValues _tagValues(Metadata metadata) => TagValues({
-      for (final entry in metadata.uniqueEntries)
-        if (!entry.isBinary)
-          entry.qualifiedName(): _plainValue(entry.value ?? entry.printValue),
-    });
+  for (final entry in metadata.uniqueEntries)
+    if (!entry.isBinary)
+      entry.qualifiedName(): _plainValue(entry.value ?? entry.printValue),
+});
 
 Object? _plainValue(Object? value) {
   if (value is Rational) return value.toDouble;
@@ -138,7 +139,8 @@ DateTime? _fileModifiedAt(Metadata metadata) {
 }
 
 Duration? _duration(TagValues tags) {
-  final seconds = tags.number('Composite:Duration') ??
+  final seconds =
+      tags.number('Composite:Duration') ??
       tags.number('QuickTime:Duration') ??
       tags.number('Duration');
   if (seconds == null || seconds <= 0) return null;

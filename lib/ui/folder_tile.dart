@@ -58,8 +58,9 @@ class FolderTile extends ConsumerWidget {
           ),
           Text(
             '${folder.count} 件',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: theme.colorScheme.outline),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.outline,
+            ),
           ),
         ],
       ),
@@ -88,8 +89,7 @@ class _PreviewMosaic extends StatelessWidget {
       crossAxisSpacing: 1,
       children: [
         // フォルダの中身は格子に敷き詰めたいので、ここだけは切り抜く。
-        for (final asset in previews)
-          AssetThumbnail(asset: asset, size: tile),
+        for (final asset in previews) AssetThumbnail(asset: asset, size: tile),
       ],
     );
   }
@@ -113,11 +113,14 @@ class FolderRow extends ConsumerWidget {
           children: [
             const Icon(Icons.folder, size: 16),
             const SizedBox(width: 8),
-            Expanded(child: Text(folder.name, style: theme.textTheme.bodySmall)),
+            Expanded(
+              child: Text(folder.name, style: theme.textTheme.bodySmall),
+            ),
             Text(
               '${folder.count} 件',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.outline),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
           ],
         ),

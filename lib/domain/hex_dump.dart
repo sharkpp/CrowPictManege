@@ -15,9 +15,7 @@ String hexDump(Uint8List bytes) {
     final chunk = bytes.sublist(start, end);
     final hex = [
       for (var i = 0; i < _bytesPerLine; i++)
-        i < chunk.length
-            ? chunk[i].toRadixString(16).padLeft(2, '0')
-            : '  ',
+        i < chunk.length ? chunk[i].toRadixString(16).padLeft(2, '0') : '  ',
     ];
     final ascii = [
       for (final byte in chunk)

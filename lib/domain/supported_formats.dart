@@ -27,6 +27,13 @@ AssetKind? kindForExtension(String path) {
 bool isDecodableByFlutter(String path) {
   final dot = path.lastIndexOf('.');
   if (dot < 0) return false;
-  return const {'jpg', 'jpeg', 'jpe', 'png', 'gif', 'bmp', 'webp'}
-      .contains(path.substring(dot + 1).toLowerCase());
+  return const {
+    'jpg',
+    'jpeg',
+    'jpe',
+    'png',
+    'gif',
+    'bmp',
+    'webp',
+  }.contains(path.substring(dot + 1).toLowerCase());
 }

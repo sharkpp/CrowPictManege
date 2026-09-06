@@ -67,13 +67,17 @@ class _Breadcrumb extends ConsumerWidget {
         children: [
           for (var i = 0; i < parts.length; i++) ...[
             if (i > 0)
-              Icon(Icons.chevron_right, size: 16, color: theme.colorScheme.outline),
+              Icon(
+                Icons.chevron_right,
+                size: 16,
+                color: theme.colorScheme.outline,
+              ),
             TextButton(
               onPressed: i == parts.length - 1
                   ? null
                   : () => ref
-                      .read(navigationProvider.notifier)
-                      .open(p.joinAll(parts.take(i + 1))),
+                        .read(navigationProvider.notifier)
+                        .open(p.joinAll(parts.take(i + 1))),
               style: TextButton.styleFrom(
                 minimumSize: Size.zero,
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -84,8 +88,9 @@ class _Breadcrumb extends ConsumerWidget {
               child: Text(
                 parts[i],
                 style: i == parts.length - 1
-                    ? theme.textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.w600)
+                    ? theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      )
                     : theme.textTheme.bodyMedium,
               ),
             ),
@@ -104,9 +109,11 @@ class _BookmarkStar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bookmarked = ref.watch(bookmarksProvider).value?.any(
-              (bookmark) => bookmark.path == path,
-            ) ??
+    final bookmarked =
+        ref
+            .watch(bookmarksProvider)
+            .value
+            ?.any((bookmark) => bookmark.path == path) ??
         false;
 
     return IconButton(
@@ -187,8 +194,9 @@ class _PlaceItem extends StatelessWidget {
           '$note · $path',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall
-              ?.copyWith(color: theme.colorScheme.outline),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.outline,
+          ),
         ),
       ],
     );

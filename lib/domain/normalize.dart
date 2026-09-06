@@ -4,7 +4,11 @@ import 'tag_values.dart';
 /// 壁時計時刻を決める優先順位（SPEC §4.2）。
 /// 各要素は「読むタグ」「対応する Exif オフセットタグ」「由来」の組。
 const _timeCandidates = <(String, String?, TimeSource)>[
-  ('EXIF:DateTimeOriginal', 'OffsetTimeOriginal', TimeSource.exifDateTimeOriginal),
+  (
+    'EXIF:DateTimeOriginal',
+    'OffsetTimeOriginal',
+    TimeSource.exifDateTimeOriginal,
+  ),
   ('EXIF:CreateDate', 'OffsetTimeDigitized', TimeSource.exifCreateDate),
   ('XMP:CreateDate', null, TimeSource.xmpCreateDate),
   ('QuickTime:CreateDate', null, TimeSource.quickTimeCreateDate),
@@ -46,7 +50,9 @@ CapturedAt normalizeCapturedAt(
       );
     }
 
-    final tagged = offsetTag == null ? null : parseOffset(tags.string(offsetTag));
+    final tagged = offsetTag == null
+        ? null
+        : parseOffset(tags.string(offsetTag));
     if (tagged != null) {
       return CapturedAt(
         wallClock: parsed.wallClock,
@@ -70,8 +76,9 @@ CapturedAt normalizeCapturedAt(
       wallClock: parsed.wallClock,
       offset: defaultOffset,
       source: source,
-      offsetSource:
-          defaultOffset == null ? OffsetSource.unknown : OffsetSource.tag,
+      offsetSource: defaultOffset == null
+          ? OffsetSource.unknown
+          : OffsetSource.tag,
     );
   }
 
@@ -189,7 +196,9 @@ final _fileNamePatterns = <RegExp>[
   // IMG_20240115_123456 / PXL_20240115_123456789 / 20240115_123456
   RegExp(r'(\d{4})(\d{2})(\d{2})[_\-T]?(\d{2})(\d{2})(\d{2})'),
   // 2024-01-15 12.34.56 / 2024_01_15-12_34_56
-  RegExp(r'(\d{4})[-_.](\d{2})[-_.](\d{2})[ \-_T](\d{2})[-_.:](\d{2})[-_.:](\d{2})'),
+  RegExp(
+    r'(\d{4})[-_.](\d{2})[-_.](\d{2})[ \-_T](\d{2})[-_.:](\d{2})[-_.:](\d{2})',
+  ),
 ];
 
 /// ファイル名に埋め込まれた撮影日時を読む。妥当でない値は採用しない。
@@ -215,10 +224,20 @@ DateTime? dateTimeFromFileName(String fileName) {
 ///
 /// Composite の符号付き値を優先し、無い場合のみ Exif の絶対値と Ref から組み立てる。
 GeoPoint? normalizeLocation(TagValues tags) {
-  final latitude = tags.number('Composite:GPSLatitude') ??
-      _signed(tags.number('EXIF:GPSLatitude'), tags.string('GPSLatitudeRef'), 'S');
-  final longitude = tags.number('Composite:GPSLongitude') ??
-      _signed(tags.number('EXIF:GPSLongitude'), tags.string('GPSLongitudeRef'), 'W');
+  final latitude =
+      tags.number('Composite:GPSLatitude') ??
+      _signed(
+        tags.number('EXIF:GPSLatitude'),
+        tags.string('GPSLatitudeRef'),
+        'S',
+      );
+  final longitude =
+      tags.number('Composite:GPSLongitude') ??
+      _signed(
+        tags.number('EXIF:GPSLongitude'),
+        tags.string('GPSLongitudeRef'),
+        'W',
+      );
   if (latitude == null || longitude == null) return null;
   if (latitude.abs() > 90 || longitude.abs() > 180) return null;
   // 0,0 は「未設定のまま書かれた値」であることが多く、位置として扱わない。
@@ -243,7 +262,7 @@ GeoPoint? normalizeLocation(TagValues tags) {
 
 double? _signed(double? magnitude, String? reference, String negative) {
   if (magnitude == null) return null;
-  final negate = reference != null &&
-      reference.trim().toUpperCase().startsWith(negative);
+  final negate =
+      reference != null && reference.trim().toUpperCase().startsWith(negative);
   return negate ? -magnitude.abs() : magnitude.abs();
 }

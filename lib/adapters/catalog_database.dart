@@ -75,19 +75,16 @@ class CatalogDatabase extends _$CatalogDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) => m.createAll(),
-        onUpgrade: (m, from, to) async {
-          // 2: 対象キャッシュ（FR-B17）を追加した。
-          if (from < 2) await m.createTable(cachedAssetEntries);
-          // 3: 重複検出の内容ハッシュ（FR-B9）を足した。
-          if (from < 3) {
-            await m.addColumn(
-              cachedAssetEntries,
-              cachedAssetEntries.contentHash,
-            );
-          }
-        },
-      );
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      // 2: 対象キャッシュ（FR-B17）を追加した。
+      if (from < 2) await m.createTable(cachedAssetEntries);
+      // 3: 重複検出の内容ハッシュ（FR-B9）を足した。
+      if (from < 3) {
+        await m.addColumn(cachedAssetEntries, cachedAssetEntries.contentHash);
+      }
+    },
+  );
 
   /// 日時は文字列で持つ。秒より細かい差を保ち、履歴の並びが決まるようにする。
   @override
@@ -96,7 +93,7 @@ class CatalogDatabase extends _$CatalogDatabase {
 }
 
 QueryExecutor _lazyAppSupport() => LazyDatabase(() async {
-      final directory = await getApplicationSupportDirectory();
-      final file = File(p.join(directory.path, 'catalog.sqlite'));
-      return NativeDatabase.createInBackground(file);
-    });
+  final directory = await getApplicationSupportDirectory();
+  final file = File(p.join(directory.path, 'catalog.sqlite'));
+  return NativeDatabase.createInBackground(file);
+});

@@ -16,8 +16,8 @@ final catalogProvider = Provider<CatalogPort>((ref) {
 /// ブックマーク（SPEC FR-B15）。
 final bookmarksProvider =
     AsyncNotifierProvider<BookmarksNotifier, List<Bookmark>>(
-  BookmarksNotifier.new,
-);
+      BookmarksNotifier.new,
+    );
 
 class BookmarksNotifier extends AsyncNotifier<List<Bookmark>> {
   @override
@@ -30,11 +30,13 @@ class BookmarksNotifier extends AsyncNotifier<List<Bookmark>> {
     if (current.any((bookmark) => bookmark.path == path)) {
       await catalog.removeBookmark(path);
     } else {
-      await catalog.addBookmark(Bookmark(
-        path: path,
-        name: p.basename(path).isEmpty ? path : p.basename(path),
-        addedAt: DateTime.now(),
-      ));
+      await catalog.addBookmark(
+        Bookmark(
+          path: path,
+          name: p.basename(path).isEmpty ? path : p.basename(path),
+          addedAt: DateTime.now(),
+        ),
+      );
     }
     ref.invalidateSelf();
   }
@@ -46,5 +48,6 @@ final visitsProvider = FutureProvider<List<Visit>>(
 );
 
 /// キャッシュしている件数（SPEC FR-P6）。
-final cachedAssetCountProvider =
-    FutureProvider<int>((ref) => ref.watch(catalogProvider).cachedAssetCount());
+final cachedAssetCountProvider = FutureProvider<int>(
+  (ref) => ref.watch(catalogProvider).cachedAssetCount(),
+);

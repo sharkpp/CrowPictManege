@@ -56,7 +56,9 @@ Stream<SearchProgress> runSearch({
           if (matchesFileName(asset.name, query.text)) asset,
       ];
       // 当たった分だけ要約を埋める。一覧の表示に使う。
-      final cached = await catalog.cachedAssets([for (final a in matched) a.path]);
+      final cached = await catalog.cachedAssets([
+        for (final a in matched) a.path,
+      ]);
       for (final asset in matched) {
         results.add(_withCachedSummary(asset, cached[asset.path]));
       }

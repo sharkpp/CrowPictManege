@@ -25,24 +25,24 @@ String columnText(AssetColumn column, MediaAsset asset) {
 
 /// 数値として見た列の値。範囲フィルタが使う。
 num? columnNumber(AssetColumn column, MediaAsset asset) => switch (column) {
-      AssetColumn.size => asset.size,
-      AssetColumn.duration => asset.summary?.duration?.inSeconds,
-      _ => null,
-    };
+  AssetColumn.size => asset.size,
+  AssetColumn.duration => asset.summary?.duration?.inSeconds,
+  _ => null,
+};
 
 /// 日時として見た列の値。範囲フィルタが使う。
 DateTime? columnDate(AssetColumn column, MediaAsset asset) => switch (column) {
-      AssetColumn.capturedAt => asset.summary?.capturedAt?.wallClock,
-      AssetColumn.fileModifiedAt => asset.fileModifiedAt,
-      _ => null,
-    };
+  AssetColumn.capturedAt => asset.summary?.capturedAt?.wallClock,
+  AssetColumn.fileModifiedAt => asset.fileModifiedAt,
+  _ => null,
+};
 
 /// 値を持つかどうか。有無フィルタが使う。
 bool columnFlag(AssetColumn column, MediaAsset asset) => switch (column) {
-      AssetColumn.location => asset.summary?.location != null,
-      AssetColumn.capturedAt || AssetColumn.fileModifiedAt =>
-        columnDate(column, asset) != null,
-      AssetColumn.size || AssetColumn.duration =>
-        columnNumber(column, asset) != null,
-      _ => columnText(column, asset).isNotEmpty,
-    };
+  AssetColumn.location => asset.summary?.location != null,
+  AssetColumn.capturedAt ||
+  AssetColumn.fileModifiedAt => columnDate(column, asset) != null,
+  AssetColumn.size ||
+  AssetColumn.duration => columnNumber(column, asset) != null,
+  _ => columnText(column, asset).isNotEmpty,
+};

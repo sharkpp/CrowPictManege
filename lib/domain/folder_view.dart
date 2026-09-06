@@ -54,7 +54,10 @@ FolderListing folderListing(
     }
     if (!p.isWithin(rootPath, directory)) continue;
     // 直下のどのフォルダに属するかだけを見る。
-    final child = p.join(rootPath, p.split(p.relative(directory, from: rootPath)).first);
+    final child = p.join(
+      rootPath,
+      p.split(p.relative(directory, from: rootPath)).first,
+    );
     counts[child] = (counts[child] ?? 0) + 1;
     final preview = previews.putIfAbsent(child, () => []);
     if (preview.length < previewCount && asset.kind == AssetKind.image) {

@@ -64,14 +64,14 @@ class NavigationNotifier extends Notifier<NavigationState> {
     ref.invalidate(visitsProvider);
     await ref.read(libraryProvider.notifier).open(path);
     if (select != null) {
-      ref
-          .read(selectionProvider.notifier)
-          .tap(select, [select], SelectionGesture.replace);
+      ref.read(selectionProvider.notifier).tap(select, [
+        select,
+      ], SelectionGesture.replace);
     }
   }
 }
 
 final navigationProvider =
     NotifierProvider<NavigationNotifier, NavigationState>(
-  NavigationNotifier.new,
-);
+      NavigationNotifier.new,
+    );
