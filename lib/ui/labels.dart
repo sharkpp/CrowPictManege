@@ -9,6 +9,7 @@ import '../domain/search.dart';
 import '../domain/settings.dart';
 import '../domain/tag_edit.dart';
 import '../ports/metadata_write_port.dart';
+import '../ports/transfer_port.dart';
 import '../l10n/l10n.dart';
 import 'format.dart';
 
@@ -208,6 +209,12 @@ extension AppLabels on AppLocalizations {
       interval.inSeconds,
     ),
     AdoptTime(:final from) => editOpAdoptTime(timeAdoptionLabel(from)),
+  };
+
+  /// 転送が立たなかった理由に出す言葉（SPEC FR-T）。
+  String transferFailureText(TransferFailureReason reason) => switch (reason) {
+    TransferFailureReason.unsupported => transferFailureUnsupported,
+    TransferFailureReason.launchFailed => transferFailureLaunch,
   };
 
   /// 時刻の取り込み元に出す言葉（SPEC FR-E3-6）。

@@ -10,6 +10,8 @@
   "actionStop": "やめる",
   "actionAbort": "中止",
   "actionResetToDefault": "既定に戻す",
+  "actionEdit": "直す",
+  "actionDelete": "消す",
   "valuePresent": "あり",
   "@valuePresent": {
     "description": "値があることを表す（列の表示、フィルタの選択肢）"
@@ -310,6 +312,44 @@
   "filterToDate": "この日まで",
   "filterAny": "絞らない",
   "filterNotSet": "指定なし",
+  "transferMenu": "別のアプリへ渡す",
+  "transferUnsupported": "このプラットフォームでは渡せません",
+  "transferOpenDefault": "既定のアプリで開く",
+  "transferOpenWith": "アプリを指定して開く…",
+  "transferTargets": "転送先",
+  "transferTargetsHint": "実行ファイルと引数のひな型で、よく使う渡し先を決めておけます。",
+  "transferAddTarget": "転送先を足す",
+  "transferTargetName": "名前",
+  "transferTargetCommand": "実行ファイル",
+  "transferTargetArguments": "引数",
+  "transferArgumentsHint": "{all} は選んだ対象すべて、{one} は先頭の 1 件、{dir} はそのフォルダ",
+  "@transferArgumentsHint": {
+    "description": "引数のひな型に書けるもの。値は置き換えの語そのもの",
+    "placeholders": {
+      "all": {
+        "type": "String"
+      },
+      "one": {
+        "type": "String"
+      },
+      "dir": {
+        "type": "String"
+      }
+    }
+  },
+  "transferFailed": "渡せませんでした: {reason} {detail}",
+  "@transferFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "transferFailureUnsupported": "このプラットフォームでは渡せません",
+  "transferFailureLaunch": "起動できませんでした",
   "mapNoLocated": "位置を持つ対象がありません",
   "mapAttribution": "{count} 件に位置あり · © OpenStreetMap contributors",
   "@mapAttribution": {

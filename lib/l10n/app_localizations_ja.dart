@@ -39,6 +39,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get actionResetToDefault => '既定に戻す';
 
   @override
+  String get actionEdit => '直す';
+
+  @override
+  String get actionDelete => '消す';
+
+  @override
   String get valuePresent => 'あり';
 
   @override
@@ -417,6 +423,52 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get filterNotSet => '指定なし';
+
+  @override
+  String get transferMenu => '別のアプリへ渡す';
+
+  @override
+  String get transferUnsupported => 'このプラットフォームでは渡せません';
+
+  @override
+  String get transferOpenDefault => '既定のアプリで開く';
+
+  @override
+  String get transferOpenWith => 'アプリを指定して開く…';
+
+  @override
+  String get transferTargets => '転送先';
+
+  @override
+  String get transferTargetsHint => '実行ファイルと引数のひな型で、よく使う渡し先を決めておけます。';
+
+  @override
+  String get transferAddTarget => '転送先を足す';
+
+  @override
+  String get transferTargetName => '名前';
+
+  @override
+  String get transferTargetCommand => '実行ファイル';
+
+  @override
+  String get transferTargetArguments => '引数';
+
+  @override
+  String transferArgumentsHint(String all, String one, String dir) {
+    return '$all は選んだ対象すべて、$one は先頭の 1 件、$dir はそのフォルダ';
+  }
+
+  @override
+  String transferFailed(String reason, String detail) {
+    return '渡せませんでした: $reason $detail';
+  }
+
+  @override
+  String get transferFailureUnsupported => 'このプラットフォームでは渡せません';
+
+  @override
+  String get transferFailureLaunch => '起動できませんでした';
 
   @override
   String get mapNoLocated => '位置を持つ対象がありません';

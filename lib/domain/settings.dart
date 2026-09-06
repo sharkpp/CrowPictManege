@@ -1,5 +1,6 @@
 import 'columns.dart';
 import 'pinned_fields.dart';
+import 'transfer.dart';
 
 /// 一覧の表示モード（SPEC FR-B10）。
 enum ViewMode { grid, list, gallery, map }
@@ -31,6 +32,7 @@ class AppSettings {
     this.backupEnabled = true,
     this.backupDirectory,
     this.backupGenerations = 3,
+    this.transferTargets = const [],
   });
 
   final FolderMode folderMode;
@@ -61,6 +63,9 @@ class AppSettings {
   /// 1 つの原本について残す控えの世代数（SPEC FR-E6-2）。
   final int backupGenerations;
 
+  /// よく使う転送先（SPEC FR-T3）。デスクトップだけで使う。
+  final List<TransferTarget> transferTargets;
+
   static const maxFolderThumbnails = 8;
   static const maxBackupGenerations = 20;
 
@@ -76,6 +81,7 @@ class AppSettings {
     String? backupDirectory,
     bool clearBackupDirectory = false,
     int? backupGenerations,
+    List<TransferTarget>? transferTargets,
   }) => AppSettings(
     folderMode: folderMode ?? this.folderMode,
     folderThumbnails: folderThumbnails ?? this.folderThumbnails,
@@ -89,6 +95,7 @@ class AppSettings {
         ? null
         : (backupDirectory ?? this.backupDirectory),
     backupGenerations: backupGenerations ?? this.backupGenerations,
+    transferTargets: transferTargets ?? this.transferTargets,
   );
 
   Map<String, String> toMap() => {
@@ -102,6 +109,7 @@ class AppSettings {
     'backupEnabled': '$backupEnabled',
     'backupDirectory': backupDirectory ?? '',
     'backupGenerations': '$backupGenerations',
+    'transferTargets': encodeTransferTargets(transferTargets),
   };
 
   /// ピン留めの保存先。
@@ -134,6 +142,7 @@ class AppSettings {
           (int.tryParse(map['backupGenerations'] ?? '') ??
                   defaults.backupGenerations)
               .clamp(1, maxBackupGenerations),
+      transferTargets: decodeTransferTargets(map['transferTargets']),
     );
   }
 }

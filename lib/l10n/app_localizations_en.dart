@@ -39,6 +39,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get actionResetToDefault => 'Reset to default';
 
   @override
+  String get actionEdit => 'Edit';
+
+  @override
+  String get actionDelete => 'Delete';
+
+  @override
   String get valuePresent => 'Yes';
 
   @override
@@ -465,6 +471,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterNotSet => 'Not set';
+
+  @override
+  String get transferMenu => 'Send to another app';
+
+  @override
+  String get transferUnsupported => 'Sending is not available on this platform';
+
+  @override
+  String get transferOpenDefault => 'Open in the default app';
+
+  @override
+  String get transferOpenWith => 'Open with an app...';
+
+  @override
+  String get transferTargets => 'Send-to targets';
+
+  @override
+  String get transferTargetsHint =>
+      'Keep the apps you use often as an executable plus an argument template.';
+
+  @override
+  String get transferAddTarget => 'Add a target';
+
+  @override
+  String get transferTargetName => 'Name';
+
+  @override
+  String get transferTargetCommand => 'Executable';
+
+  @override
+  String get transferTargetArguments => 'Arguments';
+
+  @override
+  String transferArgumentsHint(String all, String one, String dir) {
+    return '$all is every selected item, $one the first one, $dir its folder';
+  }
+
+  @override
+  String transferFailed(String reason, String detail) {
+    return 'Could not send: $reason $detail';
+  }
+
+  @override
+  String get transferFailureUnsupported => 'Not available on this platform';
+
+  @override
+  String get transferFailureLaunch => 'Could not launch it';
 
   @override
   String get mapNoLocated => 'No item has a location';

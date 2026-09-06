@@ -31,6 +31,7 @@ import 'search_row.dart';
 import 'settings_dialog.dart';
 import 'side_panel.dart';
 import 'start_view.dart';
+import 'transfer_menu.dart';
 import 'version_dialog.dart';
 import 'labels.dart';
 
@@ -317,6 +318,8 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
         ],
       ],
       const SizedBox(width: 8),
+      // 選んだものを別のアプリへ渡す（SPEC §5.5）。
+      const TransferMenu(),
       FilledButton.icon(
         onPressed: _chooseFolder,
         icon: const Icon(Icons.folder_open),
@@ -344,6 +347,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               ),
           ],
         ),
+      const TransferMenu(),
       IconButton(
         icon: const Icon(Icons.folder_open),
         tooltip: context.l10n.openFolder,

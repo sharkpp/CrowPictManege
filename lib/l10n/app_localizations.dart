@@ -158,6 +158,18 @@ abstract class AppLocalizations {
   /// **'既定に戻す'**
   String get actionResetToDefault;
 
+  /// No description provided for @actionEdit.
+  ///
+  /// In ja, this message translates to:
+  /// **'直す'**
+  String get actionEdit;
+
+  /// No description provided for @actionDelete.
+  ///
+  /// In ja, this message translates to:
+  /// **'消す'**
+  String get actionDelete;
+
   /// 値があることを表す（列の表示、フィルタの選択肢）
   ///
   /// In ja, this message translates to:
@@ -829,6 +841,90 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'指定なし'**
   String get filterNotSet;
+
+  /// No description provided for @transferMenu.
+  ///
+  /// In ja, this message translates to:
+  /// **'別のアプリへ渡す'**
+  String get transferMenu;
+
+  /// No description provided for @transferUnsupported.
+  ///
+  /// In ja, this message translates to:
+  /// **'このプラットフォームでは渡せません'**
+  String get transferUnsupported;
+
+  /// No description provided for @transferOpenDefault.
+  ///
+  /// In ja, this message translates to:
+  /// **'既定のアプリで開く'**
+  String get transferOpenDefault;
+
+  /// No description provided for @transferOpenWith.
+  ///
+  /// In ja, this message translates to:
+  /// **'アプリを指定して開く…'**
+  String get transferOpenWith;
+
+  /// No description provided for @transferTargets.
+  ///
+  /// In ja, this message translates to:
+  /// **'転送先'**
+  String get transferTargets;
+
+  /// No description provided for @transferTargetsHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'実行ファイルと引数のひな型で、よく使う渡し先を決めておけます。'**
+  String get transferTargetsHint;
+
+  /// No description provided for @transferAddTarget.
+  ///
+  /// In ja, this message translates to:
+  /// **'転送先を足す'**
+  String get transferAddTarget;
+
+  /// No description provided for @transferTargetName.
+  ///
+  /// In ja, this message translates to:
+  /// **'名前'**
+  String get transferTargetName;
+
+  /// No description provided for @transferTargetCommand.
+  ///
+  /// In ja, this message translates to:
+  /// **'実行ファイル'**
+  String get transferTargetCommand;
+
+  /// No description provided for @transferTargetArguments.
+  ///
+  /// In ja, this message translates to:
+  /// **'引数'**
+  String get transferTargetArguments;
+
+  /// 引数のひな型に書けるもの。値は置き換えの語そのもの
+  ///
+  /// In ja, this message translates to:
+  /// **'{all} は選んだ対象すべて、{one} は先頭の 1 件、{dir} はそのフォルダ'**
+  String transferArgumentsHint(String all, String one, String dir);
+
+  /// No description provided for @transferFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'渡せませんでした: {reason} {detail}'**
+  String transferFailed(String reason, String detail);
+
+  /// No description provided for @transferFailureUnsupported.
+  ///
+  /// In ja, this message translates to:
+  /// **'このプラットフォームでは渡せません'**
+  String get transferFailureUnsupported;
+
+  /// No description provided for @transferFailureLaunch.
+  ///
+  /// In ja, this message translates to:
+  /// **'起動できませんでした'**
+  String get transferFailureLaunch;
 
   /// No description provided for @mapNoLocated.
   ///
