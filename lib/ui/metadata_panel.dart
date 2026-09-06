@@ -17,6 +17,7 @@ import '../state/selection.dart';
 import '../state/settings.dart';
 import 'format.dart';
 import 'summary_fields.dart';
+import 'labels.dart';
 
 /// 右パネル（SPEC FR-V1、FR-V2、FR-V4）。
 ///
@@ -358,7 +359,7 @@ class _PinnedRow extends StatelessWidget {
           ),
           Expanded(
             child: SelectableText(
-              row.value,
+              mixed ? mixedValueText : row.value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontStyle: mixed ? FontStyle.italic : null,
                 color: mixed ? theme.colorScheme.outline : null,
@@ -431,7 +432,7 @@ class _Header extends ConsumerWidget {
           if (errors.isNotEmpty)
             Text(
               errors.length == 1
-                  ? errors.first
+                  ? assetErrorText(errors.first)
                   : '${errors.length} 件で読み取りに失敗しました',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
@@ -536,6 +537,9 @@ class _ExportButton extends StatelessWidget {
   String _baseName() =>
       assets.length == 1 ? assets.first.name : '${assets.length}件のメタ情報';
 
+  /// 値は画面と同じ言葉で出す（SPEC FR-V3、FR-V4）。
+  String _valueOf(TagRecord tag) => tagValueText(tag, raw: raw);
+
   /// 書き出しは画面に出ている言葉で並べる。
   Map<String, String> get _labelled => {
     for (final entry in fields.entries)
@@ -543,10 +547,10 @@ class _ExportButton extends StatelessWidget {
   };
 
   String _text(_ExportFormat format) => switch (format) {
-    _ExportFormat.json => metadataAsJson(_labelled, tags, raw: raw),
+    _ExportFormat.json => metadataAsJson(_labelled, tags, valueOf: _valueOf),
     // CSV は 1 つの表にしかできないので、要約とタグを続けて並べる。
     _ExportFormat.csv =>
-      '${fieldsAsCsv(_labelled)}\r\n\r\n${tagsAsCsv(tags, raw: raw)}',
+      '${fieldsAsCsv(_labelled)}\r\n\r\n${tagsAsCsv(tags, valueOf: _valueOf)}',
   };
 }
 
@@ -605,6 +609,9 @@ class _CopyMenu extends ConsumerWidget {
     );
   }
 
+  /// 値は画面と同じ言葉で出す（SPEC FR-V3、FR-V4）。
+  String _valueOf(TagRecord tag) => tagValueText(tag, raw: raw);
+
   String _text(
     _CopyTarget target,
     bool asJson,
@@ -631,16 +638,16 @@ class _CopyMenu extends ConsumerWidget {
         return asJson ? fieldsAsJson(summary) : fieldsAsTable(summary);
       case _CopyTarget.selectedTags:
         return asJson
-            ? tagsAsJson(selectedTags, raw: raw)
-            : tagsAsTable(selectedTags, raw: raw);
+            ? tagsAsJson(selectedTags, valueOf: _valueOf)
+            : tagsAsTable(selectedTags, valueOf: _valueOf);
       case _CopyTarget.allTags:
         return asJson
-            ? tagsAsJson(tags, raw: raw)
-            : tagsAsTable(tags, raw: raw);
+            ? tagsAsJson(tags, valueOf: _valueOf)
+            : tagsAsTable(tags, valueOf: _valueOf);
       case _CopyTarget.everything:
         return asJson
-            ? metadataAsJson(summary, tags, raw: raw)
-            : '${fieldsAsTable(summary)}\n\n${tagsAsTable(tags, raw: raw)}';
+            ? metadataAsJson(summary, tags, valueOf: _valueOf)
+            : '${fieldsAsTable(summary)}\n\n${tagsAsTable(tags, valueOf: _valueOf)}';
     }
   }
 
@@ -682,8 +689,12 @@ class _TagRowState extends ConsumerState<_TagRow> {
     final key = '${tag.group}:${tag.name}';
     final selected = ref.watch(tagSelectionProvider).contains(key);
     final pinned = ref.watch(settingsProvider).pinned.contains(key);
-    final value = widget.raw ? tag.rawValue : tag.printValue;
-    final mixed = value == mixedValueMark;
+    final raw = widget.raw ? tag.rawValue : tag.printValue;
+    final mixed = raw == mixedValueMark;
+    // バイナリは中身を出せないので、長さで示す（SPEC FR-V3）。
+    final value = mixed
+        ? mixedValueText
+        : (tag.isBinary ? binaryValueText(tag.byteLength) : raw);
     final dump = _dump(tag);
 
     return Container(

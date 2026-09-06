@@ -8,6 +8,7 @@ import '../adapters/file_system_source.dart';
 import '../domain/cached_asset.dart';
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
+import '../domain/asset_error.dart';
 import '../domain/folder_view.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
@@ -89,7 +90,7 @@ class LibraryState {
     this.scanning = false,
     this.analyzed = 0,
     this.errorCount = 0,
-    this.message,
+    this.failure,
   });
 
   final String? rootPath;
@@ -104,7 +105,8 @@ class LibraryState {
   final int errorCount;
 
   /// 走査そのものが成立しなかった場合の理由。
-  final String? message;
+  /// フォルダを開けなかった理由。開けていれば null。
+  final FolderError? failure;
 
   int get total => assets.length;
 
@@ -114,14 +116,14 @@ class LibraryState {
     bool? scanning,
     int? analyzed,
     int? errorCount,
-    String? message,
+    FolderError? failure,
   }) => LibraryState(
     rootPath: rootPath ?? this.rootPath,
     assets: assets ?? this.assets,
     scanning: scanning ?? this.scanning,
     analyzed: analyzed ?? this.analyzed,
     errorCount: errorCount ?? this.errorCount,
-    message: message,
+    failure: failure,
   );
 }
 
@@ -151,10 +153,13 @@ class LibraryNotifier extends Notifier<LibraryState> {
           state = state.copyWith(assets: List.of(found));
         }
       }
+    } on FolderUnavailable catch (error) {
+      state = LibraryState(rootPath: root, failure: error.toError());
+      return;
     } on FileSystemException catch (error) {
       state = LibraryState(
         rootPath: root,
-        message: 'フォルダを読めませんでした: ${error.message}',
+        failure: FolderError(FolderFailure.unreadable, detail: error.message),
       );
       return;
     }
@@ -190,7 +195,11 @@ class LibraryNotifier extends Notifier<LibraryState> {
           thumbnails.put(asset.path, entry.thumbnail);
           assets[i] = asset.withSummary(entry.summary!);
         } else {
-          assets[i] = asset.withError(entry.error ?? '読み取りに失敗しました');
+          assets[i] = asset.withError(
+            entry.error == null
+                ? const AssetError(AssetFailure.unreadable)
+                : AssetError.decode(entry.error!),
+          );
           errors++;
         }
         analyzed++;
@@ -231,7 +240,9 @@ class LibraryNotifier extends Notifier<LibraryState> {
           thumbnails.put(entry.key, summary.embeddedThumbnail);
           assets[at] = asset.withSummary(summary);
         } else {
-          assets[at] = asset.withError(error ?? '読み取りに失敗しました');
+          assets[at] = asset.withError(
+            error ?? const AssetError(AssetFailure.unreadable),
+          );
           errors++;
         }
         analyzed++;
@@ -242,7 +253,10 @@ class LibraryNotifier extends Notifier<LibraryState> {
             fileModifiedAt: asset.fileModifiedAt,
             summary: summary,
             thumbnail: summary?.embeddedThumbnail,
-            error: summary == null ? (error ?? '読み取りに失敗しました') : null,
+            // キャッシュには理由を符号化して残す（表示の言葉は残さない）。
+            error: summary == null
+                ? (error ?? const AssetError(AssetFailure.unreadable)).encode()
+                : null,
           ),
         );
       }

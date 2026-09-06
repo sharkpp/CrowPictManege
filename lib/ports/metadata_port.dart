@@ -1,3 +1,4 @@
+import '../domain/asset_error.dart';
 import '../domain/models.dart';
 
 /// メタ情報の読み取り口（SPEC §7.1）。
@@ -11,12 +12,14 @@ abstract interface class MetadataPort {
   Future<List<TagRecord>> readAllTags(String path);
 }
 
-/// 読み取りが成立しなかった理由。UI にそのまま出せる文言を持つ。
+/// 読み取りが成立しなかった理由。
+///
+/// 画面に出す言葉ではなく、理由の区分を持つ（SPEC NFR-7）。
 class MetadataFailure implements Exception {
-  const MetadataFailure(this.message);
+  const MetadataFailure(this.reason);
 
-  final String message;
+  final AssetFailure reason;
 
   @override
-  String toString() => message;
+  String toString() => 'MetadataFailure(${reason.name})';
 }

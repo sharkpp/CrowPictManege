@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/crowexif_metadata.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
+import 'package:crow_pict_manege/domain/asset_error.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/ports/metadata_port.dart';
 import 'package:crow_pict_manege/state/library.dart';
@@ -72,7 +73,8 @@ void main() {
 
     expect(state.total, 0);
     expect(state.scanning, isFalse);
-    expect(state.message, contains('読めませんでした'));
+    // 理由は区分で持つ。画面に出す言葉は表示側が決める（SPEC NFR-7）。
+    expect(state.failure?.reason, FolderFailure.missing);
   });
 
   test('フォルダを開くと対象を再帰的に取り込み、メタ情報を読む', () async {

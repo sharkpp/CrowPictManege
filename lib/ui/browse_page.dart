@@ -373,8 +373,12 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
         return const Center(child: CircularProgressIndicator());
       }
       // まだ何も開いていない間は、ブックマークと履歴から開けるようにする。
-      if (library.rootPath == null || library.message != null) {
-        return StartView(message: library.message, onOpen: _chooseFolder);
+      final failure = library.failure;
+      if (library.rootPath == null || failure != null) {
+        return StartView(
+          message: failure == null ? null : folderErrorText(failure),
+          onOpen: _chooseFolder,
+        );
       }
       return const Center(child: Text('このフォルダに画像・動画はありません'));
     }

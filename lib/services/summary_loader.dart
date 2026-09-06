@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../domain/asset_error.dart';
 import '../domain/models.dart';
 import '../ports/metadata_port.dart';
 
@@ -21,10 +22,10 @@ class SummaryLoader {
   /// [paths] を順に読み、結果をまとめて流す。
   ///
   /// 読み取りに失敗した対象は理由を添えて返し、処理は続ける（SPEC NFR-3）。
-  Stream<Map<String, (AssetSummary?, String?)>> run(List<String> paths) {
+  Stream<Map<String, (AssetSummary?, AssetError?)>> run(List<String> paths) {
     final controller =
-        StreamController<Map<String, (AssetSummary?, String?)>>();
-    var batch = <String, (AssetSummary?, String?)>{};
+        StreamController<Map<String, (AssetSummary?, AssetError?)>>();
+    var batch = <String, (AssetSummary?, AssetError?)>{};
     var next = 0;
     var running = 0;
     var closed = false;
@@ -54,7 +55,12 @@ class SummaryLoader {
           } catch (error) {
             batch[path] = (
               null,
-              error is MetadataFailure ? error.message : error.toString(),
+              error is MetadataFailure
+                  ? AssetError(error.reason)
+                  : AssetError(
+                      AssetFailure.unreadable,
+                      detail: error.toString(),
+                    ),
             );
           } finally {
             running--;

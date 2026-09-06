@@ -1,5 +1,7 @@
 import 'dart:typed_data';
 
+import 'asset_error.dart';
+
 /// 対象の種別。
 enum AssetKind { image, video }
 
@@ -160,7 +162,7 @@ class MediaAsset {
   final AssetSummary? summary;
 
   /// 読み取りに失敗した理由。SPEC NFR-3 により、失敗しても一覧からは外さない。
-  final String? error;
+  final AssetError? error;
 
   String get id => path;
 
@@ -173,13 +175,13 @@ class MediaAsset {
     summary: value,
   );
 
-  MediaAsset withError(String message) => MediaAsset(
+  MediaAsset withError(AssetError error) => MediaAsset(
     path: path,
     name: name,
     kind: kind,
     size: size,
     fileModifiedAt: fileModifiedAt,
-    error: message,
+    error: error,
   );
 
   /// 撮影時刻。読めていない場合はファイル更新時刻で代用する。

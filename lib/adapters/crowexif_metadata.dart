@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:crowexif/crowexif.dart';
 import 'package:crowexif/crowexif_io.dart';
 
+import '../domain/asset_error.dart';
 import '../domain/models.dart';
 import '../domain/normalize.dart';
 import '../domain/tag_values.dart';
@@ -45,7 +46,7 @@ AssetSummary readSummarySync(String path, {Duration? defaultOffset}) {
   );
   if (metadata.fileTypeName == null) {
     // 拡張子は対象でも、中身が壊れているか別の形式であることがある。
-    throw const MetadataFailure('形式を認識できませんでした');
+    throw const MetadataFailure(AssetFailure.unrecognizedFormat);
   }
   final tags = _tagValues(metadata);
   final fileName = path.split(RegExp(r'[/\\]')).last;
@@ -97,12 +98,14 @@ List<TagRecord> readAllTagsSync(String path) {
           category: entry.groups.family2,
           name: entry.name,
           description: entry.description,
+          // バイナリの中身は値として出せない。何と出すかは表示側が決める
+          // （SPEC NFR-7）。ここでは空にし、長さだけを渡す。
           printValue: entry.isBinary
-              ? '(バイナリ ${entry.binaryPlaceholder!.length} バイト)'
+              ? ''
               : formatValueForText(entry.printValue),
           // 変換前の値。表示値と同じなら切替に意味はない（SPEC FR-V3）。
           rawValue: entry.isBinary
-              ? '(バイナリ ${entry.binaryPlaceholder!.length} バイト)'
+              ? ''
               : formatValueForText(entry.value ?? entry.printValue),
           bytes: _dumpBytes(entry.binaryPlaceholder),
           byteLength: entry.binaryPlaceholder?.length,

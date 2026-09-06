@@ -1,6 +1,8 @@
+import '../domain/asset_error.dart';
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
 import '../domain/duplicates.dart';
+import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/search.dart';
 import '../domain/settings.dart';
@@ -99,3 +101,39 @@ String _date(DateTime? value) => value == null
     ? ''
     : '${value.year}/${value.month.toString().padLeft(2, '0')}/'
           '${value.day.toString().padLeft(2, '0')}';
+
+/// 読み取りに失敗した理由に出す言葉（SPEC NFR-3）。
+///
+/// 補足（例外の文言など）があれば添える。補足は翻訳しない。
+String assetErrorText(AssetError error) {
+  final reason = switch (error.reason) {
+    AssetFailure.unrecognizedFormat => '形式を認識できませんでした',
+    AssetFailure.unreadable => '読み取りに失敗しました',
+  };
+  final detail = error.detail;
+  return detail == null || detail.isEmpty ? reason : '$reason: $detail';
+}
+
+/// バイナリのタグに出す言葉。中身は値としては出せない。
+String binaryValueText(int? bytes) =>
+    bytes == null ? '(バイナリ)' : '(バイナリ $bytes バイト)';
+
+/// タグの値を画面に出す言葉にする（SPEC FR-V3、FR-V4）。
+///
+/// コピーと書き出しもこれを通し、画面と食い違わないようにする。
+String tagValueText(TagRecord tag, {required bool raw}) {
+  final value = raw ? tag.rawValue : tag.printValue;
+  if (value == mixedValueMark) return mixedValueText;
+  if (tag.isBinary) return binaryValueText(tag.byteLength);
+  return value;
+}
+
+/// フォルダを開けなかった理由に出す言葉（SPEC NFR-3）。
+String folderErrorText(FolderError error) {
+  final reason = switch (error.reason) {
+    FolderFailure.missing => 'フォルダが見つかりません',
+    FolderFailure.unreadable => 'フォルダを読めませんでした',
+  };
+  final detail = error.detail;
+  return detail == null || detail.isEmpty ? reason : '$reason: $detail';
+}

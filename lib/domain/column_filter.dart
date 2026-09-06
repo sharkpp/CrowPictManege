@@ -86,7 +86,6 @@ class DateRangeFilter extends ColumnFilter {
     if (to != null && value.isAfter(to!)) return false;
     return true;
   }
-
 }
 
 /// 決まった値から選ぶ。
