@@ -53,6 +53,14 @@ $ flutter run -d macos
 
 crowexif を `../crowexif` に置いておく必要がある。
 
+画面の見た目を確かめるときは、決まった順で画面を作っては PNG に撮る入口を使う。
+
+```console
+$ flutter run -d macos -t tool/capture.dart \
+    --dart-entrypoint-args <撮る対象のフォルダ> \
+    --dart-entrypoint-args <PNG の出力先>
+```
+
 ## ライセンス
 
 Copyright (c) sharkpp
