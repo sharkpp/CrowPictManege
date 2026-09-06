@@ -17,6 +17,7 @@ import 'package:crow_pict_manege/domain/settings.dart';
 import 'package:crow_pict_manege/l10n/l10n.dart';
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/state/edits.dart';
+import 'package:crow_pict_manege/state/library.dart';
 import 'package:crow_pict_manege/state/navigation.dart';
 import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
@@ -78,6 +79,12 @@ Future<void> _script(
       );
   await container.read(navigationProvider.notifier).open(folder);
   await _settle(seconds: 4);
+  // 開けたことを確かめてから撮る。開けていない画面を撮っても意味がない。
+  final library = container.read(libraryProvider);
+  if (library.rootPath == null || library.assets.isEmpty) {
+    stdout.writeln('対象が読めなかった: $folder (${library.failure})');
+    exit(1);
+  }
   await shot('01-grid');
 
   container

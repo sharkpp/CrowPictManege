@@ -4,7 +4,7 @@ import '../domain/edit_plan.dart';
 ///
 /// 画面に出す言葉は持たない。表示側が言葉を当てる。
 enum WriteFailure {
-  /// crowexif が書けない形式。動画は段階 3 まで書けない（SPEC §3.2）。
+  /// crowexif が書けない形式。AVI などは読めても書けない（SPEC §3.2）。
   unsupportedFormat,
 
   /// 形式は書けるが、そのタグをこの形式に入れる場所が無い。

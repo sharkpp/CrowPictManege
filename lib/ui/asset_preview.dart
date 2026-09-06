@@ -28,8 +28,7 @@ Future<void> showAssetPreview(BuildContext context) {
 
 /// 全面の単体プレビュー（SPEC FR-B7）。
 ///
-/// 画像はズーム・パン・回転できる。動画は代表フレームを出し、再生は段階 3 で
-/// media_kit を入れてから有効にする。
+/// 画像はズーム・パン・回転できる。動画は再生・シーク・コマ送りができる。
 class AssetPreview extends ConsumerStatefulWidget {
   const AssetPreview({super.key});
 
