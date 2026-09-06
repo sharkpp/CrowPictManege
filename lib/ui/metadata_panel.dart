@@ -338,7 +338,7 @@ class _PinnedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mixed = row.value == mixedValueLabel;
+    final mixed = row.value == mixedValueMark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 2, 4, 2),
@@ -683,7 +683,7 @@ class _TagRowState extends ConsumerState<_TagRow> {
     final selected = ref.watch(tagSelectionProvider).contains(key);
     final pinned = ref.watch(settingsProvider).pinned.contains(key);
     final value = widget.raw ? tag.rawValue : tag.printValue;
-    final mixed = value == mixedValueLabel;
+    final mixed = value == mixedValueMark;
     final dump = _dump(tag);
 
     return Container(

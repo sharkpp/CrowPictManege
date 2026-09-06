@@ -52,8 +52,10 @@ enum AssetColumn {
   };
 
   /// 選択肢（[ColumnValueType.choice] の列だけ）。
+  ///
+  /// 値は識別子。画面に出す言葉は表示側が決める（SPEC NFR-7）。
   List<String> get choices =>
-      this == AssetColumn.kind ? const ['画像', '動画'] : const [];
+      this == AssetColumn.kind ? const ['image', 'video'] : const [];
 }
 
 /// 1 つの列の見え方（SPEC FR-B18）。

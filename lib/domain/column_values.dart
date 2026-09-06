@@ -10,7 +10,8 @@ String columnText(AssetColumn column, MediaAsset asset) {
   final summary = asset.summary;
   return switch (column) {
     AssetColumn.name => asset.name,
-    AssetColumn.kind => asset.kind == AssetKind.video ? '動画' : '画像',
+    // 種別は識別子で持つ。画面に出す言葉は表示側が決める（SPEC NFR-7）。
+    AssetColumn.kind => asset.kind.name,
     AssetColumn.dimensions =>
       summary?.width == null || summary?.height == null
           ? ''

@@ -1,11 +1,14 @@
 import 'models.dart';
 
-/// 値が複数の対象で食い違ったことを表す表示文字列（SPEC FR-V4）。
-const mixedValueLabel = '複数の値';
+/// 値が複数の対象で食い違ったことを表す印（SPEC FR-V4）。
+///
+/// 画面に出す言葉ではない。値そのものと紛れないよう、ふつうの値には
+/// 現れない文字で作る。出す言葉は表示側が決める（SPEC NFR-7）。
+const mixedValueMark = '\u0000mixed';
 
 /// 対象ごとの「項目→値」を 1 つに畳む。
 ///
-/// 全対象で同じ値なら値そのまま、食い違えば [mixedValueLabel]。
+/// 全対象で同じ値なら値そのまま、食い違えば [mixedValueMark]。
 /// 一部の対象にしか無い項目も食い違いとして扱う（値の有無自体が違うため）。
 /// 項目の順序は最初に現れた順を保つ。
 Map<K, String> mergeFields<K>(List<Map<K, String>> perAsset) {
@@ -21,7 +24,7 @@ Map<K, String> mergeFields<K>(List<Map<K, String>> perAsset) {
   for (final key in merged.keys.toList()) {
     for (final fields in perAsset) {
       if (fields[key] != merged[key]) {
-        merged[key] = mixedValueLabel;
+        merged[key] = mixedValueMark;
         break;
       }
     }
@@ -31,7 +34,7 @@ Map<K, String> mergeFields<K>(List<Map<K, String>> perAsset) {
 
 /// 対象ごとのタグ一覧を 1 つに畳む（SPEC FR-V4）。
 ///
-/// 同じ `Group:Name` の値が食い違えば [mixedValueLabel] に置き換える。
+/// 同じ `Group:Name` の値が食い違えば [mixedValueMark] に置き換える。
 /// バイナリタグは値の比較ができないので、1 件でも食い違えば同様に扱う。
 /// 16 進ダンプのバイト列は 1 件のときだけ持つ。複数の対象を並べて 1 本の
 /// ダンプにはできないためである。
@@ -67,8 +70,8 @@ List<TagRecord> mergeTagRecords(List<List<TagRecord>> perAsset) {
         category: tag.category,
         name: tag.name,
         description: tag.description,
-        printValue: value ?? mixedValueLabel,
-        rawValue: _mergedValue(entry.key, perAssetRaw) ?? mixedValueLabel,
+        printValue: value ?? mixedValueMark,
+        rawValue: _mergedValue(entry.key, perAssetRaw) ?? mixedValueMark,
         isBinary: tag.isBinary && value != null,
       ),
     );

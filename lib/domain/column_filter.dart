@@ -12,9 +12,6 @@ sealed class ColumnFilter {
   /// 絞り込みとして意味を持つか。空なら適用しない。
   bool get isActive;
 
-  /// 適用中の内容を 1 行で表す。ヘッダとフィルタバーに出す。
-  String describe();
-
   bool matches(AssetColumn column, MediaAsset asset);
 }
 
@@ -27,9 +24,6 @@ class TextFilter extends ColumnFilter {
 
   @override
   bool get isActive => query.trim().isNotEmpty;
-
-  @override
-  String describe() => regex ? '/$query/' : '「$query」を含む';
 
   @override
   bool matches(AssetColumn column, MediaAsset asset) {
@@ -65,9 +59,6 @@ class RangeFilter extends ColumnFilter {
   bool get isActive => min != null || max != null;
 
   @override
-  String describe() => '${min ?? ''} 〜 ${max ?? ''}';
-
-  @override
   bool matches(AssetColumn column, MediaAsset asset) {
     final value = columnNumber(column, asset);
     if (value == null) return false;
@@ -88,9 +79,6 @@ class DateRangeFilter extends ColumnFilter {
   bool get isActive => from != null || to != null;
 
   @override
-  String describe() => '${_text(from)} 〜 ${_text(to)}';
-
-  @override
   bool matches(AssetColumn column, MediaAsset asset) {
     final value = columnDate(column, asset);
     if (value == null) return false;
@@ -99,10 +87,6 @@ class DateRangeFilter extends ColumnFilter {
     return true;
   }
 
-  static String _text(DateTime? value) => value == null
-      ? ''
-      : '${value.year}/${value.month.toString().padLeft(2, '0')}/'
-            '${value.day.toString().padLeft(2, '0')}';
 }
 
 /// 決まった値から選ぶ。
@@ -113,9 +97,6 @@ class ChoiceFilter extends ColumnFilter {
 
   @override
   bool get isActive => allowed.isNotEmpty;
-
-  @override
-  String describe() => allowed.join('・');
 
   @override
   bool matches(AssetColumn column, MediaAsset asset) =>
@@ -131,9 +112,6 @@ class FlagFilter extends ColumnFilter {
 
   @override
   bool get isActive => present != null;
-
-  @override
-  String describe() => present == true ? 'あり' : 'なし';
 
   @override
   bool matches(AssetColumn column, MediaAsset asset) =>

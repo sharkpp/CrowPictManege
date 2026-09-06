@@ -11,26 +11,25 @@ MediaAsset asset({
   GeoPoint? location,
   String? model,
   Duration? duration,
-}) =>
-    MediaAsset(
-      path: path,
-      name: path.split('/').last,
-      kind: kind,
-      size: size,
-      fileModifiedAt: DateTime(2024, 6, 1),
-      summary: AssetSummary(
-        fileType: 'JPEG',
-        capturedAt: capturedAt == null
-            ? null
-            : CapturedAt(
-                wallClock: capturedAt,
-                source: TimeSource.exifDateTimeOriginal,
-              ),
-        location: location,
-        camera: CameraInfo(make: 'FUJIFILM', model: model),
-        duration: duration,
-      ),
-    );
+}) => MediaAsset(
+  path: path,
+  name: path.split('/').last,
+  kind: kind,
+  size: size,
+  fileModifiedAt: DateTime(2024, 6, 1),
+  summary: AssetSummary(
+    fileType: 'JPEG',
+    capturedAt: capturedAt == null
+        ? null
+        : CapturedAt(
+            wallClock: capturedAt,
+            source: TimeSource.exifDateTimeOriginal,
+          ),
+    location: location,
+    camera: CameraInfo(make: 'FUJIFILM', model: model),
+    duration: duration,
+  ),
+);
 
 /// 列フィルタの評価（SPEC FR-B19、NFR-8）。
 void main() {
@@ -72,7 +71,10 @@ void main() {
   });
 
   test('長さは秒で絞る。値を持たない対象は外れる', () {
-    final video = asset(kind: AssetKind.video, duration: const Duration(seconds: 30));
+    final video = asset(
+      kind: AssetKind.video,
+      duration: const Duration(seconds: 30),
+    );
     expect(
       const RangeFilter(min: 10, max: 60).matches(AssetColumn.duration, video),
       isTrue,
@@ -86,33 +88,51 @@ void main() {
   test('日時は範囲で絞る', () {
     final target = asset(capturedAt: DateTime(2024, 3, 10, 12));
     expect(
-      DateRangeFilter(from: DateTime(2024, 3, 1), to: DateTime(2024, 3, 31))
-          .matches(AssetColumn.capturedAt, target),
+      DateRangeFilter(
+        from: DateTime(2024, 3, 1),
+        to: DateTime(2024, 3, 31),
+      ).matches(AssetColumn.capturedAt, target),
       isTrue,
     );
     expect(
-      DateRangeFilter(from: DateTime(2024, 4, 1))
-          .matches(AssetColumn.capturedAt, target),
+      DateRangeFilter(
+        from: DateTime(2024, 4, 1),
+      ).matches(AssetColumn.capturedAt, target),
       isFalse,
     );
   });
 
   test('種別は選択で絞る', () {
-    const filter = ChoiceFilter({'動画'});
-    expect(filter.matches(AssetColumn.kind, asset(kind: AssetKind.video)), isTrue);
+    // 素の値は識別子（SPEC NFR-7）。
+    const filter = ChoiceFilter({'video'});
+    expect(
+      filter.matches(AssetColumn.kind, asset(kind: AssetKind.video)),
+      isTrue,
+    );
     expect(filter.matches(AssetColumn.kind, asset()), isFalse);
   });
 
   test('位置は有無で絞る', () {
-    final located = asset(location: const GeoPoint(latitude: 35, longitude: 139));
-    expect(const FlagFilter(true).matches(AssetColumn.location, located), isTrue);
-    expect(const FlagFilter(false).matches(AssetColumn.location, located), isFalse);
-    expect(const FlagFilter(false).matches(AssetColumn.location, asset()), isTrue);
+    final located = asset(
+      location: const GeoPoint(latitude: 35, longitude: 139),
+    );
+    expect(
+      const FlagFilter(true).matches(AssetColumn.location, located),
+      isTrue,
+    );
+    expect(
+      const FlagFilter(false).matches(AssetColumn.location, located),
+      isFalse,
+    );
+    expect(
+      const FlagFilter(false).matches(AssetColumn.location, asset()),
+      isTrue,
+    );
   });
 
   test('複数の列のフィルタはすべて満たすものだけ残す', () {
     final filters = {
-      AssetColumn.kind: const ChoiceFilter({'画像'}),
+      AssetColumn.kind: const ChoiceFilter({'image'}),
       AssetColumn.size: const RangeFilter(min: 1000),
     };
     expect(matchesColumnFilters(filters, asset()), isTrue);

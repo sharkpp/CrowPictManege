@@ -32,7 +32,7 @@ class FilterBar extends ConsumerWidget {
                       padding: const EdgeInsets.only(right: 6),
                       child: InputChip(
                         label: Text(
-                          '${columnLabel(entry.key)}: ${entry.value.describe()}',
+                          '${columnLabel(entry.key)}: ${describeFilter(entry.key, entry.value)}',
                         ),
                         onPressed: () =>
                             showColumnFilterDialog(context, entry.key),

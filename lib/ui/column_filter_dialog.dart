@@ -199,7 +199,11 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
             for (final choice in widget.column.choices)
               CheckboxListTile(
                 dense: true,
-                title: Text(choice),
+                title: Text(
+                  widget.column == AssetColumn.kind
+                      ? assetKindNameLabel(choice)
+                      : choice,
+                ),
                 value: allowed.contains(choice),
                 onChanged: (checked) => setState(() {
                   final next = Set.of(allowed);

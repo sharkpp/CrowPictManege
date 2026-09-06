@@ -1,3 +1,4 @@
+import '../domain/column_filter.dart';
 import '../domain/columns.dart';
 import '../domain/duplicates.dart';
 import '../domain/models.dart';
@@ -68,3 +69,33 @@ String offsetSourceLabel(OffsetSource source) => switch (source) {
   OffsetSource.quickTimeUtc => 'QuickTime 仕様 (UTC)',
   OffsetSource.unknown => '不明',
 };
+
+/// 値が対象ごとに食い違ったときに出す言葉（SPEC FR-V4）。
+const mixedValueText = '複数の値';
+
+/// 種別の識別子に出す言葉。列の選択肢と列の表示で使う。
+String assetKindNameLabel(String id) => switch (id) {
+  'video' => '動画',
+  'image' => '画像',
+  _ => id,
+};
+
+/// 適用中の絞り込みを 1 行で表す（SPEC FR-B19、FR-F5）。
+String describeFilter(
+  AssetColumn column,
+  ColumnFilter filter,
+) => switch (filter) {
+  TextFilter(:final query, :final regex) => regex ? '/$query/' : '「$query」を含む',
+  RangeFilter(:final min, :final max) => '${min ?? ''} 〜 ${max ?? ''}',
+  DateRangeFilter(:final from, :final to) => '${_date(from)} 〜 ${_date(to)}',
+  ChoiceFilter(:final allowed) =>
+    column == AssetColumn.kind
+        ? allowed.map(assetKindNameLabel).join('・')
+        : allowed.join('・'),
+  FlagFilter(:final present) => present == true ? 'あり' : 'なし',
+};
+
+String _date(DateTime? value) => value == null
+    ? ''
+    : '${value.year}/${value.month.toString().padLeft(2, '0')}/'
+          '${value.day.toString().padLeft(2, '0')}';

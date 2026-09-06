@@ -36,7 +36,7 @@ void main() {
         {'機材': 'X-T5', 'ファイル名': 'b.jpg'},
       ]);
       expect(merged['機材'], 'X-T5');
-      expect(merged['ファイル名'], mixedValueLabel);
+      expect(merged['ファイル名'], mixedValueMark);
     });
 
     test('一部の対象にしか無い項目も食い違いとして扱う', () {
@@ -44,7 +44,7 @@ void main() {
         {'レンズ': 'XF 23mm'},
         {},
       ]);
-      expect(merged['レンズ'], mixedValueLabel);
+      expect(merged['レンズ'], mixedValueMark);
     });
 
     test('項目の順序は最初に現れた順を保つ', () {
@@ -69,7 +69,7 @@ void main() {
       ]);
       final byName = {for (final t in merged) t.name: t.printValue};
       expect(byName['Make'], 'FUJIFILM');
-      expect(byName['Model'], mixedValueLabel);
+      expect(byName['Model'], mixedValueMark);
     });
 
     test('同名タグはグループごとに別のタグとして扱う', () {
@@ -81,7 +81,7 @@ void main() {
         for (final t in merged) '${t.group}:${t.name}': t.printValue,
       };
       expect(byKey['EXIF:CreateDate'], '2024');
-      expect(byKey['XMP:CreateDate'], mixedValueLabel);
+      expect(byKey['XMP:CreateDate'], mixedValueMark);
     });
 
     test('片方にしか無いタグは「複数の値」になる', () {
@@ -89,7 +89,7 @@ void main() {
         [tag('EXIF', 'Artist', 'sharkpp')],
         [tag('EXIF', 'Make', 'FUJIFILM')],
       ]);
-      expect(merged.every((t) => t.printValue == mixedValueLabel), isTrue);
+      expect(merged.every((t) => t.printValue == mixedValueMark), isTrue);
       expect(merged.length, 2);
     });
 
@@ -99,7 +99,7 @@ void main() {
         [tag('EXIF', 'ThumbnailImage', '(バイナリ 20 バイト)', binary: true)],
       ]);
       expect(merged.single.isBinary, isFalse);
-      expect(merged.single.printValue, mixedValueLabel);
+      expect(merged.single.printValue, mixedValueMark);
     });
   });
 }
