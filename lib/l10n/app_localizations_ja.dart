@@ -907,4 +907,32 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsBackupChoose => '選ぶ';
+
+  @override
+  String get editReferenceLabel => '主対象の正しい時刻';
+
+  @override
+  String get editDistributeLabel => '開始時刻';
+
+  @override
+  String get editDistributeInterval => '間隔';
+
+  @override
+  String get editAdoptLabel => '時刻を取り込む';
+
+  @override
+  String get editAdoptionFileName => 'ファイル名';
+
+  @override
+  String get editAdoptionFileModified => 'ファイル更新時刻';
+
+  @override
+  String editOpDistributeTime(String start, int interval) {
+    return '$start から $interval 秒ごとに割り当てる';
+  }
+
+  @override
+  String editOpAdoptTime(String source) {
+    return '$source から時刻を取り込む';
+  }
 }

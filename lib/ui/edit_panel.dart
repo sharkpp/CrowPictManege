@@ -31,6 +31,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
   final _time = TextEditingController();
   final _timeOffset = TextEditingController();
   final _zone = TextEditingController();
+  final _reference = TextEditingController();
+  final _distributeStart = TextEditingController();
+  final _distributeInterval = TextEditingController();
   final _latitude = TextEditingController();
   final _longitude = TextEditingController();
   final _altitude = TextEditingController();
@@ -47,6 +50,9 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       _time,
       _timeOffset,
       _zone,
+      _reference,
+      _distributeStart,
+      _distributeInterval,
       _latitude,
       _longitude,
       _altitude,
@@ -72,7 +78,14 @@ class _EditPanelState extends ConsumerState<EditPanel> {
             children: [
               _Section(
                 title: l10n.editSectionTime,
-                children: [_shiftRow(), _setTimeRow(), _timeZoneRow()],
+                children: [
+                  _shiftRow(),
+                  _setTimeRow(),
+                  _timeZoneRow(),
+                  _referenceRow(),
+                  _distributeRow(),
+                  _adoptRow(),
+                ],
               ),
               _Section(
                 title: l10n.editSectionLocation,
@@ -189,7 +202,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
               ),
             ),
             const SizedBox(width: 6),
-            _AddButton(onPressed: _queueSetTime),
+            _AddButton(
+              key: const Key('queue-set-time'),
+              onPressed: _queueSetTime,
+            ),
           ],
         ),
       ],
@@ -233,7 +249,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
               ),
             ),
             const SizedBox(width: 6),
-            _AddButton(onPressed: _queueTimeZone),
+            _AddButton(
+              key: const Key('queue-time-zone'),
+              onPressed: _queueTimeZone,
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -266,6 +285,126 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     ref.read(editQueueProvider.notifier).add(SetTimeZone(offset, _zoneMode));
   }
 
+  /// 基準合わせ（SPEC FR-E3-4）。
+  ///
+  /// 主対象の正しい時刻を与えると、その差分を選択集合全体へ当てる。
+  Widget _referenceRow() {
+    final l10n = context.l10n;
+    final captured = _primaryCapturedAt();
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _reference,
+            enabled: captured != null,
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              labelText: l10n.editReferenceLabel,
+              hintText: l10n.editTimeHint,
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        _AddButton(
+          key: const Key('queue-reference'),
+          onPressed: captured == null ? null : _queueReference,
+        ),
+      ],
+    );
+  }
+
+  CapturedAt? _primaryCapturedAt() => _primaryAsset()?.summary?.capturedAt;
+
+  void _queueReference() {
+    final captured = _primaryCapturedAt();
+    final parsed = parseMetadataDateTime(_reference.text);
+    if (captured == null || parsed == null) {
+      _complain();
+      return;
+    }
+    final delta = shiftToMatch(captured, parsed.wallClock);
+    if (delta == Duration.zero) return;
+    ref.read(editQueueProvider.notifier).add(ShiftTime(delta));
+  }
+
+  /// 連番配分（SPEC FR-E3-5）。並び順に開始時刻から間隔ごとを割り当てる。
+  Widget _distributeRow() {
+    final l10n = context.l10n;
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: TextField(
+            controller: _distributeStart,
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              labelText: l10n.editDistributeLabel,
+              hintText: l10n.editTimeHint,
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: _distributeInterval,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              labelText: l10n.editDistributeInterval,
+              suffixText: l10n.editUnitSeconds,
+            ),
+          ),
+        ),
+        const SizedBox(width: 6),
+        _AddButton(
+          key: const Key('queue-distribute'),
+          onPressed: _queueDistribute,
+        ),
+      ],
+    );
+  }
+
+  void _queueDistribute() {
+    final parsed = parseMetadataDateTime(_distributeStart.text);
+    final seconds = int.tryParse(_distributeInterval.text.trim());
+    if (parsed == null || seconds == null || seconds <= 0) {
+      _complain();
+      return;
+    }
+    ref
+        .read(editQueueProvider.notifier)
+        .add(
+          DistributeTime(
+            parsed.wallClock,
+            interval: Duration(seconds: seconds),
+            offset: parsed.offset,
+          ),
+        );
+  }
+
+  /// 他からの取り込み（SPEC FR-E3-6）。対象ごとに自分の値を使う。
+  Widget _adoptRow() {
+    final l10n = context.l10n;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(l10n.editAdoptLabel),
+        for (final from in TimeAdoption.values)
+          OutlinedButton(
+            onPressed: () =>
+                ref.read(editQueueProvider.notifier).add(AdoptTime(from)),
+            child: Text(l10n.timeAdoptionLabel(from)),
+          ),
+      ],
+    );
+  }
+
   /// 位置の入力（SPEC FR-E4-1、FR-E4-3、FR-E4-5）。
   Widget _locationRows() {
     final l10n = context.l10n;
@@ -284,7 +423,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
           children: [
             Expanded(child: _coordinate(_altitude, l10n.editAltitude)),
             const SizedBox(width: 6),
-            _AddButton(onPressed: _queueLocation),
+            _AddButton(
+              key: const Key('queue-location'),
+              onPressed: _queueLocation,
+            ),
           ],
         ),
         const SizedBox(height: 8),
@@ -324,15 +466,18 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         ),
       );
 
-  /// 主対象の位置。選択集合へ配るための種になる（SPEC FR-E4-3）。
-  GeoPoint? _primaryLocation() {
+  /// 選択集合の主対象。基準合わせと位置の写し取りの種になる。
+  MediaAsset? _primaryAsset() {
     final primary = ref.watch(selectionProvider).primary;
     if (primary == null) return null;
     for (final asset in ref.watch(displayedAssetsProvider)) {
-      if (asset.path == primary) return asset.summary?.location;
+      if (asset.path == primary) return asset;
     }
     return null;
   }
+
+  /// 主対象の位置。選択集合へ配るための種になる（SPEC FR-E4-3）。
+  GeoPoint? _primaryLocation() => _primaryAsset()?.summary?.location;
 
   void _copyLocation() {
     final point = _primaryLocation();
@@ -407,9 +552,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
 }
 
 class _AddButton extends StatelessWidget {
-  const _AddButton({required this.onPressed});
+  const _AddButton({super.key, required this.onPressed});
 
-  final VoidCallback onPressed;
+  /// null なら押せない。積む材料が揃っていないときに使う。
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) => FilledButton.tonal(

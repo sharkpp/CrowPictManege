@@ -161,7 +161,7 @@ void main() {
 
     await tester.enterText(find.widgetWithText(TextField, '緯度'), '北のほう');
     await tester.enterText(find.widgetWithText(TextField, '経度'), '139');
-    await tester.tap(find.text('積む').at(2));
+    await tester.tap(find.byKey(const Key('queue-location')));
     await tester.pumpAndSettle();
 
     expect(container.read(editQueueProvider).isEmpty, isTrue);
@@ -177,7 +177,7 @@ void main() {
 
     await tester.tap(find.text('主対象の位置を使う'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('積む').at(2));
+    await tester.tap(find.byKey(const Key('queue-location')));
     await tester.pumpAndSettle();
 
     final edit = container.read(editQueueProvider).edits.single as SetLocation;
@@ -232,6 +232,82 @@ void main() {
     expect(
       container.read(editQueueProvider).timeTargets,
       isNot(contains(TimeTarget.xmp)),
+    );
+  });
+
+  testWidgets('主対象の正しい時刻を入れると、差分がずらし量になる', (tester) async {
+    final container = await pumpPanel(
+      tester,
+      assets: [_asset],
+      selected: [_asset.path],
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '主対象の正しい時刻'),
+      '2024-01-15 12:20:30',
+    );
+    await tester.tap(find.byKey(const Key('queue-reference')));
+    await tester.pumpAndSettle();
+
+    expect(
+      (container.read(editQueueProvider).edits.single as ShiftTime).delta,
+      const Duration(minutes: 20, seconds: 30),
+    );
+  });
+
+  testWidgets('開始時刻と間隔で連番配分を積む', (tester) async {
+    final container = await pumpPanel(
+      tester,
+      assets: [_asset],
+      selected: [_asset.path],
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '開始時刻'),
+      '2024-01-15 09:00:00',
+    );
+    await tester.enterText(find.widgetWithText(TextField, '間隔'), '30');
+    await tester.tap(find.byKey(const Key('queue-distribute')));
+    await tester.pumpAndSettle();
+
+    final edit =
+        container.read(editQueueProvider).edits.single as DistributeTime;
+    expect(edit.start, DateTime(2024, 1, 15, 9, 0, 0));
+    expect(edit.interval, const Duration(seconds: 30));
+  });
+
+  testWidgets('間隔が 0 以下なら積まない', (tester) async {
+    final container = await pumpPanel(
+      tester,
+      assets: [_asset],
+      selected: [_asset.path],
+    );
+
+    await tester.enterText(
+      find.widgetWithText(TextField, '開始時刻'),
+      '2024-01-15 09:00:00',
+    );
+    await tester.enterText(find.widgetWithText(TextField, '間隔'), '0');
+    await tester.tap(find.byKey(const Key('queue-distribute')));
+    await tester.pumpAndSettle();
+
+    expect(container.read(editQueueProvider).isEmpty, isTrue);
+    expect(find.text('値を読めない'), findsOneWidget);
+  });
+
+  testWidgets('取り込み元を押すと、その取り込みが積まれる', (tester) async {
+    final container = await pumpPanel(
+      tester,
+      assets: [_asset],
+      selected: [_asset.path],
+    );
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'ファイル更新時刻'));
+    await tester.pumpAndSettle();
+
+    expect(
+      (container.read(editQueueProvider).edits.single as AdoptTime).from,
+      TimeAdoption.fileModified,
     );
   });
 }

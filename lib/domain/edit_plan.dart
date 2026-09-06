@@ -1,5 +1,6 @@
 import 'edit.dart';
 import 'models.dart';
+import 'normalize.dart';
 
 /// ファイルへ加える 1 件の書き込み。
 ///
@@ -27,6 +28,28 @@ class TagWrite {
 
   @override
   String toString() => '$group:$name=${value ?? ''}';
+}
+
+/// 操作を当てる相手の、いまの姿。
+///
+/// 操作は対象ごとに違う結果になることがある（連番配分、取り込み）。
+/// 判断に要る材料をここにまとめて渡す。
+class EditTarget {
+  const EditTarget({
+    required this.fileName,
+    required this.fileModifiedAt,
+    this.capturedAt,
+    this.location,
+    this.index = 0,
+  });
+
+  final String fileName;
+  final DateTime fileModifiedAt;
+  final CapturedAt? capturedAt;
+  final GeoPoint? location;
+
+  /// 選択集合の並びの中の位置。連番配分に使う（SPEC FR-E3-5）。
+  final int index;
 }
 
 /// 操作を適用したらどうなるかの見通し（SPEC FR-E5）。
@@ -66,13 +89,12 @@ class EditPlan {
 /// 操作は順に適用する。時刻と位置は正規化した値の上で畳み、最後に一度だけ
 /// タグへ落とす。同じタグを何度も書かないためである。
 EditPlan planEdits(
-  List<AssetEdit> edits, {
-  CapturedAt? capturedAt,
-  GeoPoint? location,
+  List<AssetEdit> edits,
+  EditTarget target, {
   Set<TimeTarget> timeTargets = allTimeTargets,
 }) {
-  var captured = capturedAt;
-  var place = location;
+  var captured = target.capturedAt;
+  var place = target.location;
   var capturedChanged = false;
   var locationChanged = false;
   final direct = <TagWrite>[];
@@ -107,6 +129,30 @@ EditPlan planEdits(
           offset: offset,
           source: captured.source,
           offsetSource: OffsetSource.tag,
+        );
+        capturedChanged = true;
+      case DistributeTime(:final start, :final interval, :final offset):
+        captured = CapturedAt(
+          wallClock: start.add(interval * target.index),
+          offset: offset ?? captured?.offset,
+          source: TimeSource.exifDateTimeOriginal,
+          offsetSource: offset == null
+              ? (captured?.offsetSource ?? OffsetSource.unknown)
+              : OffsetSource.tag,
+        );
+        capturedChanged = true;
+      case AdoptTime(:final from):
+        final adopted = switch (from) {
+          TimeAdoption.fileName => dateTimeFromFileName(target.fileName),
+          TimeAdoption.fileModified => target.fileModifiedAt,
+        };
+        // ファイル名に日時が無い対象は、取り込みようがないので触らない。
+        if (adopted == null) break;
+        captured = CapturedAt(
+          wallClock: adopted,
+          offset: captured?.offset,
+          source: TimeSource.exifDateTimeOriginal,
+          offsetSource: captured?.offsetSource ?? OffsetSource.unknown,
         );
         capturedChanged = true;
       case SetLocation(:final latitude, :final longitude, :final altitude):

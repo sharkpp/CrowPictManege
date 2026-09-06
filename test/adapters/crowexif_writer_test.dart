@@ -7,6 +7,12 @@ import 'package:crow_pict_manege/domain/edit_plan.dart';
 import 'package:crow_pict_manege/ports/metadata_write_port.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+/// 書き込みは対象ごとの姿に依らないので、相手は既定のもので足りる。
+final _target = EditTarget(
+  fileName: 'photo.jpg',
+  fileModifiedAt: DateTime(2024, 6, 1),
+);
+
 void main() {
   late Directory temporary;
   late String path;
@@ -31,6 +37,7 @@ void main() {
           offset: const Duration(hours: 9),
         ),
       ],
+      _target,
       timeTargets: const {TimeTarget.exif, TimeTarget.xmp},
     );
 
@@ -44,7 +51,7 @@ void main() {
   test('位置は書き込まれ、読み直して同じ座標になる', () {
     final plan = planEdits(const [
       SetLocation(latitude: 35.681236, longitude: 139.767125),
-    ]);
+    ], _target);
 
     applyPlanSync(path, plan, backupDirectory: backups);
 
@@ -56,7 +63,7 @@ void main() {
   test('南半球の座標は半球ごと書き戻る', () {
     final plan = planEdits(const [
       SetLocation(latitude: -33.8688, longitude: -70.6693),
-    ]);
+    ], _target);
 
     applyPlanSync(path, plan, backupDirectory: backups);
 
@@ -68,14 +75,14 @@ void main() {
   test('位置の削除は GPS を消す', () {
     applyPlanSync(
       path,
-      planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)]),
+      planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)], _target),
       backupDirectory: backups,
     );
     expect(readSummarySync(path).location, isNotNull);
 
     applyPlanSync(
       path,
-      planEdits(const [ClearLocation()]),
+      planEdits(const [ClearLocation()], _target),
       backupDirectory: backups,
     );
     expect(readSummarySync(path).location, isNull);
@@ -87,7 +94,7 @@ void main() {
         DateTime(2024, 1, 15, 12, 0, 0),
         offset: const Duration(hours: 9),
       ),
-    ]);
+    ], _target);
 
     applyPlanSync(path, plan, backupDirectory: backups);
 
@@ -98,7 +105,7 @@ void main() {
     final before = File(path).readAsBytesSync();
     final receipt = applyPlanSync(
       path,
-      planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)]),
+      planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)], _target),
       backupDirectory: backups,
     );
 
@@ -113,7 +120,7 @@ void main() {
     for (var i = 0; i < 4; i++) {
       applyPlanSync(
         path,
-        planEdits([SetTime(DateTime(2024, 1, 15, 12, i, 0))]),
+        planEdits([SetTime(DateTime(2024, 1, 15, 12, i, 0))], _target),
         backupDirectory: backups,
         backupGenerations: 2,
       );
@@ -127,7 +134,7 @@ void main() {
   test('控えを取らない設定なら取り消せない', () {
     final receipt = applyPlanSync(
       path,
-      planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)]),
+      planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)], _target),
     );
     expect(receipt.canUndo, isFalse);
     expect(Directory(backups).existsSync(), isFalse);
@@ -140,7 +147,9 @@ void main() {
     expect(
       () => applyPlanSync(
         other,
-        planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)]),
+        planEdits(const [
+          SetLocation(latitude: 35.0, longitude: 139.0),
+        ], _target),
         backupDirectory: backups,
       ),
       throwsA(
@@ -157,7 +166,9 @@ void main() {
     expect(
       () => applyPlanSync(
         '${temporary.path}/missing.jpg',
-        planEdits(const [SetLocation(latitude: 35.0, longitude: 139.0)]),
+        planEdits(const [
+          SetLocation(latitude: 35.0, longitude: 139.0),
+        ], _target),
       ),
       throwsA(
         isA<MetadataWriteFailure>().having(
@@ -174,7 +185,7 @@ void main() {
       path,
       planEdits(const [
         SetTag(group: 'EXIF', name: 'Artist', value: 'sharkpp'),
-      ]),
+      ], _target),
       backupDirectory: backups,
     );
 
@@ -193,7 +204,7 @@ void main() {
         path,
         planEdits(const [
           SetTag(group: 'EXIF', name: 'NotATagAtAll', value: 'x'),
-        ]),
+        ], _target),
         backupDirectory: backups,
       ),
       throwsA(
@@ -211,9 +222,11 @@ void main() {
     final before = File(path).readAsBytesSync();
     // 書き込み先を 1 つも選ばなければ何も書かれない。読み直しても時刻は
     // 変わっていないので、検証がそれを捕まえる（SPEC FR-E6-3）。
-    final plan = planEdits([
-      SetTime(DateTime(2024, 1, 15, 12, 0, 0)),
-    ], timeTargets: const {});
+    final plan = planEdits(
+      [SetTime(DateTime(2024, 1, 15, 12, 0, 0))],
+      _target,
+      timeTargets: const {},
+    );
 
     expect(
       () => applyPlanSync(path, plan, backupDirectory: backups),

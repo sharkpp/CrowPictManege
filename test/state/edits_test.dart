@@ -234,4 +234,65 @@ void main() {
       isFalse,
     );
   });
+
+  test('連番配分は並び順に時刻を割り当てる', () async {
+    final container = await opened();
+    container.read(selectionProvider.notifier).selectPaths([
+      '${root.path}/a.jpg',
+      '${root.path}/b.jpg',
+    ]);
+    container
+        .read(editQueueProvider.notifier)
+        .add(
+          DistributeTime(
+            DateTime(2024, 1, 15, 9, 0, 0),
+            interval: const Duration(minutes: 5),
+            offset: const Duration(hours: 9),
+          ),
+        );
+
+    // 割り当ては画面に出ている順に行う。その順をそのまま確かめる。
+    final ordered = [
+      for (final entry in container.read(editPreviewProvider).planned)
+        entry.asset.path,
+    ];
+    await container
+        .read(applyProvider.notifier)
+        .apply(container.read(editPreviewProvider));
+
+    final times = {
+      for (final asset in container.read(libraryProvider).assets)
+        asset.path: asset.summary?.capturedAt?.wallClock,
+    };
+    expect(times[ordered[0]], DateTime(2024, 1, 15, 9, 0, 0));
+    expect(times[ordered[1]], DateTime(2024, 1, 15, 9, 5, 0));
+  });
+
+  test('ファイル名からの取り込みは、日時を持つ対象だけに効く', () async {
+    final source = File('test/fixtures/base.jpg').readAsBytesSync();
+    File('${root.path}/IMG_20230304_050607.jpg').writeAsBytesSync(source);
+
+    final container = await opened();
+    container.read(selectionProvider.notifier).selectPaths([
+      '${root.path}/a.jpg',
+      '${root.path}/IMG_20230304_050607.jpg',
+    ]);
+    container
+        .read(editQueueProvider.notifier)
+        .add(const AdoptTime(TimeAdoption.fileName));
+
+    final preview = container.read(editPreviewProvider);
+    expect(preview.count, 1, reason: '名前に日時が無い対象は変わらない');
+
+    await container.read(applyProvider.notifier).apply(preview);
+
+    final adopted = container
+        .read(libraryProvider)
+        .assets
+        .firstWhere((asset) => asset.name.startsWith('IMG_'));
+    expect(
+      adopted.summary!.capturedAt!.wallClock,
+      DateTime(2023, 3, 4, 5, 6, 7),
+    );
+  });
 }

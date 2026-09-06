@@ -99,6 +99,8 @@ final editPreviewProvider = Provider<EditPreview>((ref) {
   final selection = ref.watch(selectionProvider);
   final planned = <PlannedEdit>[];
   final unwritable = <MediaAsset>[];
+  // 並びは画面に出ている順。連番配分はこの順に割り当てる（SPEC FR-E3-5）。
+  var index = 0;
   for (final asset in ref.watch(displayedAssetsProvider)) {
     if (!selection.contains(asset.path)) continue;
     if (!canWriteMetadata(asset.path)) {
@@ -107,8 +109,13 @@ final editPreviewProvider = Provider<EditPreview>((ref) {
     }
     final plan = planEdits(
       queue.edits,
-      capturedAt: asset.summary?.capturedAt,
-      location: asset.summary?.location,
+      EditTarget(
+        fileName: asset.name,
+        fileModifiedAt: asset.fileModifiedAt,
+        capturedAt: asset.summary?.capturedAt,
+        location: asset.summary?.location,
+        index: index++,
+      ),
       timeTargets: queue.timeTargets,
     );
     if (plan.isEmpty) continue;

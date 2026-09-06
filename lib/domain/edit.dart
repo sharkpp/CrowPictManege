@@ -95,7 +95,44 @@ final class SetLocation extends AssetEdit {
       GeoPoint(latitude: latitude, longitude: longitude, altitude: altitude);
 }
 
+/// 連番配分（SPEC FR-E3-5）。
+///
+/// 選択集合の並び順に、開始時刻から間隔ごとの時刻を割り当てる。
+/// 撮影順が分かっていて時刻だけが失われた素材を並べ直すための操作。
+final class DistributeTime extends AssetEdit {
+  const DistributeTime(this.start, {required this.interval, this.offset});
+
+  final DateTime start;
+  final Duration interval;
+
+  /// UTC からのオフセット。null なら元の対象のオフセットを保つ。
+  final Duration? offset;
+}
+
+/// 時刻の取り込み元（SPEC FR-E3-6）。
+enum TimeAdoption {
+  /// ファイル名に埋め込まれた日時。
+  fileName,
+
+  /// ファイルシステムの更新時刻。
+  fileModified,
+}
+
+/// 対象ごとに別の場所から時刻を取り込む（SPEC FR-E3-6）。
+final class AdoptTime extends AssetEdit {
+  const AdoptTime(this.from);
+
+  final TimeAdoption from;
+}
+
 /// 位置を消す（SPEC FR-E4-5）。公開前のプライバシー処理として明示的に提供する。
 final class ClearLocation extends AssetEdit {
   const ClearLocation();
 }
+
+/// 基準合わせのずらし量（SPEC FR-E3-4）。
+///
+/// 1 つの対象の正しい時刻を与えると、その差分が求まる。これを選択集合全体へ
+/// [ShiftTime] として当てれば、同じ機材で撮った素材の時計ずれがまとめて直る。
+Duration shiftToMatch(CapturedAt current, DateTime corrected) =>
+    corrected.difference(current.wallClock);

@@ -262,5 +262,13 @@
   "settingsBackupGenerations": "Generations kept",
   "settingsBackupDirectory": "Where copies are kept",
   "settingsBackupDefaultDirectory": "Default location",
-  "settingsBackupChoose": "Choose"
+  "settingsBackupChoose": "Choose",
+  "editReferenceLabel": "Correct time of the focused asset",
+  "editDistributeLabel": "Start time",
+  "editDistributeInterval": "Interval",
+  "editAdoptLabel": "Take the time from",
+  "editAdoptionFileName": "File name",
+  "editAdoptionFileModified": "File modified time",
+  "editOpDistributeTime": "Assign from {start}, every {interval} s",
+  "editOpAdoptTime": "Take the time from {source}"
 }

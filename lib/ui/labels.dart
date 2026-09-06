@@ -193,6 +193,17 @@ extension AppLabels on AppLocalizations {
       longitude.toStringAsFixed(6),
     ),
     ClearLocation() => editOpClearLocation,
+    DistributeTime(:final start, :final interval) => editOpDistributeTime(
+      formatDateTime(start),
+      interval.inSeconds,
+    ),
+    AdoptTime(:final from) => editOpAdoptTime(timeAdoptionLabel(from)),
+  };
+
+  /// 時刻の取り込み元に出す言葉（SPEC FR-E3-6）。
+  String timeAdoptionLabel(TimeAdoption from) => switch (from) {
+    TimeAdoption.fileName => editAdoptionFileName,
+    TimeAdoption.fileModified => editAdoptionFileModified,
   };
 
   /// ずらす量を、値のある単位だけ並べて出す。

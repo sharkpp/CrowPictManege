@@ -1675,6 +1675,54 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'選ぶ'**
   String get settingsBackupChoose;
+
+  /// No description provided for @editReferenceLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'主対象の正しい時刻'**
+  String get editReferenceLabel;
+
+  /// No description provided for @editDistributeLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'開始時刻'**
+  String get editDistributeLabel;
+
+  /// No description provided for @editDistributeInterval.
+  ///
+  /// In ja, this message translates to:
+  /// **'間隔'**
+  String get editDistributeInterval;
+
+  /// No description provided for @editAdoptLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'時刻を取り込む'**
+  String get editAdoptLabel;
+
+  /// No description provided for @editAdoptionFileName.
+  ///
+  /// In ja, this message translates to:
+  /// **'ファイル名'**
+  String get editAdoptionFileName;
+
+  /// No description provided for @editAdoptionFileModified.
+  ///
+  /// In ja, this message translates to:
+  /// **'ファイル更新時刻'**
+  String get editAdoptionFileModified;
+
+  /// No description provided for @editOpDistributeTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'{start} から {interval} 秒ごとに割り当てる'**
+  String editOpDistributeTime(String start, int interval);
+
+  /// No description provided for @editOpAdoptTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'{source} から時刻を取り込む'**
+  String editOpAdoptTime(String source);
 }
 
 class _AppLocalizationsDelegate

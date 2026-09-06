@@ -985,4 +985,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsBackupChoose => 'Choose';
+
+  @override
+  String get editReferenceLabel => 'Correct time of the focused asset';
+
+  @override
+  String get editDistributeLabel => 'Start time';
+
+  @override
+  String get editDistributeInterval => 'Interval';
+
+  @override
+  String get editAdoptLabel => 'Take the time from';
+
+  @override
+  String get editAdoptionFileName => 'File name';
+
+  @override
+  String get editAdoptionFileModified => 'File modified time';
+
+  @override
+  String editOpDistributeTime(String start, int interval) {
+    return 'Assign from $start, every $interval s';
+  }
+
+  @override
+  String editOpAdoptTime(String source) {
+    return 'Take the time from $source';
+  }
 }

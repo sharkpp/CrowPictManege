@@ -699,5 +699,30 @@
   "settingsBackupGenerations": "残す世代数",
   "settingsBackupDirectory": "控えの置き場所",
   "settingsBackupDefaultDirectory": "既定の場所",
-  "settingsBackupChoose": "選ぶ"
+  "settingsBackupChoose": "選ぶ",
+  "editReferenceLabel": "主対象の正しい時刻",
+  "editDistributeLabel": "開始時刻",
+  "editDistributeInterval": "間隔",
+  "editAdoptLabel": "時刻を取り込む",
+  "editAdoptionFileName": "ファイル名",
+  "editAdoptionFileModified": "ファイル更新時刻",
+  "editOpDistributeTime": "{start} から {interval} 秒ごとに割り当てる",
+  "@editOpDistributeTime": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "interval": {
+        "type": "int"
+      }
+    }
+  },
+  "editOpAdoptTime": "{source} から時刻を取り込む",
+  "@editOpAdoptTime": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  }
 }
