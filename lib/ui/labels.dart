@@ -198,6 +198,10 @@ extension AppLabels on AppLocalizations {
       point.latitude.toStringAsFixed(6),
       point.longitude.toStringAsFixed(6),
     ),
+    AdoptTrackLocation(:final track, :final shift) => editOpAdoptTrack(
+      track.name,
+      formatShift(shift),
+    ),
     ClearLocation() => editOpClearLocation,
     DistributeTime(:final start, :final interval) => editOpDistributeTime(
       formatDateTime(start),

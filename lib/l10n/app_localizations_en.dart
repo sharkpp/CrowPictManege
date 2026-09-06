@@ -906,6 +906,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editSetLocationLabel => 'Set location';
 
   @override
+  String get editLoadTrack => 'Load a track log';
+
+  @override
+  String editTrackLoaded(String name, int count, String start, String end) {
+    return '$name · $count points · $start - $end';
+  }
+
+  @override
+  String editTrackEmpty(String name) {
+    return '$name holds no recorded position';
+  }
+
+  @override
+  String get editTrackShift => 'Time shift';
+
+  @override
+  String get editTrackTolerance => 'Tolerance';
+
+  @override
   String get editClearLocation => 'Remove location';
 
   @override
@@ -1000,6 +1019,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String editOpPlaceAsset(String name, String latitude, String longitude) {
     return 'Set $name to $latitude, $longitude';
+  }
+
+  @override
+  String editOpAdoptTrack(String name, String shift) {
+    return 'Take the location from $name (shifted by $shift)';
   }
 
   @override

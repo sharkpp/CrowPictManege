@@ -605,6 +605,34 @@
   "editLongitude": "経度",
   "editAltitude": "標高",
   "editSetLocationLabel": "位置を決める",
+  "editLoadTrack": "トラックログを読み込む",
+  "editTrackLoaded": "{name} · {count} 点 · {start} 〜 {end}",
+  "@editTrackLoaded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      },
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "editTrackEmpty": "{name} には位置の記録がありません",
+  "@editTrackEmpty": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "editTrackShift": "時刻のずらし",
+  "editTrackTolerance": "許容差",
   "editClearLocation": "位置を消す",
   "editCopyLocationFromPrimary": "主対象の位置を使う",
   "editAdd": "積む",
@@ -718,6 +746,17 @@
         "type": "String"
       },
       "longitude": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpAdoptTrack": "{name} から位置を取り込む（{shift} ずらす）",
+  "@editOpAdoptTrack": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "shift": {
         "type": "String"
       }
     }

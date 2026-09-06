@@ -812,6 +812,25 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editSetLocationLabel => '位置を決める';
 
   @override
+  String get editLoadTrack => 'トラックログを読み込む';
+
+  @override
+  String editTrackLoaded(String name, int count, String start, String end) {
+    return '$name · $count 点 · $start 〜 $end';
+  }
+
+  @override
+  String editTrackEmpty(String name) {
+    return '$name には位置の記録がありません';
+  }
+
+  @override
+  String get editTrackShift => '時刻のずらし';
+
+  @override
+  String get editTrackTolerance => '許容差';
+
+  @override
   String get editClearLocation => '位置を消す';
 
   @override
@@ -906,6 +925,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String editOpPlaceAsset(String name, String latitude, String longitude) {
     return '$name の位置を $latitude, $longitude にする';
+  }
+
+  @override
+  String editOpAdoptTrack(String name, String shift) {
+    return '$name から位置を取り込む（$shift ずらす）';
   }
 
   @override

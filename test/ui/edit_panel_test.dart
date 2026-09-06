@@ -93,7 +93,7 @@ void main() {
       selected: [_asset.path],
     );
 
-    await tester.enterText(find.widgetWithText(TextField, '時'), '1');
+    await tester.enterText(find.byKey(const Key('shift-hours')), '1');
     await tester.tap(find.text('進める'));
     await tester.pumpAndSettle();
 
@@ -109,7 +109,7 @@ void main() {
       selected: [_asset.path],
     );
 
-    await tester.enterText(find.widgetWithText(TextField, '分'), '30');
+    await tester.enterText(find.byKey(const Key('shift-minutes')), '30');
     await tester.tap(find.text('戻す'));
     await tester.pumpAndSettle();
 

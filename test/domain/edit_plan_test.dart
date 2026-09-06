@@ -1,6 +1,7 @@
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/edit_plan.dart';
 import 'package:crow_pict_manege/domain/models.dart';
+import 'package:crow_pict_manege/domain/track.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 CapturedAt _captured(
@@ -28,6 +29,28 @@ EditTarget _target({
   location: location,
   index: index,
 );
+
+/// 決まった瞬間にだけ位置を返す道筋。crowexif の補間はここでは要らない。
+class _FakeTrack implements TrackLog {
+  const _FakeTrack(this.fixes);
+
+  final Map<DateTime, GeoPoint> fixes;
+
+  @override
+  String get name => 'walk.gpx';
+
+  @override
+  int get pointCount => fixes.length;
+
+  @override
+  DateTime? get start => fixes.keys.first;
+
+  @override
+  DateTime? get end => fixes.keys.last;
+
+  @override
+  GeoPoint? at(DateTime utc, {required Duration tolerance}) => fixes[utc];
+}
 
 Map<String, String?> _byTag(EditPlan plan) => {
   for (final write in plan.writes) '${write.group}:${write.name}': write.value,
@@ -258,6 +281,64 @@ void main() {
       );
 
       expect(plan.capturedAt!.wallClock, DateTime(2023, 3, 4, 5, 6, 7));
+    });
+  });
+
+  group('トラックログとの突き合わせ（SPEC FR-E4-4）', () {
+    // 日本時間の正午は UTC の 03:00。
+    final track = _FakeTrack({
+      DateTime.utc(2024, 1, 15, 3): const GeoPoint(
+        latitude: 35.681236,
+        longitude: 139.767125,
+      ),
+      DateTime.utc(2024, 1, 15, 3, 0, 30): const GeoPoint(
+        latitude: 34.0,
+        longitude: 135.0,
+      ),
+    });
+
+    test('撮影時刻の位置を取り込む', () {
+      final plan = planEdits([
+        AdoptTrackLocation(track),
+      ], _target(capturedAt: _captured(noon)));
+
+      expect(plan.locationChanged, isTrue);
+      expect(_byTag(plan)['GPS:GPSLatitude'], '35.6812360 N');
+    });
+
+    test('ずらしの分だけ後の位置を引く', () {
+      final plan = planEdits([
+        const AdoptTrackLocation(_FakeTrack({}), shift: Duration.zero),
+      ], _target(capturedAt: _captured(noon)));
+      expect(plan.isEmpty, isTrue, reason: '空の記録では触らない');
+
+      final shifted = planEdits([
+        AdoptTrackLocation(track, shift: const Duration(seconds: 30)),
+      ], _target(capturedAt: _captured(noon)));
+      expect(_byTag(shifted)['GPS:GPSLatitude'], '34.0000000 N');
+    });
+
+    test('先に時刻を直せば、直した時刻の位置が当たる', () {
+      final plan = planEdits([
+        const ShiftTime(Duration(seconds: 30)),
+        AdoptTrackLocation(track),
+      ], _target(capturedAt: _captured(noon)));
+
+      expect(_byTag(plan)['GPS:GPSLatitude'], '34.0000000 N');
+    });
+
+    test('記録の外にある対象は触らない', () {
+      final plan = planEdits([
+        AdoptTrackLocation(track),
+      ], _target(capturedAt: _captured(DateTime(2024, 3, 1, 12))));
+
+      expect(plan.locationChanged, isFalse);
+      expect(plan.isEmpty, isTrue);
+    });
+
+    test('撮影時刻が無ければ引きようがない', () {
+      final plan = planEdits([AdoptTrackLocation(track)], _target());
+      expect(plan.isEmpty, isTrue);
     });
   });
 

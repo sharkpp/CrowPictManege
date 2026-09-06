@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:file_selector/file_selector.dart';
+
+import '../adapters/crowexif_track.dart';
 import '../domain/coordinates.dart';
 import '../domain/edit.dart';
 import '../domain/models.dart';
 import '../domain/normalize.dart';
+import '../domain/track.dart';
 import '../l10n/l10n.dart';
 import '../state/edits.dart';
 import '../state/search.dart';
@@ -38,8 +42,18 @@ class _EditPanelState extends ConsumerState<EditPanel> {
   final _latitude = TextEditingController();
   final _longitude = TextEditingController();
   final _altitude = TextEditingController();
+  final _trackShift = TextEditingController();
+  final _trackTolerance = TextEditingController(
+    text: '${defaultTrackTolerance.inMinutes}',
+  );
 
   TimeZoneMode _zoneMode = TimeZoneMode.reinterpret;
+
+  /// 読み込んだトラックログ（SPEC FR-E4-4）。積むまでファイルには触らない。
+  TrackLog? _track;
+
+  /// 読み込みの最中か。大きな記録は読むのに間がある。
+  bool _loadingTrack = false;
 
   @override
   void dispose() {
@@ -57,6 +71,8 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       _latitude,
       _longitude,
       _altitude,
+      _trackShift,
+      _trackTolerance,
     ]) {
       controller.dispose();
     }
@@ -90,7 +106,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
               ),
               _Section(
                 title: l10n.editSectionLocation,
-                children: [_locationRows()],
+                children: [_locationRows(), const Divider(), _trackRows()],
               ),
               _Section(
                 title: l10n.editSectionTargets,
@@ -115,10 +131,10 @@ class _EditPanelState extends ConsumerState<EditPanel> {
       children: [
         Row(
           children: [
-            _amount(_days, l10n.editUnitDays),
-            _amount(_hours, l10n.editUnitHours),
-            _amount(_minutes, l10n.editUnitMinutes),
-            _amount(_seconds, l10n.editUnitSeconds),
+            _amount(_days, l10n.editUnitDays, 'shift-days'),
+            _amount(_hours, l10n.editUnitHours, 'shift-hours'),
+            _amount(_minutes, l10n.editUnitMinutes, 'shift-minutes'),
+            _amount(_seconds, l10n.editUnitSeconds, 'shift-seconds'),
           ],
         ),
         const SizedBox(height: 8),
@@ -145,22 +161,25 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     );
   }
 
-  Widget _amount(TextEditingController controller, String unit) => Expanded(
-    child: Padding(
-      padding: const EdgeInsets.only(right: 6),
-      child: TextField(
-        controller: controller,
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.end,
-        decoration: InputDecoration(
-          isDense: true,
-          border: const OutlineInputBorder(),
-          labelText: unit,
-          hintText: '0',
+  /// ずらす量の 1 桁。単位は同じ言葉が他の欄にも出るので、鍵で見分ける。
+  Widget _amount(TextEditingController controller, String unit, String key) =>
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.only(right: 6),
+          child: TextField(
+            key: Key(key),
+            controller: controller,
+            keyboardType: TextInputType.number,
+            textAlign: TextAlign.end,
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              labelText: unit,
+              hintText: '0',
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   void _queueShift(int sign) {
     final delta = Duration(
@@ -455,6 +474,132 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         ),
       ],
     );
+  }
+
+  /// トラックログとの突き合わせ（SPEC FR-E4-4）。
+  ///
+  /// 対象ごとに撮影時刻が違うので、当たる位置も対象ごとに違う。積むのは
+  /// 「この記録から取り込む」という 1 つの操作で、当てるのは適用のとき。
+  Widget _trackRows() {
+    final l10n = context.l10n;
+    final track = _track;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.route_outlined, size: 18),
+                label: Text(
+                  l10n.editLoadTrack,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onPressed: _loadingTrack ? null : _chooseTrack,
+              ),
+            ),
+          ],
+        ),
+        if (track != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            track.pointCount == 0
+                ? l10n.editTrackEmpty(track.name)
+                : l10n.editTrackLoaded(
+                    track.name,
+                    track.pointCount,
+                    context.l10n.formatDateTime(track.start!.toLocal()),
+                    context.l10n.formatDateTime(track.end!.toLocal()),
+                  ),
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _trackShift,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                  labelText: l10n.editTrackShift,
+                  suffixText: l10n.editUnitSeconds,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: TextField(
+                controller: _trackTolerance,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                  labelText: l10n.editTrackTolerance,
+                  suffixText: l10n.editUnitMinutes,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            _AddButton(
+              key: const Key('queue-track'),
+              onPressed: track == null || track.pointCount == 0
+                  ? null
+                  : _queueTrack,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _chooseTrack() async {
+    final file = await openFile(
+      acceptedTypeGroups: const [
+        XTypeGroup(
+          label: 'track',
+          extensions: ['gpx', 'kml', 'nmea', 'log', 'txt'],
+        ),
+      ],
+    );
+    if (file == null) return;
+    setState(() => _loadingTrack = true);
+    try {
+      final track = await CrowexifTrackLog.load(file.path);
+      if (!mounted) return;
+      setState(() => _track = track);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _track = null);
+      _complain();
+    } finally {
+      if (mounted) setState(() => _loadingTrack = false);
+    }
+  }
+
+  void _queueTrack() {
+    final track = _track;
+    if (track == null) return;
+    final shift = int.tryParse(
+      _trackShift.text.trim().isEmpty ? '0' : _trackShift.text.trim(),
+    );
+    final tolerance = int.tryParse(_trackTolerance.text.trim());
+    if (shift == null || tolerance == null || tolerance <= 0) {
+      _complain();
+      return;
+    }
+    ref
+        .read(editQueueProvider.notifier)
+        .add(
+          AdoptTrackLocation(
+            track,
+            shift: Duration(seconds: shift),
+            tolerance: Duration(minutes: tolerance),
+          ),
+        );
   }
 
   Widget _coordinate(TextEditingController controller, String label) =>

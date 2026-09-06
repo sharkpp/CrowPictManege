@@ -1,4 +1,5 @@
 import 'models.dart';
+import 'track.dart';
 
 /// 時刻を書き込む先（SPEC FR-E3-7）。
 ///
@@ -123,6 +124,25 @@ final class AdoptTime extends AssetEdit {
   const AdoptTime(this.from);
 
   final TimeAdoption from;
+}
+
+/// トラックログと撮影時刻を突き合わせて位置を付ける（SPEC FR-E4-4）。
+///
+/// 対象ごとに時刻が違うので、当たる位置も対象ごとに違う。
+final class AdoptTrackLocation extends AssetEdit {
+  const AdoptTrackLocation(
+    this.track, {
+    this.shift = Duration.zero,
+    this.tolerance = defaultTrackTolerance,
+  });
+
+  final TrackLog track;
+
+  /// 撮影時刻に足すずらし。カメラの時計と受信機の時計の差を吸収する。
+  final Duration shift;
+
+  /// 一番近い点との許容差。これを超える対象には位置を付けない。
+  final Duration tolerance;
 }
 
 /// 落とした 1 件にだけ位置を付ける（SPEC FR-M6）。

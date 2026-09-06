@@ -167,6 +167,16 @@ EditPlan planEdits(
           altitude: altitude ?? place?.altitude,
         );
         locationChanged = true;
+      case AdoptTrackLocation(:final track, :final shift, :final tolerance):
+        // ここまでの操作を踏まえた撮影時刻で引く。時計ずれを直してから
+        // 突き合わせれば、直した時刻のとおりの位置が当たる。
+        if (captured == null) break;
+        final instant = captured.utcInstant ?? _asLocal(captured.wallClock);
+        final fix = track.at(instant.add(shift), tolerance: tolerance);
+        // 記録の外にある対象は触らない。埋めれば居なかった場所を書くことになる。
+        if (fix == null) break;
+        place = fix;
+        locationChanged = true;
       case PlaceAsset(:final path, :final point):
         // 落とした 1 件にだけ効く。他の対象は素通りする。
         if (path != target.path) break;
@@ -200,6 +210,20 @@ EditPlan planEdits(
         : null,
   );
 }
+
+/// オフセットの分からない壁時計時刻を、この端末の時刻として UTC に直す。
+///
+/// カメラの時計は撮った土地の時刻に合わせてあるのが普通なので、
+/// 手掛かりが無いときはこれがいちばん外さない。
+DateTime _asLocal(DateTime wallClock) => DateTime(
+  wallClock.year,
+  wallClock.month,
+  wallClock.day,
+  wallClock.hour,
+  wallClock.minute,
+  wallClock.second,
+  wallClock.millisecond,
+).toUtc();
 
 /// 壁時計時刻だけを差し替え、根拠はそのままにする。
 CapturedAt _sameSource(CapturedAt from, DateTime wallClock) => CapturedAt(

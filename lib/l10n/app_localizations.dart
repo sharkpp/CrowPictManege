@@ -1514,6 +1514,36 @@ abstract class AppLocalizations {
   /// **'位置を決める'**
   String get editSetLocationLabel;
 
+  /// No description provided for @editLoadTrack.
+  ///
+  /// In ja, this message translates to:
+  /// **'トラックログを読み込む'**
+  String get editLoadTrack;
+
+  /// No description provided for @editTrackLoaded.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} · {count} 点 · {start} 〜 {end}'**
+  String editTrackLoaded(String name, int count, String start, String end);
+
+  /// No description provided for @editTrackEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} には位置の記録がありません'**
+  String editTrackEmpty(String name);
+
+  /// No description provided for @editTrackShift.
+  ///
+  /// In ja, this message translates to:
+  /// **'時刻のずらし'**
+  String get editTrackShift;
+
+  /// No description provided for @editTrackTolerance.
+  ///
+  /// In ja, this message translates to:
+  /// **'許容差'**
+  String get editTrackTolerance;
+
   /// No description provided for @editClearLocation.
   ///
   /// In ja, this message translates to:
@@ -1663,6 +1693,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{name} の位置を {latitude}, {longitude} にする'**
   String editOpPlaceAsset(String name, String latitude, String longitude);
+
+  /// No description provided for @editOpAdoptTrack.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} から位置を取り込む（{shift} ずらす）'**
+  String editOpAdoptTrack(String name, String shift);
 
   /// No description provided for @editOpClearLocation.
   ///
