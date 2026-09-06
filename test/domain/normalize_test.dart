@@ -130,6 +130,33 @@ void main() {
       expect(point.horizontalError, 5.0);
     });
 
+    test('画像の GPS が無ければ動画の ISO 6709 を読む（SPEC §3.3）', () {
+      final point = normalizeLocation(
+        TagValues({'QuickTime:GPSCoordinates': '+35.6812+139.7671+12.500/'}),
+      );
+
+      expect(point!.latitude, closeTo(35.6812, 1e-9));
+      expect(point.longitude, closeTo(139.7671, 1e-9));
+      expect(point.altitude, closeTo(12.5, 1e-9));
+    });
+
+    test('空白で区切った座標も読む', () {
+      final point = normalizeLocation(
+        TagValues({'QuickTime:GPSCoordinates': '-33.8688 -70.6693'}),
+      );
+
+      expect(point!.latitude, closeTo(-33.8688, 1e-9));
+      expect(point.longitude, closeTo(-70.6693, 1e-9));
+      expect(point.altitude, isNull);
+    });
+
+    test('座標として読めないものは位置にしない', () {
+      expect(parseIso6709(''), isNull);
+      expect(parseIso6709('+35.6812/'), isNull, reason: '経度が無い');
+      expect(parseIso6709('+95.0+139.0/'), isNull, reason: '緯度の範囲を超える');
+      expect(parseIso6709('+0.0+0.0/'), isNull, reason: '未設定のまま書かれた値');
+    });
+
     test('Composite が無ければ Ref から符号を決める', () {
       final point = normalizeLocation(
         TagValues({

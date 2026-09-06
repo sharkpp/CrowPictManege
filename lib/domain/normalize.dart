@@ -223,6 +223,7 @@ DateTime? dateTimeFromFileName(String fileName) {
 /// タグ群から位置を正規化する。
 ///
 /// Composite の符号付き値を優先し、無い場合のみ Exif の絶対値と Ref から組み立てる。
+/// 画像の GPS が無ければ、動画の QuickTime 座標（ISO 6709）を読む（SPEC §3.3）。
 GeoPoint? normalizeLocation(TagValues tags) {
   final latitude =
       tags.number('Composite:GPSLatitude') ??
@@ -238,7 +239,9 @@ GeoPoint? normalizeLocation(TagValues tags) {
         tags.string('GPSLongitudeRef'),
         'W',
       );
-  if (latitude == null || longitude == null) return null;
+  if (latitude == null || longitude == null) {
+    return parseIso6709(tags.string('GPSCoordinates'));
+  }
   if (latitude.abs() > 90 || longitude.abs() > 180) return null;
   // 0,0 は「未設定のまま書かれた値」であることが多く、位置として扱わない。
   if (latitude == 0 && longitude == 0) return null;
@@ -257,6 +260,33 @@ GeoPoint? normalizeLocation(TagValues tags) {
     longitude: longitude,
     altitude: altitude,
     horizontalError: tags.number('GPSHPositioningError'),
+  );
+}
+
+/// ISO 6709 の座標を読む（SPEC §3.3 QuickTime）。
+///
+/// 動画は `+35.6812+139.7671+12.500/` の形で 1 つの文字列に収める。
+/// 記録側によっては `35.6812 139.7671` のように空白で区切ることもあるので、
+/// どちらも読む。
+GeoPoint? parseIso6709(String? text) {
+  if (text == null) return null;
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return null;
+
+  // 緯度・経度・高度が符号付きで続けて書かれる。区切りは無くてもよい。
+  final numbers = [
+    for (final match in RegExp(r'[+-]?\d+(?:\.\d+)?').allMatches(trimmed))
+      ?double.tryParse(match.group(0)!),
+  ];
+  if (numbers.length < 2) return null;
+  final latitude = numbers[0];
+  final longitude = numbers[1];
+  if (latitude.abs() > 90 || longitude.abs() > 180) return null;
+  if (latitude == 0 && longitude == 0) return null;
+  return GeoPoint(
+    latitude: latitude,
+    longitude: longitude,
+    altitude: numbers.length > 2 ? numbers[2] : null,
   );
 }
 
