@@ -4,14 +4,26 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../domain/models.dart';
 
+/// 単体プレビューの動画に対する操作。プレビューの操作列から呼ぶ。
+class VideoStageHandle {
+  const VideoStageHandle({required this.stepFrame});
+
+  /// 1 コマ進める（true）／戻す（false）。
+  final Future<void> Function(bool forward) stepFrame;
+}
+
 /// 単体プレビューの動画（SPEC FR-B7）。
 ///
-/// 再生・シークは media_kit の操作 UI に任せ、フレーム送りだけを足す。
+/// 再生・シークは media_kit の操作 UI に任せる。下端はその操作 UI のために
+/// 空けておき、フレーム送りはプレビューの操作列（上端）に出す。
 /// 音は既定で出す。開いた時点では止めておき、押されてから流す。
 class VideoStage extends StatefulWidget {
-  const VideoStage({super.key, required this.asset});
+  const VideoStage({super.key, required this.asset, this.onReady});
 
   final MediaAsset asset;
+
+  /// 操作を受け取る口。プレビュー側がフレーム送りを出すために使う。
+  final ValueChanged<VideoStageHandle>? onReady;
 
   @override
   State<VideoStage> createState() => _VideoStageState();
@@ -27,6 +39,7 @@ class _VideoStageState extends State<VideoStage> {
     super.initState();
     _player = Player();
     _controller = VideoController(_player);
+    widget.onReady?.call(VideoStageHandle(stepFrame: _stepFrame));
     _open();
   }
 
@@ -70,55 +83,12 @@ class _VideoStageState extends State<VideoStage> {
       );
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: Video(
-            controller: _controller,
-            fit: BoxFit.contain,
-            // 全面プレビュー自体が全画面なので、OS の全画面へは移らない。
-            onEnterFullscreen: () async {},
-            onExitFullscreen: () async {},
-          ),
-        ),
-        _FrameStepBar(onStep: _stepFrame),
-      ],
-    );
-  }
-}
-
-/// フレーム送り（SPEC FR-B7）。再生とシークは media_kit の操作 UI が持つ。
-class _FrameStepBar extends StatelessWidget {
-  const _FrameStepBar({required this.onStep});
-
-  final Future<void> Function(bool forward) onStep;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black38,
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.skip_previous, size: 20),
-            color: Colors.white,
-            tooltip: '1 コマ戻す',
-            onPressed: () => onStep(false),
-          ),
-          const Text(
-            'フレーム送り',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          IconButton(
-            icon: const Icon(Icons.skip_next, size: 20),
-            color: Colors.white,
-            tooltip: '1 コマ進める',
-            onPressed: () => onStep(true),
-          ),
-        ],
-      ),
+    return Video(
+      controller: _controller,
+      fit: BoxFit.contain,
+      // 全面プレビュー自体が全画面なので、OS の全画面へは移らない。
+      onEnterFullscreen: () async {},
+      onExitFullscreen: () async {},
     );
   }
 }

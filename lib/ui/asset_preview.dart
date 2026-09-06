@@ -7,6 +7,7 @@ import '../state/search.dart';
 import '../state/selection.dart';
 import 'asset_thumbnail.dart';
 import 'format.dart';
+import 'video_stage.dart';
 
 /// 単体プレビューを開く（SPEC FR-B7、§9）。
 ///
@@ -44,6 +45,9 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
   /// 送った先で回転とズームを持ち越さないための目印。
   String? _shownPath;
 
+  /// 動画のときだけ持つ操作。フレーム送りを操作列に出すために使う。
+  VideoStageHandle? _video;
+
   @override
   void dispose() {
     _transform.dispose();
@@ -75,6 +79,7 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
     // 別の対象へ送ったら、前の対象の回転とズームは引き継がない。
     if (_shownPath != asset.path) {
       _shownPath = asset.path;
+      _video = null;
       _reset();
     }
 
@@ -107,6 +112,7 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
                   asset: asset,
                   position: (index < 0 ? 0 : index) + 1,
                   total: assets.length,
+                  video: _video,
                   onRotateLeft: () => _rotate(-1),
                   onRotateRight: () => _rotate(1),
                   onReset: () => setState(_reset),
@@ -143,6 +149,18 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
   }
 
   Widget _stage(MediaAsset asset) {
+    // 動画は再生の操作ごと差し替える（SPEC FR-B7）。
+    if (asset.kind == AssetKind.video) {
+      return VideoStage(
+        key: ValueKey(asset.path),
+        asset: asset,
+        // 操作列にフレーム送りを出すために受け取る。組み立ての最中に
+        // 状態を変えられないので、次のフレームまで待って入れる。
+        onReady: (handle) => WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _video = handle);
+        }),
+      );
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         // 回転すると縦横が入れ替わる。復号の目標寸法は長い方に合わせる。
@@ -150,9 +168,11 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
         return InteractiveViewer(
           transformationController: _transform,
           maxScale: 8,
-          child: Center(
-            child: RotatedBox(
-              quarterTurns: _quarterTurns,
+          child: RotatedBox(
+            quarterTurns: _quarterTurns,
+            // 画面いっぱいに収める。小さい画像は伸ばし、大きい画像は縮める。
+            // 大きさを与えないと、画像は元の寸法のまま真ん中に小さく出る。
+            child: SizedBox.expand(
               child: AssetThumbnail(
                 key: ValueKey(asset.path),
                 asset: asset,
@@ -173,6 +193,7 @@ class _Bar extends StatelessWidget {
     required this.asset,
     required this.position,
     required this.total,
+    required this.video,
     required this.onRotateLeft,
     required this.onRotateRight,
     required this.onReset,
@@ -182,6 +203,9 @@ class _Bar extends StatelessWidget {
   final MediaAsset asset;
   final int position;
   final int total;
+
+  /// 動画のときだけ入る。フレーム送りを出すかの判断に使う。
+  final VideoStageHandle? video;
   final VoidCallback onRotateLeft;
   final VoidCallback onRotateRight;
   final VoidCallback onReset;
@@ -207,7 +231,20 @@ class _Bar extends StatelessWidget {
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const SizedBox(width: 8),
-          // 回転とズームは画像の操作。動画は再生の操作を下端に出す。
+          // 動画のフレーム送り。再生とシークは下端の操作 UI が持つ。
+          if (video != null) ...[
+            _Action(
+              icon: Icons.skip_previous,
+              tooltip: '1 コマ戻す',
+              onPressed: () => video!.stepFrame(false),
+            ),
+            _Action(
+              icon: Icons.skip_next,
+              tooltip: '1 コマ進める',
+              onPressed: () => video!.stepFrame(true),
+            ),
+          ],
+          // 回転とズームは画像の操作。
           if (asset.kind == AssetKind.image) ...[
             _Action(
               icon: Icons.rotate_left,

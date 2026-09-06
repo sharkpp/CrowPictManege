@@ -100,5 +100,10 @@ Future<Uint8List?> _screenshotWhenReady(Player player) async {
 
 const _openTimeout = Duration(seconds: 10);
 const _disposeTimeout = Duration(seconds: 3);
-const _attempts = 10;
-const _retryInterval = Duration(milliseconds: 150);
+
+/// 取り出しを試す回数と間隔。合わせて 6 秒待つ。
+///
+/// 最初の 1 本は復号器の立ち上げが要るので目に見えて遅い。短く諦めると
+/// 1 本目だけ絵が出ない。取り出した絵はキャッシュに残るので待つ価値がある。
+const _attempts = 30;
+const _retryInterval = Duration(milliseconds: 200);
