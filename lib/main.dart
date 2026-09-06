@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:media_kit/media_kit.dart';
 
 import 'app_info.dart';
 import 'ui/browse_page.dart';
 
 void main() {
+  // 動画の代表フレームと再生に使う（SPEC FR-B5〜FR-B7）。
+  MediaKit.ensureInitialized();
   runApp(const ProviderScope(child: CrowPictManegeApp()));
 }
 

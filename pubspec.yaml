@@ -37,6 +37,11 @@ dependencies:
   latlong2: ^0.10.1
   # 近いマーカーの集約（SPEC FR-M1）。pure Dart。
   supercluster: ^3.2.0
+  # 動画の代表フレーム取得と再生（SPEC FR-B5〜FR-B7）。
+  # 再生とフレーム取得を全プラットフォームで 1 実装に寄せられる（SPEC §7.2）。
+  media_kit: ^1.2.6
+  media_kit_video: ^2.0.1
+  media_kit_libs_video: ^1.0.7
 
 dev_dependencies:
   flutter_test:

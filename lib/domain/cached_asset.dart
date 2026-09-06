@@ -34,17 +34,20 @@ class CachedAsset {
   /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
   final String? contentHash;
 
-  CachedAsset copyWith({int? perceptualHash, String? contentHash}) =>
-      CachedAsset(
-        path: path,
-        size: size,
-        fileModifiedAt: fileModifiedAt,
-        summary: summary,
-        thumbnail: thumbnail,
-        error: error,
-        perceptualHash: perceptualHash ?? this.perceptualHash,
-        contentHash: contentHash ?? this.contentHash,
-      );
+  CachedAsset copyWith({
+    int? perceptualHash,
+    String? contentHash,
+    Uint8List? thumbnail,
+  }) => CachedAsset(
+    path: path,
+    size: size,
+    fileModifiedAt: fileModifiedAt,
+    summary: summary,
+    thumbnail: thumbnail ?? this.thumbnail,
+    error: error,
+    perceptualHash: perceptualHash ?? this.perceptualHash,
+    contentHash: contentHash ?? this.contentHash,
+  );
 
   /// 実ファイルの属性と一致しているか。
   bool matches(int size, DateTime fileModifiedAt) =>

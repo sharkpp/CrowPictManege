@@ -16,6 +16,7 @@ import '../ports/metadata_port.dart';
 import '../services/parallel.dart';
 import '../services/summary_loader.dart';
 import '../services/thumbnail_cache.dart';
+import '../services/video_frame.dart';
 import 'places.dart';
 import 'selection.dart';
 import 'settings.dart';
@@ -25,8 +26,24 @@ final metadataPortProvider = Provider<MetadataPort>(
 );
 
 final thumbnailCacheProvider = Provider<ThumbnailCache>(
-  (ref) => ThumbnailCache(ref.watch(metadataPortProvider)),
+  (ref) => ThumbnailCache(
+    ref.watch(metadataPortProvider),
+    // 動画は埋め込みプレビューを持たないことが多い。代表フレームを取り出す。
+    poster: videoPosterFrame,
+    storePoster: (path, bytes) => _storePosterFrame(ref, path, bytes),
+  ),
 );
+
+/// 取り出した代表フレームを永続キャッシュへ残す（SPEC FR-B5、FR-B17）。
+///
+/// 走査で作った項目に足す形にする。まだ項目が無い場合は、そのうち走査が
+/// 作るので何もしない。
+Future<void> _storePosterFrame(Ref ref, String path, Uint8List bytes) async {
+  final catalog = ref.read(catalogProvider);
+  final entry = (await catalog.cachedAssets([path]))[path];
+  if (entry == null) return;
+  await catalog.storeCachedAssets([entry.copyWith(thumbnail: bytes)]);
+}
 
 /// 選択中の対象の全タグ（SPEC FR-V1）。選択された時にだけ読む。
 final allTagsProvider = FutureProvider.family<List<TagRecord>, String>(
@@ -40,25 +57,26 @@ const maxTagTargets = 100;
 ///
 /// family のキーは値として等しくなければならないため、パスの一覧は
 /// [tagTargetsKey] で 1 本の文字列にして渡す。
-final mergedTagsProvider = FutureProvider.family<List<TagRecord>, String>(
-  (ref, key) async {
-    final paths = key.split('\n');
-    if (paths.length == 1) {
-      return ref.watch(allTagsProvider(paths.first).future);
-    }
-    final port = ref.watch(metadataPortProvider);
-    final perAsset = await mapWithConcurrency(
-      paths,
-      4,
-      port.readAllTags,
-      onError: (_, _) => const <TagRecord>[],
-    );
-    return mergeTagRecords([
-      for (final tags in perAsset)
-        if (tags.isNotEmpty) tags,
-    ]);
-  },
-);
+final mergedTagsProvider = FutureProvider.family<List<TagRecord>, String>((
+  ref,
+  key,
+) async {
+  final paths = key.split('\n');
+  if (paths.length == 1) {
+    return ref.watch(allTagsProvider(paths.first).future);
+  }
+  final port = ref.watch(metadataPortProvider);
+  final perAsset = await mapWithConcurrency(
+    paths,
+    4,
+    port.readAllTags,
+    onError: (_, _) => const <TagRecord>[],
+  );
+  return mergeTagRecords([
+    for (final tags in perAsset)
+      if (tags.isNotEmpty) tags,
+  ]);
+});
 
 String tagTargetsKey(Iterable<String> paths) =>
     paths.take(maxTagTargets).join('\n');
@@ -97,15 +115,14 @@ class LibraryState {
     int? analyzed,
     int? errorCount,
     String? message,
-  }) =>
-      LibraryState(
-        rootPath: rootPath ?? this.rootPath,
-        assets: assets ?? this.assets,
-        scanning: scanning ?? this.scanning,
-        analyzed: analyzed ?? this.analyzed,
-        errorCount: errorCount ?? this.errorCount,
-        message: message,
-      );
+  }) => LibraryState(
+    rootPath: rootPath ?? this.rootPath,
+    assets: assets ?? this.assets,
+    scanning: scanning ?? this.scanning,
+    analyzed: analyzed ?? this.analyzed,
+    errorCount: errorCount ?? this.errorCount,
+    message: message,
+  );
 }
 
 class LibraryNotifier extends Notifier<LibraryState> {
@@ -218,14 +235,16 @@ class LibraryNotifier extends Notifier<LibraryState> {
           errors++;
         }
         analyzed++;
-        toStore.add(CachedAsset(
-          path: asset.path,
-          size: asset.size,
-          fileModifiedAt: asset.fileModifiedAt,
-          summary: summary,
-          thumbnail: summary?.embeddedThumbnail,
-          error: summary == null ? (error ?? '読み取りに失敗しました') : null,
-        ));
+        toStore.add(
+          CachedAsset(
+            path: asset.path,
+            size: asset.size,
+            fileModifiedAt: asset.fileModifiedAt,
+            summary: summary,
+            thumbnail: summary?.embeddedThumbnail,
+            error: summary == null ? (error ?? '読み取りに失敗しました') : null,
+          ),
+        );
       }
 
       state = state.copyWith(
@@ -247,7 +266,8 @@ class LibraryNotifier extends Notifier<LibraryState> {
       .keepOnly({for (final asset in state.assets) asset.path});
 
   static int get _concurrency {
-    final cores = defaultTargetPlatform == TargetPlatform.iOS ||
+    final cores =
+        defaultTargetPlatform == TargetPlatform.iOS ||
             defaultTargetPlatform == TargetPlatform.android
         ? 2
         : 6;
@@ -255,8 +275,9 @@ class LibraryNotifier extends Notifier<LibraryState> {
   }
 }
 
-final libraryProvider =
-    NotifierProvider<LibraryNotifier, LibraryState>(LibraryNotifier.new);
+final libraryProvider = NotifierProvider<LibraryNotifier, LibraryState>(
+  LibraryNotifier.new,
+);
 
 /// 並べ替えた一覧。並べ替えは元の一覧か指定が変わった時だけ行う。
 final sortedAssetsProvider = Provider<List<MediaAsset>>((ref) {
@@ -265,7 +286,9 @@ final sortedAssetsProvider = Provider<List<MediaAsset>>((ref) {
     case SortMode.capturedAt:
       assets.sort((a, b) => a.sortKey.compareTo(b.sortKey));
     case SortMode.name:
-      assets.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      assets.sort(
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
     case SortMode.size:
       assets.sort((a, b) => b.size.compareTo(a.size));
   }
@@ -273,11 +296,12 @@ final sortedAssetsProvider = Provider<List<MediaAsset>>((ref) {
 });
 
 /// 列フィルタ（SPEC FR-B19）。列ごとに 1 つ持ち、すべてを満たすものを残す。
-final columnFiltersProvider = NotifierProvider<ColumnFiltersNotifier,
-    Map<AssetColumn, ColumnFilter>>(ColumnFiltersNotifier.new);
+final columnFiltersProvider =
+    NotifierProvider<ColumnFiltersNotifier, Map<AssetColumn, ColumnFilter>>(
+      ColumnFiltersNotifier.new,
+    );
 
-class ColumnFiltersNotifier
-    extends Notifier<Map<AssetColumn, ColumnFilter>> {
+class ColumnFiltersNotifier extends Notifier<Map<AssetColumn, ColumnFilter>> {
   @override
   Map<AssetColumn, ColumnFilter> build() => const {};
 
@@ -321,9 +345,5 @@ final folderListingProvider = Provider<FolderListing>((ref) {
   if (root == null || settings.folderMode == FolderMode.flat) {
     return FolderListing(folders: const [], assets: assets);
   }
-  return folderListing(
-    root,
-    assets,
-    previewCount: settings.folderThumbnails,
-  );
+  return folderListing(root, assets, previewCount: settings.folderThumbnails);
 });

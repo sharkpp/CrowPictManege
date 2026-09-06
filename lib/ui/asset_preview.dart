@@ -127,12 +127,14 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
                   onPressed: () => _step(assets, 1),
                 ),
               ],
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _Caption(asset: asset),
-              ),
+              // 動画は下端を再生の操作に譲る。説明は上端の名前で足りる。
+              if (asset.kind == AssetKind.image)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _Caption(asset: asset),
+                ),
             ],
           ),
         ),
@@ -205,21 +207,24 @@ class _Bar extends StatelessWidget {
             style: const TextStyle(color: Colors.white70, fontSize: 12),
           ),
           const SizedBox(width: 8),
-          _Action(
-            icon: Icons.rotate_left,
-            tooltip: '左へ回す (Shift+R)',
-            onPressed: onRotateLeft,
-          ),
-          _Action(
-            icon: Icons.rotate_right,
-            tooltip: '右へ回す (R)',
-            onPressed: onRotateRight,
-          ),
-          _Action(
-            icon: Icons.zoom_out_map,
-            tooltip: '表示を戻す (0)',
-            onPressed: onReset,
-          ),
+          // 回転とズームは画像の操作。動画は再生の操作を下端に出す。
+          if (asset.kind == AssetKind.image) ...[
+            _Action(
+              icon: Icons.rotate_left,
+              tooltip: '左へ回す (Shift+R)',
+              onPressed: onRotateLeft,
+            ),
+            _Action(
+              icon: Icons.rotate_right,
+              tooltip: '右へ回す (R)',
+              onPressed: onRotateRight,
+            ),
+            _Action(
+              icon: Icons.zoom_out_map,
+              tooltip: '表示を戻す (0)',
+              onPressed: onReset,
+            ),
+          ],
           _Action(icon: Icons.close, tooltip: '閉じる (Esc)', onPressed: onClose),
         ],
       ),
