@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'localized_app.dart';
+
 /// 起動直後の画面（SPEC FR-B14、FR-B15）。
 void main() {
   late Directory folder;
@@ -25,20 +27,24 @@ void main() {
     catalog.close();
   });
 
-  Future<ProviderContainer> pumpStart(WidgetTester tester) async {
-    final container = ProviderContainer(overrides: [
-      catalogProvider.overrideWithValue(catalog),
-    ]);
+  Future<ProviderContainer> pumpStart(
+    WidgetTester tester, {
+    Locale locale = const Locale('ja'),
+  }) async {
+    final container = ProviderContainer(
+      overrides: [catalogProvider.overrideWithValue(catalog)],
+    );
     addTearDown(container.dispose);
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(
-        home: Scaffold(
-          body: StartView(message: null, onOpen: () {}),
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: localizedApp(
+          locale: locale,
+          home: Scaffold(body: StartView(message: null, onOpen: () {})),
         ),
       ),
-    ));
+    );
     await tester.pumpAndSettle();
     return container;
   }
@@ -51,12 +57,19 @@ void main() {
     expect(find.text('まだありません'), findsOneWidget);
   });
 
+  testWidgets('言語が英語なら英語の言葉を出す', (tester) async {
+    await pumpStart(tester, locale: const Locale('en'));
+
+    expect(find.text('Open folder'), findsOneWidget);
+    expect(find.text('Bookmarks'), findsOneWidget);
+    expect(find.text('Nothing yet'), findsOneWidget);
+    expect(find.text('フォルダを開く'), findsNothing);
+  });
+
   testWidgets('ブックマークと履歴を出す', (tester) async {
-    await catalog.addBookmark(Bookmark(
-      path: '/photos/2024',
-      name: '2024',
-      addedAt: DateTime(2024),
-    ));
+    await catalog.addBookmark(
+      Bookmark(path: '/photos/2024', name: '2024', addedAt: DateTime(2024)),
+    );
     await catalog.recordVisit('/photos/旅行');
 
     await pumpStart(tester);
@@ -68,11 +81,9 @@ void main() {
   });
 
   testWidgets('ブックマークを押すとそのフォルダを開く', (tester) async {
-    await catalog.addBookmark(Bookmark(
-      path: folder.path,
-      name: 'テスト',
-      addedAt: DateTime(2024),
-    ));
+    await catalog.addBookmark(
+      Bookmark(path: folder.path, name: 'テスト', addedAt: DateTime(2024)),
+    );
 
     final container = await pumpStart(tester);
     await tester.tap(find.text('テスト'));
@@ -92,11 +103,9 @@ void main() {
   });
 
   testWidgets('ブックマークはその場で外せる', (tester) async {
-    await catalog.addBookmark(Bookmark(
-      path: '/photos/2024',
-      name: '2024',
-      addedAt: DateTime(2024),
-    ));
+    await catalog.addBookmark(
+      Bookmark(path: '/photos/2024', name: '2024', addedAt: DateTime(2024)),
+    );
 
     await pumpStart(tester);
     await tester.tap(find.byTooltip('ブックマークを外す'));

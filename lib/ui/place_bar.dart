@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
+import '../l10n/l10n.dart';
 import '../state/navigation.dart';
 import '../state/places.dart';
 import 'format.dart';
@@ -16,6 +17,7 @@ class PlaceBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final navigation = ref.watch(navigationProvider);
     final notifier = ref.read(navigationProvider.notifier);
 
@@ -25,17 +27,17 @@ class PlaceBar extends ConsumerWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.arrow_back, size: 20),
-            tooltip: '戻る',
+            tooltip: l10n.navBack,
             onPressed: navigation.canGoBack ? notifier.back : null,
           ),
           IconButton(
             icon: const Icon(Icons.arrow_forward, size: 20),
-            tooltip: '進む',
+            tooltip: l10n.navForward,
             onPressed: navigation.canGoForward ? notifier.forward : null,
           ),
           IconButton(
             icon: const Icon(Icons.arrow_upward, size: 20),
-            tooltip: '親フォルダへ',
+            tooltip: l10n.navParentFolder,
             onPressed: notifier.up,
           ),
           Expanded(child: _Breadcrumb(path: path)),
@@ -109,6 +111,7 @@ class _BookmarkStar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final bookmarked =
         ref
             .watch(bookmarksProvider)
@@ -119,7 +122,7 @@ class _BookmarkStar extends ConsumerWidget {
     return IconButton(
       icon: Icon(bookmarked ? Icons.star : Icons.star_border, size: 20),
       color: bookmarked ? Theme.of(context).colorScheme.primary : null,
-      tooltip: bookmarked ? 'ブックマークを外す' : 'ブックマークに入れる',
+      tooltip: bookmarked ? l10n.bookmarkRemove : l10n.bookmarkAdd,
       onPressed: () => ref.read(bookmarksProvider.notifier).toggle(path),
     );
   }
@@ -131,11 +134,12 @@ class _HistoryMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final visits = ref.watch(visitsProvider).value ?? const [];
 
     return PopupMenuButton<String>(
       icon: const Icon(Icons.history, size: 20),
-      tooltip: '履歴',
+      tooltip: l10n.history,
       enabled: visits.isNotEmpty,
       onSelected: (path) => ref.read(navigationProvider.notifier).open(path),
       itemBuilder: (context) => [
@@ -144,7 +148,7 @@ class _HistoryMenu extends ConsumerWidget {
             value: visit.path,
             child: _PlaceItem(
               path: visit.path,
-              note: formatRelativeTime(visit.visitedAt),
+              note: l10n.formatRelativeTime(visit.visitedAt),
             ),
           ),
       ],
@@ -162,7 +166,7 @@ class _BookmarkMenu extends ConsumerWidget {
 
     return PopupMenuButton<String>(
       icon: const Icon(Icons.bookmarks_outlined, size: 20),
-      tooltip: 'ブックマーク',
+      tooltip: context.l10n.bookmarks,
       enabled: bookmarks.isNotEmpty,
       onSelected: (path) => ref.read(navigationProvider.notifier).open(path),
       itemBuilder: (context) => [

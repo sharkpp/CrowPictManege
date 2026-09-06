@@ -6,6 +6,7 @@ import '../domain/columns.dart';
 import '../domain/folder_view.dart';
 import '../domain/models.dart';
 import '../domain/settings.dart';
+import '../l10n/l10n.dart';
 import '../state/library.dart';
 import '../state/selection.dart';
 import '../state/settings.dart';
@@ -146,13 +147,15 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final summary = asset.summary;
     final second = [
-      columnDisplay(AssetColumn.capturedAt, asset),
+      l10n.columnDisplay(AssetColumn.capturedAt, asset),
       if (summary?.width != null) '${summary!.width} × ${summary.height}',
-      if (summary?.duration != null) columnDisplay(AssetColumn.duration, asset),
-      columnDisplay(AssetColumn.size, asset),
+      if (summary?.duration != null)
+        l10n.columnDisplay(AssetColumn.duration, asset),
+      l10n.columnDisplay(AssetColumn.size, asset),
     ].join(' · ');
 
     return InkWell(
@@ -233,7 +236,7 @@ class _Header extends ConsumerWidget {
               width: _trailingWidth,
               child: IconButton(
                 icon: const Icon(Icons.view_column_outlined, size: 18),
-                tooltip: '列の設定',
+                tooltip: context.l10n.columnSettings,
                 padding: EdgeInsets.zero,
                 onPressed: () => showColumnSettingsDialog(context),
               ),
@@ -266,7 +269,7 @@ class _HeaderCell extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    columnLabel(layout.column),
+                    context.l10n.columnLabel(layout.column),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: active
@@ -358,7 +361,7 @@ class _Row extends StatelessWidget {
                   width: layout.width,
                   child: layout.column == AssetColumn.location
                       ? _locationCell(theme)
-                      : Text(columnDisplay(layout.column, asset)),
+                      : Text(context.l10n.columnDisplay(layout.column, asset)),
                 ),
               const Spacer(),
               if (asset.error != null)

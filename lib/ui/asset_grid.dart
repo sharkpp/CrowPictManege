@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/folder_view.dart';
 import '../domain/models.dart';
+import '../l10n/l10n.dart';
 import '../state/selection.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
@@ -182,7 +183,9 @@ class _GridTile extends StatelessWidget {
               style: theme.textTheme.bodySmall,
             ),
             Text(
-              captured == null ? '—' : formatCapturedAt(captured, short: true),
+              captured == null
+                  ? '—'
+                  : context.l10n.formatCapturedAt(captured, short: true),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall?.copyWith(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/columns.dart';
+import '../l10n/l10n.dart';
 import '../state/settings.dart';
 import 'labels.dart';
 
@@ -16,6 +17,7 @@ class _ColumnSettingsDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final layouts = ref.watch(settingsProvider).columnLayouts;
     final notifier = ref.read(settingsProvider.notifier);
 
@@ -23,7 +25,7 @@ class _ColumnSettingsDialog extends ConsumerWidget {
         notifier.update((current) => current.copyWith(columns: next));
 
     return AlertDialog(
-      title: const Text('リストの列'),
+      title: Text(l10n.listColumns),
       content: SizedBox(
         width: 380,
         // 窓の高さに収める。低いときは一覧側が縮む。
@@ -43,7 +45,7 @@ class _ColumnSettingsDialog extends ConsumerWidget {
                 child: CheckboxListTile(
                   dense: true,
                   value: layouts[i].visible,
-                  title: Text(columnLabel(layouts[i].column)),
+                  title: Text(l10n.columnLabel(layouts[i].column)),
                   secondary: const Icon(Icons.drag_handle, size: 20),
                   onChanged: (checked) {
                     final next = List.of(layouts);
@@ -58,11 +60,11 @@ class _ColumnSettingsDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => write(ColumnLayout.defaults),
-          child: const Text('既定に戻す'),
+          child: Text(l10n.actionResetToDefault),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('閉じる'),
+          child: Text(l10n.actionClose),
         ),
       ],
     );

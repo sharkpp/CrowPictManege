@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'localized_app.dart';
+
 MediaAsset asset(String name, {double? latitude, double? longitude}) =>
     MediaAsset(
       path: '/root/$name',
@@ -53,7 +55,7 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: localizedApp(
           theme: ThemeData(brightness: brightness),
           home: Scaffold(body: AssetMap(assets: assets)),
         ),

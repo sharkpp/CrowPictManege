@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
+import '../l10n/l10n.dart';
 import '../state/library.dart';
+import 'format.dart';
 import 'labels.dart';
 
 /// 1 つの列のフィルタを編集する（SPEC FR-B19）。
@@ -60,7 +62,9 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('${columnLabel(widget.column)} で絞り込む'),
+      title: Text(
+        context.l10n.filterByColumn(context.l10n.columnLabel(widget.column)),
+      ),
       content: SizedBox(width: 360, child: _editor()),
       actions: [
         TextButton(
@@ -68,11 +72,11 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
             ref.read(columnFiltersProvider.notifier).clear(widget.column);
             Navigator.of(context).pop();
           },
-          child: const Text('解除'),
+          child: Text(context.l10n.actionClear),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(context.l10n.actionCancel),
         ),
         FilledButton(
           onPressed: () {
@@ -81,7 +85,7 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                 .set(widget.column, _filter);
             Navigator.of(context).pop();
           },
-          child: const Text('適用'),
+          child: Text(context.l10n.actionApply),
         ),
       ],
     );
@@ -96,16 +100,16 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
             TextField(
               autofocus: true,
               controller: _text,
-              decoration: const InputDecoration(
-                labelText: '含む文字列',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: context.l10n.filterContainsText,
+                border: const OutlineInputBorder(),
               ),
               onChanged: (value) =>
                   setState(() => _filter = TextFilter(value, regex: regex)),
             ),
             SwitchListTile(
               dense: true,
-              title: const Text('正規表現として扱う'),
+              title: Text(context.l10n.filterUseRegex),
               value: regex,
               onChanged: (value) =>
                   setState(() => _filter = TextFilter(query, regex: value)),
@@ -114,7 +118,7 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  '正規表現として読めません',
+                  context.l10n.filterInvalidRegex,
                   style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
@@ -122,7 +126,9 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
         );
 
       case RangeFilter(:final min, :final max):
-        final unit = widget.column == AssetColumn.size ? 'バイト' : '秒';
+        final unit = widget.column == AssetColumn.size
+            ? context.l10n.unitBytes
+            : context.l10n.unitSeconds;
         return Row(
           children: [
             Expanded(
@@ -131,7 +137,7 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                 controller: _min,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: '以上（$unit）',
+                  labelText: context.l10n.filterMin(unit),
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) => setState(
@@ -146,7 +152,7 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                 controller: _max,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: '以下（$unit）',
+                  labelText: context.l10n.filterMax(unit),
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) => setState(
@@ -163,14 +169,14 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _DateRow(
-              label: 'この日から',
+              label: context.l10n.filterFromDate,
               value: from,
               onChanged: (value) => setState(
                 () => _filter = DateRangeFilter(from: value, to: to),
               ),
             ),
             _DateRow(
-              label: 'この日まで',
+              label: context.l10n.filterToDate,
               value: to,
               // 指定日を含めるため、その日の終わりまでを範囲にする。
               onChanged: (value) => setState(
@@ -201,7 +207,7 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                 dense: true,
                 title: Text(
                   widget.column == AssetColumn.kind
-                      ? assetKindNameLabel(choice)
+                      ? context.l10n.assetKindNameLabel(choice)
                       : choice,
                 ),
                 value: allowed.contains(choice),
@@ -220,10 +226,10 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
 
       case FlagFilter(:final present):
         return SegmentedButton<int>(
-          segments: const [
-            ButtonSegment(value: 0, label: Text('絞らない')),
-            ButtonSegment(value: 1, label: Text('あり')),
-            ButtonSegment(value: 2, label: Text('なし')),
+          segments: [
+            ButtonSegment(value: 0, label: Text(context.l10n.filterAny)),
+            ButtonSegment(value: 1, label: Text(context.l10n.valuePresent)),
+            ButtonSegment(value: 2, label: Text(context.l10n.valueAbsent)),
           ],
           selected: {present == null ? 0 : (present ? 1 : 2)},
           showSelectedIcon: false,
@@ -258,8 +264,8 @@ class _DateRow extends StatelessWidget {
         Expanded(
           child: Text(
             value == null
-                ? '指定なし'
-                : '${value!.year}/${value!.month}/${value!.day}',
+                ? context.l10n.filterNotSet
+                : context.l10n.formatDate(value!),
           ),
         ),
         IconButton(

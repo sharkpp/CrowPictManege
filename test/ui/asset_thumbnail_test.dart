@@ -11,6 +11,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'localized_app.dart';
+
 /// サムネイルの向きと収め方（SPEC FR-B2、FR-B5）。
 void main() {
   late Directory root;
@@ -23,9 +25,9 @@ void main() {
   /// Orientation を書いたファイルを作り、その要約を読む。
   Future<MediaAsset> assetWithOrientation(int? orientation) async {
     final path = '${root.path}/photo.jpg';
-    File(path).writeAsBytesSync(
-      File('test/fixtures/base.jpg').readAsBytesSync(),
-    );
+    File(
+      path,
+    ).writeAsBytesSync(File('test/fixtures/base.jpg').readAsBytesSync());
     if (orientation != null) {
       writeFile(path, [TagEdit('Orientation', value: '$orientation')]);
     }
@@ -43,45 +45,49 @@ void main() {
 
   /// 復号できない形式に見せかけて、埋め込みサムネイルを出す経路を通す。
   MediaAsset rawAsset({int? orientation}) => MediaAsset(
-        path: '${root.path}/photo.dng',
-        name: 'photo.dng',
-        kind: AssetKind.image,
-        size: 100,
-        fileModifiedAt: DateTime(2024),
-        summary: AssetSummary(fileType: 'DNG', orientation: orientation),
-      );
+    path: '${root.path}/photo.dng',
+    name: 'photo.dng',
+    kind: AssetKind.image,
+    size: 100,
+    fileModifiedAt: DateTime(2024),
+    summary: AssetSummary(fileType: 'DNG', orientation: orientation),
+  );
 
   Future<void> pumpThumbnail(
     WidgetTester tester,
     MediaAsset asset, {
     Uint8List? embedded,
   }) async {
-    final container = ProviderContainer(overrides: [
-      metadataPortProvider.overrideWithValue(const CrowexifMetadata()),
-    ]);
+    final container = ProviderContainer(
+      overrides: [
+        metadataPortProvider.overrideWithValue(const CrowexifMetadata()),
+      ],
+    );
     addTearDown(container.dispose);
     if (embedded != null) {
       container.read(thumbnailCacheProvider).put(asset.path, embedded);
     }
 
-    await tester.pumpWidget(UncontrolledProviderScope(
-      container: container,
-      child: MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 120,
-              height: 120,
-              child: AssetThumbnail(
-                asset: asset,
-                size: 120,
-                fit: BoxFit.contain,
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: localizedApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 120,
+                height: 120,
+                child: AssetThumbnail(
+                  asset: asset,
+                  size: 120,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),
         ),
       ),
-    ));
+    );
     await tester.pump();
   }
 
@@ -95,7 +101,10 @@ void main() {
     await pumpThumbnail(tester, rawAsset(orientation: 6), embedded: bytes);
 
     expect(
-      tester.widgetList<RotatedBox>(find.byType(RotatedBox)).single.quarterTurns,
+      tester
+          .widgetList<RotatedBox>(find.byType(RotatedBox))
+          .single
+          .quarterTurns,
       1,
       reason: 'Orientation 6 は 90 度回す',
     );

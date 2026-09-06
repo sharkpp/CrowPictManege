@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models.dart';
+import '../l10n/l10n.dart';
 import '../state/selection.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
@@ -84,12 +85,12 @@ class _Large extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  formatCapturedAt(asset.summary?.capturedAt),
+                  context.l10n.formatCapturedAt(asset.summary?.capturedAt),
                   style: theme.textTheme.bodySmall,
                 ),
                 IconButton(
                   icon: const Icon(Icons.fullscreen, size: 20),
-                  tooltip: '全面で見る',
+                  tooltip: context.l10n.viewFullScreen,
                   visualDensity: VisualDensity.compact,
                   onPressed: () => showAssetPreview(context),
                 ),

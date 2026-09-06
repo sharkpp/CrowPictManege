@@ -2,7 +2,8 @@
 //
 //   flutter run -d macos -t tool/capture.dart \
 //     --dart-entrypoint-args <撮る対象のフォルダ> \
-//     --dart-entrypoint-args <PNG の出力先フォルダ>
+//     --dart-entrypoint-args <PNG の出力先フォルダ> \
+//     --dart-entrypoint-args <言語 ja|en。省略すると ja>
 //
 // 手で触らずに、決まった順で画面を作っては撮る。撮り終えたら終了する。
 // 目で見ないと分からないもの（配色、詰まり具合、重なり）を確かめるために使う。
@@ -13,6 +14,7 @@ import 'dart:ui' as ui;
 
 import 'package:crow_pict_manege/app_info.dart';
 import 'package:crow_pict_manege/domain/settings.dart';
+import 'package:crow_pict_manege/l10n/l10n.dart';
 import 'package:crow_pict_manege/state/navigation.dart';
 import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
@@ -35,6 +37,7 @@ Future<void> main(List<String> args) async {
   final outputDir = Directory(args.length > 1 ? args[1] : 'capture')
     ..createSync(recursive: true);
 
+  final locale = Locale(args.length > 2 ? args[2] : 'ja');
   final container = ProviderContainer();
   final theme = ValueNotifier(ThemeMode.light);
   final size = ValueNotifier(const Size(1400, 900));
@@ -42,7 +45,7 @@ Future<void> main(List<String> args) async {
   runApp(
     UncontrolledProviderScope(
       container: container,
-      child: _CaptureHost(theme: theme, size: size),
+      child: _CaptureHost(theme: theme, size: size, locale: locale),
     ),
   );
 
@@ -190,10 +193,17 @@ Future<void> _capture(Directory outputDir, String name) async {
 
 /// 撮る対象。窓の大きさに関わらず、指定した論理サイズで描く。
 class _CaptureHost extends StatelessWidget {
-  const _CaptureHost({required this.theme, required this.size});
+  const _CaptureHost({
+    required this.theme,
+    required this.size,
+    required this.locale,
+  });
 
   final ValueNotifier<ThemeMode> theme;
   final ValueNotifier<Size> size;
+
+  /// 撮る言語。日本語と英語の両方を目で確かめるために切り替える。
+  final Locale locale;
 
   @override
   Widget build(BuildContext context) {
@@ -220,6 +230,10 @@ class _CaptureHost extends StatelessWidget {
                   navigatorKey: _navigator,
                   title: appDisplayName,
                   debugShowCheckedModeBanner: false,
+                  locale: locale,
+                  localizationsDelegates:
+                      AppLocalizations.localizationsDelegates,
+                  supportedLocales: AppLocalizations.supportedLocales,
                   themeMode: mode,
                   theme: ThemeData(
                     colorSchemeSeed: const Color(0xFF3F6E8C),

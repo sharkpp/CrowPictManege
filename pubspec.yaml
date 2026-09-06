@@ -9,6 +9,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # 日本語・英語の UI（SPEC NFR-7）。Material/Cupertino の既定文言もこれで訳される。
+  flutter_localizations:
+    sdk: flutter
 
   # メタ情報の読み書きエンジン。pure Dart なので全プラットフォームで同一挙動になる。
   crowexif:
@@ -53,3 +56,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # lib/l10n/*.arb から AppLocalizations を生成する（l10n.yaml）。
+  generate: true

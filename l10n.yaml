@@ -1,0 +1,6 @@
+# UI 文字列の外部化（SPEC NFR-7）。日本語を原本とし、英語を対訳とする。
+arb-dir: lib/l10n
+template-arb-file: app_ja.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

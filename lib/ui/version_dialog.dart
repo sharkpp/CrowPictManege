@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../app_info.dart';
+import '../l10n/l10n.dart';
 
 /// バージョン情報（SPEC FR-V8）。
 ///
@@ -13,9 +14,14 @@ Future<void> showVersionDialog(BuildContext context) => showDialog<void>(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SelectableText('バージョン $appVersion'),
+        SelectableText(context.l10n.versionLine(appVersion)),
         const SizedBox(height: 8),
-        SelectableText('メタ情報エンジン: $metadataEngineName $metadataEngineVersion'),
+        SelectableText(
+          context.l10n.metadataEngineLine(
+            metadataEngineName,
+            metadataEngineVersion,
+          ),
+        ),
         const SizedBox(height: 16),
         const SelectableText(appCopyright),
       ],
@@ -23,7 +29,7 @@ Future<void> showVersionDialog(BuildContext context) => showDialog<void>(
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context).pop(),
-        child: const Text('閉じる'),
+        child: Text(context.l10n.actionClose),
       ),
     ],
   ),

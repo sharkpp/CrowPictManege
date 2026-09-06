@@ -11,6 +11,7 @@ import '../domain/models.dart';
 import '../domain/pinned_fields.dart';
 import '../domain/summary_field.dart';
 import '../domain/tag_export.dart';
+import '../l10n/l10n.dart';
 import '../state/library.dart';
 import '../state/search.dart';
 import '../state/selection.dart';
@@ -41,22 +42,23 @@ class _MetadataPanelState extends ConsumerState<MetadataPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final selection = ref.watch(selectionProvider);
     if (selection.isEmpty) {
-      return const Center(child: Text('対象を選択してください'));
+      return Center(child: Text(l10n.selectAnAsset));
     }
     final assets = [
       for (final asset in ref.watch(displayedAssetsProvider))
         if (selection.contains(asset.path)) asset,
     ];
     if (assets.isEmpty) {
-      return const Center(child: Text('対象を選択してください'));
+      return Center(child: Text(l10n.selectAnAsset));
     }
 
     final paths = [for (final asset in assets) asset.path];
     final tags = ref.watch(mergedTagsProvider(tagTargetsKey(paths)));
     final fields = mergeFields([
-      for (final asset in assets) summaryFields(asset),
+      for (final asset in assets) l10n.summaryFields(asset),
     ]);
 
     return Column(
@@ -119,11 +121,11 @@ class _QueryRow extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 isDense: true,
-                prefixIcon: Icon(Icons.search, size: 18),
-                hintText: 'タグ名・値で絞り込み',
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search, size: 18),
+                hintText: context.l10n.tagFilterHint,
+                border: const OutlineInputBorder(),
               ),
               onChanged: onChanged,
             ),
@@ -134,7 +136,9 @@ class _QueryRow extends StatelessWidget {
               size: 18,
               color: raw ? Theme.of(context).colorScheme.primary : null,
             ),
-            tooltip: raw ? '表示値に戻す' : '生値を出す',
+            tooltip: raw
+                ? context.l10n.showPrintValues
+                : context.l10n.showRawValues,
             onPressed: () => onRawChanged(!raw),
           ),
         ],
@@ -192,7 +196,7 @@ class _Body extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
                 child: Text(
-                  '先頭 $maxTagTargets 件の共通値を表示しています',
+                  context.l10n.commonValuesLimited(maxTagTargets),
                   style: theme.textTheme.bodySmall,
                 ),
               ),
@@ -208,7 +212,7 @@ class _Body extends StatelessWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Text('読み取りに失敗しました: ${tags.error}'),
+                child: Text(context.l10n.readFailedWith('${tags.error}')),
               ),
             ),
           SliverList.builder(
@@ -248,13 +252,14 @@ class _Pinned extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final pinned = ref.watch(settingsProvider).pinned;
     final rows = pinnedRows(
       pinned,
       fields,
       tags,
-      labelOf: summaryFieldLabel,
+      labelOf: l10n.summaryFieldLabel,
       loading: loading,
     );
 
@@ -269,7 +274,7 @@ class _Pinned extends ConsumerWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  '要約',
+                  l10n.summary,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: theme.colorScheme.outline,
                   ),
@@ -283,7 +288,7 @@ class _Pinned extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
             child: Text(
-              'タグの 📌 を押すと、その項目をここに出します',
+              l10n.summaryPinHint,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
               ),
@@ -318,13 +323,16 @@ class _AddFieldMenu extends ConsumerWidget {
 
     return PopupMenuButton<SummaryField>(
       icon: const Icon(Icons.add, size: 18),
-      tooltip: '要約に項目を足す',
+      tooltip: context.l10n.summaryAddField,
       enabled: addable.isNotEmpty,
       onSelected: (field) =>
           ref.read(settingsProvider.notifier).togglePin(summaryFieldKey(field)),
       itemBuilder: (context) => [
         for (final field in addable)
-          PopupMenuItem(value: field, child: Text(summaryFieldLabel(field))),
+          PopupMenuItem(
+            value: field,
+            child: Text(context.l10n.summaryFieldLabel(field)),
+          ),
       ],
     );
   }
@@ -359,7 +367,7 @@ class _PinnedRow extends StatelessWidget {
           ),
           Expanded(
             child: SelectableText(
-              mixed ? mixedValueText : row.value,
+              mixed ? context.l10n.mixedValue : row.value,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontStyle: mixed ? FontStyle.italic : null,
                 color: mixed ? theme.colorScheme.outline : null,
@@ -368,7 +376,7 @@ class _PinnedRow extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.push_pin, size: 16),
-            tooltip: '要約から外す',
+            tooltip: context.l10n.summaryRemoveField,
             visualDensity: VisualDensity.compact,
             onPressed: onUnpin,
           ),
@@ -394,11 +402,12 @@ class _Header extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final title = assets.length == 1
         ? assets.first.name
-        : '${assets.length} 件を選択'
-              '（合計 ${formatBytes(assets.fold(0, (sum, a) => sum + a.size))}）';
+        : '${l10n.selectedCount(assets.length)}'
+              '${l10n.totalSize(formatBytes(assets.fold(0, (sum, a) => sum + a.size)))}';
     final errors = [
       for (final asset in assets)
         if (asset.error != null) asset.error!,
@@ -432,8 +441,8 @@ class _Header extends ConsumerWidget {
           if (errors.isNotEmpty)
             Text(
               errors.length == 1
-                  ? assetErrorText(errors.first)
-                  : '${errors.length} 件で読み取りに失敗しました',
+                  ? l10n.assetErrorText(errors.first)
+                  : l10n.readFailedCount(errors.length),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),
@@ -460,10 +469,10 @@ class _SimilarButton extends ConsumerWidget {
     return IconButton(
       icon: const Icon(Icons.image_search, size: 20),
       tooltip: seeds.isEmpty
-          ? '画像を選ぶと似た画像を探せます'
+          ? context.l10n.similarNeedsImage
           : seeds.length == 1
-          ? 'この画像に似た画像を探す'
-          : '選んだ ${seeds.length} 枚に似た画像を探す',
+          ? context.l10n.findSimilarOne
+          : context.l10n.findSimilarMany(seeds.length),
       onPressed: seeds.isEmpty
           ? null
           : () => ref.read(searchProvider.notifier).startSimilar(seeds),
@@ -502,56 +511,63 @@ class _ExportButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<_ExportFormat>(
       icon: const Icon(Icons.save_alt, size: 20),
-      tooltip: 'ファイルへ書き出す',
+      tooltip: context.l10n.exportToFile,
       enabled: tags.isNotEmpty,
       onSelected: (format) => _export(context, format),
       itemBuilder: (context) => [
         for (final format in _ExportFormat.values)
-          PopupMenuItem(value: format, child: Text('${format.label} で書き出す')),
+          PopupMenuItem(
+            value: format,
+            child: Text(context.l10n.exportAs(format.label)),
+          ),
       ],
     );
   }
 
   Future<void> _export(BuildContext context, _ExportFormat format) async {
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.maybeOf(context);
     final location = await getSaveLocation(
-      suggestedName: '${_baseName()}.${format.extension}',
-      confirmButtonText: '書き出す',
+      suggestedName: '${_baseName(l10n)}.${format.extension}',
+      confirmButtonText: l10n.actionExport,
     );
     if (location == null) return;
 
     try {
-      await File(location.path).writeAsString(_text(format));
+      await File(location.path).writeAsString(_text(l10n, format));
       messenger?.showSnackBar(
         SnackBar(
-          content: Text('${format.label} で書き出しました'),
+          content: Text(l10n.exportedAs(format.label)),
           duration: const Duration(seconds: 2),
         ),
       );
     } on Object catch (error) {
-      messenger?.showSnackBar(SnackBar(content: Text('書き出しに失敗しました: $error')));
+      messenger?.showSnackBar(
+        SnackBar(content: Text(l10n.exportFailed('$error'))),
+      );
     }
   }
 
   /// 書き出し先の既定の名前。1 件ならその名前、複数なら件数で分かるようにする。
-  String _baseName() =>
-      assets.length == 1 ? assets.first.name : '${assets.length}件のメタ情報';
+  String _baseName(AppLocalizations l10n) => assets.length == 1
+      ? assets.first.name
+      : l10n.exportFileBaseName(assets.length);
 
-  /// 値は画面と同じ言葉で出す（SPEC FR-V3、FR-V4）。
-  String _valueOf(TagRecord tag) => tagValueText(tag, raw: raw);
+  String _text(AppLocalizations l10n, _ExportFormat format) {
+    // 値も項目名も、画面に出ている言葉で出す（SPEC FR-V3、FR-V4）。
+    String valueOf(TagRecord tag) => l10n.tagValueText(tag, raw: raw);
+    final labelled = {
+      for (final entry in fields.entries)
+        l10n.summaryFieldLabel(entry.key): entry.value,
+    };
 
-  /// 書き出しは画面に出ている言葉で並べる。
-  Map<String, String> get _labelled => {
-    for (final entry in fields.entries)
-      summaryFieldLabel(entry.key): entry.value,
-  };
-
-  String _text(_ExportFormat format) => switch (format) {
-    _ExportFormat.json => metadataAsJson(_labelled, tags, valueOf: _valueOf),
-    // CSV は 1 つの表にしかできないので、要約とタグを続けて並べる。
-    _ExportFormat.csv =>
-      '${fieldsAsCsv(_labelled)}\r\n\r\n${tagsAsCsv(tags, valueOf: _valueOf)}',
-  };
+    return switch (format) {
+      _ExportFormat.json => metadataAsJson(labelled, tags, valueOf: valueOf),
+      // CSV は 1 つの表にしかできないので、要約とタグを続けて並べる。
+      _ExportFormat.csv =>
+        '${fieldsAsCsv(labelled)}\r\n\r\n${tagsAsCsv(tags, valueOf: valueOf)}',
+    };
+  }
 }
 
 class _CopyMenu extends ConsumerWidget {
@@ -571,60 +587,62 @@ class _CopyMenu extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final tagKeys = ref.watch(tagSelectionProvider);
     final pinned = ref.watch(settingsProvider).pinned;
     final ready = tags.isNotEmpty;
 
     return PopupMenuButton<(_CopyTarget, bool)>(
       icon: const Icon(Icons.copy_all, size: 20),
-      tooltip: 'コピー',
+      tooltip: l10n.actionCopy,
       onSelected: (choice) {
         final (target, asJson) = choice;
         Clipboard.setData(
-          ClipboardData(text: _text(target, asJson, tagKeys, pinned)),
+          ClipboardData(text: _text(l10n, target, asJson, tagKeys, pinned)),
         );
         _notify(context, target, tagKeys.length);
       },
       itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: (_CopyTarget.summary, false),
-          child: Text('要約をコピー'),
+        PopupMenuItem(
+          value: const (_CopyTarget.summary, false),
+          child: Text(l10n.copySummary),
         ),
         PopupMenuItem(
           value: const (_CopyTarget.selectedTags, false),
           enabled: ready && tagKeys.isNotEmpty,
-          child: Text('選択したタグをコピー（${tagKeys.length} 件）'),
+          child: Text(l10n.copySelectedTags(tagKeys.length)),
         ),
         PopupMenuItem(
           value: const (_CopyTarget.allTags, false),
           enabled: ready,
-          child: const Text('表示中の全タグをコピー'),
+          child: Text(l10n.copyAllTags),
         ),
         PopupMenuItem(
           value: const (_CopyTarget.everything, true),
           enabled: ready,
-          child: const Text('要約と全タグを JSON でコピー'),
+          child: Text(l10n.copyAllAsJson),
         ),
       ],
     );
   }
 
-  /// 値は画面と同じ言葉で出す（SPEC FR-V3、FR-V4）。
-  String _valueOf(TagRecord tag) => tagValueText(tag, raw: raw);
-
   String _text(
+    AppLocalizations l10n,
     _CopyTarget target,
     bool asJson,
     Set<String> tagKeys,
     List<String> pinned,
   ) {
+    /// 値は画面と同じ言葉で出す（SPEC FR-V3、FR-V4）。
+    String valueOf(TagRecord tag) => l10n.tagValueText(tag, raw: raw);
+
     // 要約は画面に出ている通り、ピン留めした並びでコピーする。
     final summary = {
       for (final row in pinnedRows(
         pinned,
         fields,
         tags,
-        labelOf: summaryFieldLabel,
+        labelOf: l10n.summaryFieldLabel,
       ))
         row.label: row.value,
     };
@@ -638,29 +656,31 @@ class _CopyMenu extends ConsumerWidget {
         return asJson ? fieldsAsJson(summary) : fieldsAsTable(summary);
       case _CopyTarget.selectedTags:
         return asJson
-            ? tagsAsJson(selectedTags, valueOf: _valueOf)
-            : tagsAsTable(selectedTags, valueOf: _valueOf);
+            ? tagsAsJson(selectedTags, valueOf: valueOf)
+            : tagsAsTable(selectedTags, valueOf: valueOf);
       case _CopyTarget.allTags:
         return asJson
-            ? tagsAsJson(tags, valueOf: _valueOf)
-            : tagsAsTable(tags, valueOf: _valueOf);
+            ? tagsAsJson(tags, valueOf: valueOf)
+            : tagsAsTable(tags, valueOf: valueOf);
       case _CopyTarget.everything:
         return asJson
-            ? metadataAsJson(summary, tags, valueOf: _valueOf)
-            : '${fieldsAsTable(summary)}\n\n${tagsAsTable(tags, valueOf: _valueOf)}';
+            ? metadataAsJson(summary, tags, valueOf: valueOf)
+            : '${fieldsAsTable(summary)}\n\n'
+                  '${tagsAsTable(tags, valueOf: valueOf)}';
     }
   }
 
   void _notify(BuildContext context, _CopyTarget target, int tagCount) {
+    final l10n = context.l10n;
     final label = switch (target) {
-      _CopyTarget.summary => '要約',
-      _CopyTarget.selectedTags => '選択した $tagCount 件のタグ',
-      _CopyTarget.allTags => '全タグ',
-      _CopyTarget.everything => '要約と全タグ',
+      _CopyTarget.summary => l10n.summary,
+      _CopyTarget.selectedTags => l10n.copyScopeSelectedTags(tagCount),
+      _CopyTarget.allTags => l10n.copyScopeAllTags,
+      _CopyTarget.everything => l10n.copyScopeSummaryAndTags,
     };
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(
-        content: Text('$label をコピーしました'),
+        content: Text(l10n.copiedLabel(label)),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -684,6 +704,7 @@ class _TagRowState extends ConsumerState<_TagRow> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tag = widget.tag;
     final theme = Theme.of(context);
     final key = '${tag.group}:${tag.name}';
@@ -693,8 +714,8 @@ class _TagRowState extends ConsumerState<_TagRow> {
     final mixed = raw == mixedValueMark;
     // バイナリは中身を出せないので、長さで示す（SPEC FR-V3）。
     final value = mixed
-        ? mixedValueText
-        : (tag.isBinary ? binaryValueText(tag.byteLength) : raw);
+        ? l10n.mixedValue
+        : (tag.isBinary ? l10n.binaryValueText(tag.byteLength) : raw);
     final dump = _dump(tag);
 
     return Container(
@@ -737,7 +758,7 @@ class _TagRowState extends ConsumerState<_TagRow> {
                             ? theme.colorScheme.primary
                             : theme.colorScheme.outlineVariant,
                       ),
-                      tooltip: _dumping ? '16 進ダンプを閉じる' : '16 進ダンプ',
+                      tooltip: _dumping ? l10n.hexDumpClose : l10n.hexDump,
                       visualDensity: VisualDensity.compact,
                       onPressed: () => setState(() => _dumping = !_dumping),
                     ),
@@ -748,7 +769,9 @@ class _TagRowState extends ConsumerState<_TagRow> {
                       size: 16,
                       color: pinned ? theme.colorScheme.primary : null,
                     ),
-                    tooltip: pinned ? '要約から外す' : '要約に出す',
+                    tooltip: pinned
+                        ? l10n.summaryRemoveField
+                        : l10n.summaryPinField,
                     visualDensity: VisualDensity.compact,
                     onPressed: () =>
                         ref.read(settingsProvider.notifier).togglePin(key),
@@ -798,7 +821,7 @@ class _HexDump extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 4),
               child: Text(
-                '全 $total バイトのうち先頭 ${bytes.length} バイト',
+                context.l10n.hexDumpHead(total, bytes.length),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),

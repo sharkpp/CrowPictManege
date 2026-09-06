@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
 import '../domain/places.dart';
+import '../l10n/l10n.dart';
 import '../state/navigation.dart';
 import '../state/places.dart';
 import 'format.dart';
@@ -20,6 +21,7 @@ class StartView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final bookmarks = ref.watch(bookmarksProvider).value ?? const [];
     final visits = ref.watch(visitsProvider).value ?? const [];
@@ -37,15 +39,12 @@ class StartView extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Center(
-              child: Text(
-                'フォルダを開くと、画像と動画を読み込みます',
-                style: theme.textTheme.bodyMedium,
-              ),
+              child: Text(l10n.startHint, style: theme.textTheme.bodyMedium),
             ),
             const SizedBox(height: 4),
             Center(
               child: Text(
-                'ここへフォルダをドロップしても開けます',
+                l10n.startDropHint,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
@@ -67,14 +66,14 @@ class StartView extends ConsumerWidget {
               child: FilledButton.icon(
                 onPressed: onOpen,
                 icon: const Icon(Icons.folder_open),
-                label: const Text('フォルダを開く'),
+                label: Text(l10n.openFolder),
               ),
             ),
             const SizedBox(height: 32),
             _Section(
-              title: 'ブックマーク',
+              title: l10n.bookmarks,
               icon: Icons.star,
-              empty: 'フォルダを開いて ☆ を押すと、ここに残ります',
+              empty: l10n.bookmarksEmpty,
               children: [
                 for (final bookmark in bookmarks)
                   _PlaceRow(
@@ -84,7 +83,7 @@ class StartView extends ConsumerWidget {
                     onOpen: () => _open(ref, bookmark.path),
                     trailing: IconButton(
                       icon: const Icon(Icons.star, size: 18),
-                      tooltip: 'ブックマークを外す',
+                      tooltip: l10n.bookmarkRemove,
                       onPressed: () => ref
                           .read(bookmarksProvider.notifier)
                           .toggle(bookmark.path),
@@ -94,16 +93,17 @@ class StartView extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             _Section(
-              title: '最近開いたフォルダ',
+              title: l10n.recentFolders,
               icon: Icons.history,
-              empty: 'まだありません',
+              empty: l10n.labelNothingYet,
               children: [
                 for (final visit in visits)
                   _PlaceRow(
                     icon: Icons.folder_outlined,
                     title: _nameOf(visit),
                     subtitle:
-                        '${formatRelativeTime(visit.visitedAt)} · ${visit.path}',
+                        '${l10n.formatRelativeTime(visit.visitedAt)}'
+                        ' · ${visit.path}',
                     onOpen: () => _open(ref, visit.path),
                   ),
               ],

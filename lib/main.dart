@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:media_kit/media_kit.dart';
 
 import 'app_info.dart';
+import 'l10n/l10n.dart';
 import 'ui/browse_page.dart';
 
 void main() {
@@ -19,6 +20,9 @@ class CrowPictManegeApp extends StatelessWidget {
     return MaterialApp(
       title: appDisplayName,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      // 日本語を既定とし、英語は端末の言語に従って選ばれる（SPEC §2）。
+      supportedLocales: const [Locale('ja'), Locale('en')],
       theme: ThemeData(
         colorSchemeSeed: const Color(0xFF3F6E8C),
         useMaterial3: true,

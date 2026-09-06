@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/folder_view.dart';
+import '../l10n/l10n.dart';
 import '../state/navigation.dart';
 import 'asset_thumbnail.dart';
 
@@ -57,7 +58,7 @@ class FolderTile extends ConsumerWidget {
             ],
           ),
           Text(
-            '${folder.count} 件',
+            context.l10n.itemCount(folder.count),
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.outline,
             ),
@@ -117,7 +118,7 @@ class FolderRow extends ConsumerWidget {
               child: Text(folder.name, style: theme.textTheme.bodySmall),
             ),
             Text(
-              '${folder.count} 件',
+              context.l10n.itemCount(folder.count),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
               ),

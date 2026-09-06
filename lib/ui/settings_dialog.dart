@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/settings.dart';
+import '../l10n/l10n.dart';
 import '../state/places.dart';
 import '../state/settings.dart';
 import 'labels.dart';
@@ -17,12 +18,13 @@ class _SettingsDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
     final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('設定'),
+      title: Text(l10n.settings),
       // 窓が低いときは中身をスクロールさせる。
       content: SizedBox(
         width: 420,
@@ -31,14 +33,14 @@ class _SettingsDialog extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('現在のフォルダ以下', style: theme.textTheme.labelLarge),
+              Text(l10n.settingsFolderScope, style: theme.textTheme.labelLarge),
               const SizedBox(height: 6),
               SegmentedButton<FolderMode>(
                 segments: [
                   for (final mode in FolderMode.values)
                     ButtonSegment(
                       value: mode,
-                      label: Text(folderModeLabel(mode)),
+                      label: Text(l10n.folderModeLabel(mode)),
                     ),
                 ],
                 selected: {settings.folderMode},
@@ -49,14 +51,16 @@ class _SettingsDialog extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '展開して表示は下位フォルダの対象もまとめて並べる。'
-                'フォルダとして表示は直下だけを並べ、フォルダを開いて降りる。',
+                l10n.settingsFolderModeHint,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
                 ),
               ),
               const SizedBox(height: 16),
-              Text('フォルダに出すサムネイルの枚数', style: theme.textTheme.labelLarge),
+              Text(
+                l10n.settingsFolderThumbnails,
+                style: theme.textTheme.labelLarge,
+              ),
               Row(
                 children: [
                   Expanded(
@@ -65,7 +69,7 @@ class _SettingsDialog extends ConsumerWidget {
                       min: 0,
                       max: AppSettings.maxFolderThumbnails.toDouble(),
                       divisions: AppSettings.maxFolderThumbnails,
-                      label: '${settings.folderThumbnails} 枚',
+                      label: l10n.thumbnailCount(settings.folderThumbnails),
                       onChanged: (value) => notifier.update(
                         (current) =>
                             current.copyWith(folderThumbnails: value.round()),
@@ -76,8 +80,8 @@ class _SettingsDialog extends ConsumerWidget {
                     width: 48,
                     child: Text(
                       settings.folderThumbnails == 0
-                          ? 'なし'
-                          : '${settings.folderThumbnails} 枚',
+                          ? l10n.valueNone
+                          : l10n.thumbnailCount(settings.folderThumbnails),
                     ),
                   ),
                 ],
@@ -91,7 +95,7 @@ class _SettingsDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('閉じる'),
+          child: Text(l10n.actionClose),
         ),
       ],
     );
@@ -104,6 +108,7 @@ class _CacheSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     final count = ref.watch(cachedAssetCountProvider);
 
@@ -113,12 +118,12 @@ class _CacheSection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('キャッシュ', style: theme.textTheme.labelLarge),
+              Text(l10n.cache, style: theme.textTheme.labelLarge),
               Text(
                 count.when(
-                  data: (value) => '$value 件のメタ情報とサムネイルを保存しています',
-                  loading: () => '数えています…',
-                  error: (error, _) => '読めません: $error',
+                  data: l10n.cacheStored,
+                  loading: () => l10n.cacheCounting,
+                  error: (error, _) => l10n.cacheUnreadable('$error'),
                 ),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.outline,
@@ -132,7 +137,7 @@ class _CacheSection extends ConsumerWidget {
             await ref.read(catalogProvider).clearCachedAssets();
             ref.invalidate(cachedAssetCountProvider);
           },
-          child: const Text('消去'),
+          child: Text(l10n.cacheClear),
         ),
       ],
     );

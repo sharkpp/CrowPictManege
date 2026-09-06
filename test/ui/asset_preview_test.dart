@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'localized_app.dart';
+
 MediaAsset _asset(String name) => MediaAsset(
   path: '/root/$name',
   name: name,
@@ -31,7 +33,7 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(home: AssetPreview()),
+        child: localizedApp(home: const AssetPreview()),
       ),
     );
     await tester.pump();

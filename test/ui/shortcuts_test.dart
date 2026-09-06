@@ -10,10 +10,11 @@ import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
 import 'package:crow_pict_manege/state/settings.dart';
 import 'package:crow_pict_manege/ui/browse_page.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'localized_app.dart';
 
 MediaAsset _asset(String name) => MediaAsset(
   path: '/root/$name',
@@ -48,9 +49,7 @@ Future<void> settle(WidgetTester tester) =>
 
 /// キーボードだけで主要操作を行う（SPEC NFR-6）。
 void main() {
-  final assets = [
-    for (var i = 0; i < 6; i++) _asset('${i + 1}.jpg'),
-  ];
+  final assets = [for (var i = 0; i < 6; i++) _asset('${i + 1}.jpg')];
 
   Future<ProviderContainer> pumpBrowse(
     WidgetTester tester, {
@@ -83,7 +82,7 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(home: BrowsePage()),
+        child: localizedApp(home: const BrowsePage()),
       ),
     );
     // 設定の保存は落ち着いてから書き込む。その分を進めてから始める。
@@ -172,10 +171,6 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.end);
     await settle(tester);
 
-    expect(
-      primaryOf(container),
-      assets.first.path,
-      reason: '入力中は末尾へ飛ばない',
-    );
+    expect(primaryOf(container), assets.first.path, reason: '入力中は末尾へ飛ばない');
   });
 }

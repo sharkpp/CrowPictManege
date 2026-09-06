@@ -1,10 +1,15 @@
 import 'package:intl/intl.dart';
 
 import '../domain/models.dart';
+import '../l10n/l10n.dart';
 import 'labels.dart';
 
-final _dateTime = DateFormat('yyyy/MM/dd HH:mm:ss');
-final _dateTimeShort = DateFormat('yyyy/MM/dd HH:mm');
+/// 書式は言葉と同じく `lib/l10n/*.arb` で決める（SPEC NFR-7）。
+/// 一覧では 1 行ごとに呼ばれるので、組み立てた `DateFormat` は使い回す。
+final _formats = <String, DateFormat>{};
+
+DateFormat _format(String pattern) =>
+    _formats.putIfAbsent(pattern, () => DateFormat(pattern));
 
 String formatBytes(int bytes) {
   if (bytes < 1024) return '$bytes B';
@@ -34,34 +39,40 @@ String formatOffset(Duration offset) {
   return '$sign$hours:$minutes';
 }
 
-String formatCapturedAt(CapturedAt? captured, {bool short = false}) {
-  if (captured == null) return '—';
-  final format = short ? _dateTimeShort : _dateTime;
-  final offset = captured.offset;
-  final text = format.format(captured.wallClock);
-  return offset == null ? text : '$text ${formatOffset(offset)}';
-}
-
-/// 撮影時刻をどう決めたかの説明（SPEC §4.2）。
-String describeTimeBasis(CapturedAt captured) {
-  final offset = captured.offset == null
-      ? 'オフセット不明'
-      : 'オフセット: ${offsetSourceLabel(captured.offsetSource)}';
-  return '${timeSourceLabel(captured.source)} / $offset';
-}
-
 String formatCoordinates(GeoPoint point) =>
     '${point.latitude.toStringAsFixed(6)}, ${point.longitude.toStringAsFixed(6)}';
 
-/// 履歴の「いつ訪れたか」を短く表す。
-String formatRelativeTime(DateTime at) {
-  final elapsed = DateTime.now().difference(at);
-  if (elapsed.inMinutes < 1) return 'たった今';
-  if (elapsed.inHours < 1) return '${elapsed.inMinutes} 分前';
-  if (elapsed.inDays < 1) return '${elapsed.inHours} 時間前';
-  if (elapsed.inDays < 30) return '${elapsed.inDays} 日前';
-  return _dateTimeShort.format(at);
-}
+extension AppFormats on AppLocalizations {
+  String formatCapturedAt(CapturedAt? captured, {bool short = false}) {
+    if (captured == null) return '—';
+    final pattern = short ? dateTimeShortPattern : dateTimePattern;
+    final offset = captured.offset;
+    final text = _format(pattern).format(captured.wallClock);
+    return offset == null ? text : '$text ${formatOffset(offset)}';
+  }
 
-/// ファイル更新時刻などの素の日時。
-String formatDateTime(DateTime value) => _dateTimeShort.format(value);
+  /// 撮影時刻をどう決めたかの説明（SPEC §4.2）。
+  String describeTimeBasis(CapturedAt captured) {
+    final offset = captured.offset == null
+        ? offsetUnknown
+        : offsetWithSource(offsetSourceLabel(captured.offsetSource));
+    return '${timeSourceLabel(captured.source)} / $offset';
+  }
+
+  /// 履歴の「いつ訪れたか」を短く表す。
+  String formatRelativeTime(DateTime at) {
+    final elapsed = DateTime.now().difference(at);
+    if (elapsed.inMinutes < 1) return relativeJustNow;
+    if (elapsed.inHours < 1) return relativeMinutes(elapsed.inMinutes);
+    if (elapsed.inDays < 1) return relativeHours(elapsed.inHours);
+    if (elapsed.inDays < 30) return relativeDays(elapsed.inDays);
+    return formatDateTime(at);
+  }
+
+  /// ファイル更新時刻などの素の日時。
+  String formatDateTime(DateTime value) =>
+      _format(dateTimeShortPattern).format(value);
+
+  /// 日付だけを出す（絞り込みの範囲など）。
+  String formatDate(DateTime value) => _format(datePattern).format(value);
+}

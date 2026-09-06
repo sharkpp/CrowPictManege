@@ -14,6 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'localized_app.dart';
+
 final _asset = MediaAsset(
   path: '/root/photo.jpg',
   name: 'photo.jpg',
@@ -102,7 +104,7 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: localizedApp(
           home: Scaffold(
             body: Center(
               child: SizedBox(

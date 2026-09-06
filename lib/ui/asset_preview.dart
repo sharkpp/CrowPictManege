@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/models.dart';
+import '../l10n/l10n.dart';
 import '../state/search.dart';
 import '../state/selection.dart';
 import 'asset_thumbnail.dart';
@@ -123,13 +124,13 @@ class _AssetPreviewState extends ConsumerState<AssetPreview> {
                 _Arrow(
                   alignment: Alignment.centerLeft,
                   icon: Icons.chevron_left,
-                  tooltip: '前へ',
+                  tooltip: context.l10n.previewPrevious,
                   onPressed: () => _step(assets, -1),
                 ),
                 _Arrow(
                   alignment: Alignment.centerRight,
                   icon: Icons.chevron_right,
-                  tooltip: '次へ',
+                  tooltip: context.l10n.previewNext,
                   onPressed: () => _step(assets, 1),
                 ),
               ],
@@ -235,12 +236,12 @@ class _Bar extends StatelessWidget {
           if (video != null) ...[
             _Action(
               icon: Icons.skip_previous,
-              tooltip: '1 コマ戻す',
+              tooltip: context.l10n.previewFrameBack,
               onPressed: () => video!.stepFrame(false),
             ),
             _Action(
               icon: Icons.skip_next,
-              tooltip: '1 コマ進める',
+              tooltip: context.l10n.previewFrameForward,
               onPressed: () => video!.stepFrame(true),
             ),
           ],
@@ -248,21 +249,25 @@ class _Bar extends StatelessWidget {
           if (asset.kind == AssetKind.image) ...[
             _Action(
               icon: Icons.rotate_left,
-              tooltip: '左へ回す (Shift+R)',
+              tooltip: context.l10n.previewRotateLeft,
               onPressed: onRotateLeft,
             ),
             _Action(
               icon: Icons.rotate_right,
-              tooltip: '右へ回す (R)',
+              tooltip: context.l10n.previewRotateRight,
               onPressed: onRotateRight,
             ),
             _Action(
               icon: Icons.zoom_out_map,
-              tooltip: '表示を戻す (0)',
+              tooltip: context.l10n.previewResetView,
               onPressed: onReset,
             ),
           ],
-          _Action(icon: Icons.close, tooltip: '閉じる (Esc)', onPressed: onClose),
+          _Action(
+            icon: Icons.close,
+            tooltip: context.l10n.previewClose,
+            onPressed: onClose,
+          ),
         ],
       ),
     );
@@ -331,7 +336,7 @@ class _Caption extends StatelessWidget {
   Widget build(BuildContext context) {
     final summary = asset.summary;
     final parts = [
-      formatCapturedAt(summary?.capturedAt),
+      context.l10n.formatCapturedAt(summary?.capturedAt),
       if (summary != null && !summary.camera.isEmpty) summary.camera.label,
       if (summary?.width != null && summary?.height != null)
         '${summary!.width} × ${summary.height}',

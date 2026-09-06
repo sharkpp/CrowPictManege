@@ -1,0 +1,691 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Japanese (`ja`).
+class AppLocalizationsJa extends AppLocalizations {
+  AppLocalizationsJa([String locale = 'ja']) : super(locale);
+
+  @override
+  String get actionClose => '閉じる';
+
+  @override
+  String get actionCancel => '取消';
+
+  @override
+  String get actionApply => '適用';
+
+  @override
+  String get actionClear => '解除';
+
+  @override
+  String get actionOpen => '開く';
+
+  @override
+  String get actionCopy => 'コピー';
+
+  @override
+  String get actionExport => '書き出す';
+
+  @override
+  String get actionStop => 'やめる';
+
+  @override
+  String get actionAbort => '中止';
+
+  @override
+  String get actionResetToDefault => '既定に戻す';
+
+  @override
+  String get valuePresent => 'あり';
+
+  @override
+  String get valueAbsent => 'なし';
+
+  @override
+  String get valueNone => 'なし';
+
+  @override
+  String get labelNotFound => '見つかりませんでした';
+
+  @override
+  String get labelNothingYet => 'まだありません';
+
+  @override
+  String itemCount(int count) {
+    return '$count 件';
+  }
+
+  @override
+  String rangeText(String from, String to) {
+    return '$from 〜 $to';
+  }
+
+  @override
+  String get choiceSeparator => '・';
+
+  @override
+  String get unitBytes => 'バイト';
+
+  @override
+  String get unitSeconds => '秒';
+
+  @override
+  String get dateTimePattern => 'yyyy/MM/dd HH:mm:ss';
+
+  @override
+  String get dateTimeShortPattern => 'yyyy/MM/dd HH:mm';
+
+  @override
+  String get datePattern => 'yyyy/MM/dd';
+
+  @override
+  String get viewModeGrid => 'サムネイル';
+
+  @override
+  String get viewModeList => 'リスト';
+
+  @override
+  String get viewModeGallery => 'ギャラリー';
+
+  @override
+  String get viewModeMap => 'マップ';
+
+  @override
+  String get sortModeCapturedAt => '撮影時刻';
+
+  @override
+  String get sortModeName => 'ファイル名';
+
+  @override
+  String get sortModeSize => 'サイズ';
+
+  @override
+  String get folderModeFlat => '展開して表示';
+
+  @override
+  String get folderModeFolders => 'フォルダとして表示';
+
+  @override
+  String get columnCapturedAt => '撮影時刻';
+
+  @override
+  String get columnName => 'ファイル名';
+
+  @override
+  String get columnKind => '種別';
+
+  @override
+  String get columnDimensions => '解像度';
+
+  @override
+  String get columnDuration => '長さ';
+
+  @override
+  String get columnLocation => '位置';
+
+  @override
+  String get columnCamera => '機材';
+
+  @override
+  String get columnLens => 'レンズ';
+
+  @override
+  String get columnFileType => '形式';
+
+  @override
+  String get columnSize => 'サイズ';
+
+  @override
+  String get columnFileModifiedAt => '更新時刻';
+
+  @override
+  String get columnFolder => 'フォルダ';
+
+  @override
+  String get assetKindImage => '画像';
+
+  @override
+  String get assetKindVideo => '動画';
+
+  @override
+  String get offsetSourceGps => 'GPS 時刻との差';
+
+  @override
+  String get offsetSourceQuickTimeUtc => 'QuickTime 仕様 (UTC)';
+
+  @override
+  String get offsetSourceUnknown => '不明';
+
+  @override
+  String get offsetUnknown => 'オフセット不明';
+
+  @override
+  String offsetWithSource(String source) {
+    return 'オフセット: $source';
+  }
+
+  @override
+  String get mixedValue => '複数の値';
+
+  @override
+  String get assetFailureUnrecognizedFormat => '形式を認識できませんでした';
+
+  @override
+  String get assetFailureUnreadable => '読み取りに失敗しました';
+
+  @override
+  String get folderFailureMissing => 'フォルダが見つかりません';
+
+  @override
+  String get folderFailureUnreadable => 'フォルダを読めませんでした';
+
+  @override
+  String failureWithDetail(String reason, String detail) {
+    return '$reason: $detail';
+  }
+
+  @override
+  String get binaryValue => '(バイナリ)';
+
+  @override
+  String binaryValueWithBytes(int count) {
+    return '(バイナリ $count バイト)';
+  }
+
+  @override
+  String get relativeJustNow => 'たった今';
+
+  @override
+  String relativeMinutes(int count) {
+    return '$count 分前';
+  }
+
+  @override
+  String relativeHours(int count) {
+    return '$count 時間前';
+  }
+
+  @override
+  String relativeDays(int count) {
+    return '$count 日前';
+  }
+
+  @override
+  String get navBack => '戻る';
+
+  @override
+  String get navForward => '進む';
+
+  @override
+  String get navParentFolder => '親フォルダへ';
+
+  @override
+  String get history => '履歴';
+
+  @override
+  String get bookmarks => 'ブックマーク';
+
+  @override
+  String get bookmarkAdd => 'ブックマークに入れる';
+
+  @override
+  String get bookmarkRemove => 'ブックマークを外す';
+
+  @override
+  String get startHint => 'フォルダを開くと、画像と動画を読み込みます';
+
+  @override
+  String get startDropHint => 'ここへフォルダをドロップしても開けます';
+
+  @override
+  String get openFolder => 'フォルダを開く';
+
+  @override
+  String get bookmarksEmpty => 'フォルダを開いて ☆ を押すと、ここに残ります';
+
+  @override
+  String get recentFolders => '最近開いたフォルダ';
+
+  @override
+  String get menuView => '表示';
+
+  @override
+  String get menuMore => 'その他';
+
+  @override
+  String get findDuplicates => '重複候補を探す';
+
+  @override
+  String get settings => '設定';
+
+  @override
+  String get about => 'バージョン情報';
+
+  @override
+  String get navBrowse => '一覧';
+
+  @override
+  String get metadata => 'メタ情報';
+
+  @override
+  String get searching => '検索しています…';
+
+  @override
+  String get emptyFolder => 'このフォルダに画像・動画はありません';
+
+  @override
+  String get dropToOpen => 'ドロップしたフォルダを開きます';
+
+  @override
+  String statusAnalyzed(int count) {
+    return ' / 読み取り $count 件';
+  }
+
+  @override
+  String statusSelected(int count) {
+    return ' / 選択 $count 件';
+  }
+
+  @override
+  String statusErrors(int count) {
+    return 'エラー $count 件';
+  }
+
+  @override
+  String get clearSelection => '選択を解除';
+
+  @override
+  String get viewFullScreen => '全面で見る';
+
+  @override
+  String get columnSettings => '列の設定';
+
+  @override
+  String get search => '検索';
+
+  @override
+  String get searchClose => '検索をやめる';
+
+  @override
+  String get searchHintFileName => 'ファイル名で検索';
+
+  @override
+  String get searchHintMetadata => 'タグ名・値、または Group:Name=値';
+
+  @override
+  String get searchTargetFileName => 'ファイル名';
+
+  @override
+  String get searchTargetMetadata => 'タグ名・値';
+
+  @override
+  String get searchTargetAndScope => '検索の対象と範囲';
+
+  @override
+  String get searchScopeCurrentFolder => '現在のフォルダ';
+
+  @override
+  String searchStopScanned(int count) {
+    return '中止（走査 $count 件）';
+  }
+
+  @override
+  String searchFound(int count) {
+    return '$count 件見つかりました';
+  }
+
+  @override
+  String scanningCount(int count) {
+    return '調べています… $count 件';
+  }
+
+  @override
+  String similarToSeeds(int count) {
+    return '$count 枚に似た画像';
+  }
+
+  @override
+  String get distance => '距離';
+
+  @override
+  String distanceAtMost(int value) {
+    return '$value 以下';
+  }
+
+  @override
+  String get duplicateCandidates => '重複候補';
+
+  @override
+  String duplicateGroupsCount(int groups, int items) {
+    return '$groups 組 / $items 件';
+  }
+
+  @override
+  String duplicateReasonGroups(String reason, int count) {
+    return '$reason $count 組';
+  }
+
+  @override
+  String get duplicateReasonContent => '内容が同じ';
+
+  @override
+  String get duplicateReasonCapture => '撮影時刻と機材が同じ';
+
+  @override
+  String get clearAllFilters => 'すべて解除';
+
+  @override
+  String filterByColumn(String column) {
+    return '$column で絞り込む';
+  }
+
+  @override
+  String get filterContainsText => '含む文字列';
+
+  @override
+  String filterContains(String query) {
+    return '「$query」を含む';
+  }
+
+  @override
+  String get filterUseRegex => '正規表現として扱う';
+
+  @override
+  String get filterInvalidRegex => '正規表現として読めません';
+
+  @override
+  String filterMin(String unit) {
+    return '以上（$unit）';
+  }
+
+  @override
+  String filterMax(String unit) {
+    return '以下（$unit）';
+  }
+
+  @override
+  String get filterFromDate => 'この日から';
+
+  @override
+  String get filterToDate => 'この日まで';
+
+  @override
+  String get filterAny => '絞らない';
+
+  @override
+  String get filterNotSet => '指定なし';
+
+  @override
+  String get mapNoLocated => '位置を持つ対象がありません';
+
+  @override
+  String mapAttribution(int count) {
+    return '$count 件に位置あり · © OpenStreetMap contributors';
+  }
+
+  @override
+  String get mapOpenPreview => '拡大して見る';
+
+  @override
+  String get mapRemoveFromSelection => '選択から外す';
+
+  @override
+  String get mapPreviousItem => '前の 1 件';
+
+  @override
+  String get mapNextItem => '次の 1 件';
+
+  @override
+  String get mapZoomIn => '拡大';
+
+  @override
+  String get mapZoomOut => '縮小';
+
+  @override
+  String get mapResetNorth => '北を上に戻す';
+
+  @override
+  String get mapFitAll => '全体を表示';
+
+  @override
+  String get previewPrevious => '前へ';
+
+  @override
+  String get previewNext => '次へ';
+
+  @override
+  String get previewFrameBack => '1 コマ戻す';
+
+  @override
+  String get previewFrameForward => '1 コマ進める';
+
+  @override
+  String get previewRotateLeft => '左へ回す (Shift+R)';
+
+  @override
+  String get previewRotateRight => '右へ回す (R)';
+
+  @override
+  String get previewResetView => '表示を戻す (0)';
+
+  @override
+  String get previewClose => '閉じる (Esc)';
+
+  @override
+  String playbackFailed(String error) {
+    return '再生できませんでした: $error';
+  }
+
+  @override
+  String get settingsFolderScope => '現在のフォルダ以下';
+
+  @override
+  String get settingsFolderModeHint =>
+      '展開して表示は下位フォルダの対象もまとめて並べる。フォルダとして表示は直下だけを並べ、フォルダを開いて降りる。';
+
+  @override
+  String get settingsFolderThumbnails => 'フォルダに出すサムネイルの枚数';
+
+  @override
+  String thumbnailCount(int count) {
+    return '$count 枚';
+  }
+
+  @override
+  String get cache => 'キャッシュ';
+
+  @override
+  String cacheStored(int count) {
+    return '$count 件のメタ情報とサムネイルを保存しています';
+  }
+
+  @override
+  String get cacheCounting => '数えています…';
+
+  @override
+  String cacheUnreadable(String error) {
+    return '読めません: $error';
+  }
+
+  @override
+  String get cacheClear => '消去';
+
+  @override
+  String get listColumns => 'リストの列';
+
+  @override
+  String versionLine(String version) {
+    return 'バージョン $version';
+  }
+
+  @override
+  String metadataEngineLine(String name, String version) {
+    return 'メタ情報エンジン: $name $version';
+  }
+
+  @override
+  String get selectAnAsset => '対象を選択してください';
+
+  @override
+  String get tagFilterHint => 'タグ名・値で絞り込み';
+
+  @override
+  String get showPrintValues => '表示値に戻す';
+
+  @override
+  String get showRawValues => '生値を出す';
+
+  @override
+  String commonValuesLimited(int count) {
+    return '先頭 $count 件の共通値を表示しています';
+  }
+
+  @override
+  String readFailedWith(String error) {
+    return '読み取りに失敗しました: $error';
+  }
+
+  @override
+  String readFailedCount(int count) {
+    return '$count 件で読み取りに失敗しました';
+  }
+
+  @override
+  String get summary => '要約';
+
+  @override
+  String get summaryPinHint => 'タグの 📌 を押すと、その項目をここに出します';
+
+  @override
+  String get summaryAddField => '要約に項目を足す';
+
+  @override
+  String get summaryRemoveField => '要約から外す';
+
+  @override
+  String get summaryPinField => '要約に出す';
+
+  @override
+  String selectedCount(int count) {
+    return '$count 件を選択';
+  }
+
+  @override
+  String totalSize(String size) {
+    return '（合計 $size）';
+  }
+
+  @override
+  String get similarNeedsImage => '画像を選ぶと似た画像を探せます';
+
+  @override
+  String get findSimilarOne => 'この画像に似た画像を探す';
+
+  @override
+  String findSimilarMany(int count) {
+    return '選んだ $count 枚に似た画像を探す';
+  }
+
+  @override
+  String get exportToFile => 'ファイルへ書き出す';
+
+  @override
+  String exportAs(String format) {
+    return '$format で書き出す';
+  }
+
+  @override
+  String exportedAs(String format) {
+    return '$format で書き出しました';
+  }
+
+  @override
+  String exportFailed(String error) {
+    return '書き出しに失敗しました: $error';
+  }
+
+  @override
+  String exportFileBaseName(int count) {
+    return '$count件のメタ情報';
+  }
+
+  @override
+  String get copySummary => '要約をコピー';
+
+  @override
+  String copySelectedTags(int count) {
+    return '選択したタグをコピー（$count 件）';
+  }
+
+  @override
+  String get copyAllTags => '表示中の全タグをコピー';
+
+  @override
+  String get copyAllAsJson => '要約と全タグを JSON でコピー';
+
+  @override
+  String copyScopeSelectedTags(int count) {
+    return '選択した $count 件のタグ';
+  }
+
+  @override
+  String get copyScopeAllTags => '全タグ';
+
+  @override
+  String get copyScopeSummaryAndTags => '要約と全タグ';
+
+  @override
+  String copiedLabel(String label) {
+    return '$label をコピーしました';
+  }
+
+  @override
+  String get hexDump => '16 進ダンプ';
+
+  @override
+  String get hexDumpClose => '16 進ダンプを閉じる';
+
+  @override
+  String hexDumpHead(int total, int shown) {
+    return '全 $total バイトのうち先頭 $shown バイト';
+  }
+
+  @override
+  String get summaryFieldName => 'ファイル名';
+
+  @override
+  String get summaryFieldKind => '種別';
+
+  @override
+  String get summaryFieldCapturedAt => '撮影時刻';
+
+  @override
+  String get summaryFieldTimeBasis => '時刻の根拠';
+
+  @override
+  String get summaryFieldLocation => '位置';
+
+  @override
+  String get summaryFieldAltitude => '標高';
+
+  @override
+  String get summaryFieldCamera => '機材';
+
+  @override
+  String get summaryFieldLens => 'レンズ';
+
+  @override
+  String get summaryFieldDimensions => '寸法';
+
+  @override
+  String get summaryFieldDuration => '長さ';
+
+  @override
+  String get summaryFieldFileType => '形式';
+
+  @override
+  String get summaryFieldSize => 'サイズ';
+}

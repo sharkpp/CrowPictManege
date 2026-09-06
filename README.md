@@ -20,6 +20,14 @@ lib/
   services/  並列読み取り、サムネイルキャッシュ、検索、類似画像
   state/     画面の状態（Riverpod）
   ui/        画面
+  l10n/      画面に出す言葉（日本語 / 英語の ARB と、そこから生成する取り出し口）
+```
+
+画面に出る言葉は `lib/l10n/app_ja.arb`（原本）と `lib/l10n/app_en.arb`（対訳）に置く。
+言葉を足したら両方に入れ、次を実行して取り出し口を作り直す。
+
+```console
+$ flutter gen-l10n
 ```
 
 カタログ（設定・ブックマーク・履歴・メタ情報とサムネイルのキャッシュ）は
@@ -42,6 +50,7 @@ $ dart run build_runner build
 - 検索: ファイル名／メタ情報（現在のフォルダとブックマークを範囲に選択）
 - 類似画像検索（1 枚／複数枚を種に、知覚ハッシュの距離で）と重複候補の提示
 - 画面幅に合わせた 3 段階のレイアウト（狭い画面ではメタ情報をボトムシートに）
+- 日本語と英語の UI（端末の言語に従う。どちらでもなければ日本語）
 
 ## キーボード操作（デスクトップ）
 
@@ -76,7 +85,8 @@ crowexif を `../crowexif` に置いておく必要がある。
 ```console
 $ flutter run -d macos -t tool/capture.dart \
     --dart-entrypoint-args <撮る対象のフォルダ> \
-    --dart-entrypoint-args <PNG の出力先>
+    --dart-entrypoint-args <PNG の出力先> \
+    --dart-entrypoint-args <言語 ja|en。省略すると ja>
 ```
 
 ## ライセンス

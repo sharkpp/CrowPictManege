@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/l10n.dart';
 import '../state/library.dart';
 import 'column_filter_dialog.dart';
 import 'labels.dart';
@@ -11,6 +12,7 @@ class FilterBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final filters = ref.watch(columnFiltersProvider);
     if (filters.isEmpty) return const SizedBox.shrink();
     final notifier = ref.read(columnFiltersProvider.notifier);
@@ -32,7 +34,8 @@ class FilterBar extends ConsumerWidget {
                       padding: const EdgeInsets.only(right: 6),
                       child: InputChip(
                         label: Text(
-                          '${columnLabel(entry.key)}: ${describeFilter(entry.key, entry.value)}',
+                          '${l10n.columnLabel(entry.key)}: '
+                          '${l10n.describeFilter(entry.key, entry.value)}',
                         ),
                         onPressed: () =>
                             showColumnFilterDialog(context, entry.key),
@@ -43,7 +46,10 @@ class FilterBar extends ConsumerWidget {
               ),
             ),
           ),
-          TextButton(onPressed: notifier.clearAll, child: const Text('すべて解除')),
+          TextButton(
+            onPressed: notifier.clearAll,
+            child: Text(l10n.clearAllFilters),
+          ),
           const SizedBox(width: 8),
         ],
       ),

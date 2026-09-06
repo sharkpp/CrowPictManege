@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/duplicates.dart';
 import '../domain/perceptual_hash.dart';
 import '../domain/search.dart';
+import '../l10n/l10n.dart';
 import '../state/search.dart';
 import 'labels.dart';
 
@@ -53,6 +54,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
 
   /// 幅が足りるときの検索行。
   Widget _full(SearchQuery query, SearchState search) {
+    final l10n = context.l10n;
     final notifier = ref.read(searchQueryProvider.notifier);
 
     return SizedBox(
@@ -69,13 +71,13 @@ class _SearchRowState extends ConsumerState<SearchRow> {
                 isDense: true,
                 prefixIcon: const Icon(Icons.search, size: 18),
                 hintText: query.mode == SearchMode.fileName
-                    ? 'ファイル名で検索'
-                    : 'タグ名・値、または Group:Name=値',
+                    ? l10n.searchHintFileName
+                    : l10n.searchHintMetadata,
                 border: const OutlineInputBorder(),
                 suffixIcon: search.active
                     ? IconButton(
                         icon: const Icon(Icons.close, size: 16),
-                        tooltip: '検索をやめる',
+                        tooltip: l10n.searchClose,
                         onPressed: () {
                           _controller.clear();
                           ref.read(searchProvider.notifier).clear();
@@ -90,7 +92,10 @@ class _SearchRowState extends ConsumerState<SearchRow> {
           SegmentedButton<SearchMode>(
             segments: [
               for (final mode in SearchMode.values)
-                ButtonSegment(value: mode, label: Text(searchModeLabel(mode))),
+                ButtonSegment(
+                  value: mode,
+                  label: Text(l10n.searchTargetLabel(mode)),
+                ),
             ],
             selected: {query.mode},
             showSelectedIcon: false,
@@ -102,7 +107,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
           const SizedBox(width: 12),
           // 範囲（SPEC FR-Q3）。
           FilterChip(
-            label: const Text('現在のフォルダ'),
+            label: Text(l10n.searchScopeCurrentFolder),
             selected: query.includeCurrent,
             onSelected: (value) => notifier.update(
               (current) => current.copyWith(includeCurrent: value),
@@ -110,7 +115,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
           ),
           const SizedBox(width: 6),
           FilterChip(
-            label: const Text('ブックマーク'),
+            label: Text(l10n.bookmarks),
             selected: query.includeBookmarks,
             onSelected: (value) => notifier.update(
               (current) => current.copyWith(includeBookmarks: value),
@@ -121,13 +126,13 @@ class _SearchRowState extends ConsumerState<SearchRow> {
             TextButton.icon(
               onPressed: ref.read(searchProvider.notifier).stop,
               icon: const Icon(Icons.stop, size: 16),
-              label: Text('中止（走査 ${search.scanned} 件）'),
+              label: Text(l10n.searchStopScanned(search.scanned)),
             )
           else
-            FilledButton(onPressed: _submit, child: const Text('検索')),
+            FilledButton(onPressed: _submit, child: Text(l10n.search)),
           if (search.active && !search.running) ...[
             const SizedBox(width: 8),
-            Text('${search.results.length} 件見つかりました'),
+            Text(l10n.searchFound(search.results.length)),
           ],
           const SizedBox(width: 8),
         ],
@@ -137,6 +142,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
 
   /// 狭い画面の検索行。入力欄を伸ばし、対象と範囲はメニューに入れる。
   Widget _compact(SearchQuery query, SearchState search) {
+    final l10n = context.l10n;
     final notifier = ref.read(searchQueryProvider.notifier);
 
     return SizedBox(
@@ -151,12 +157,12 @@ class _SearchRowState extends ConsumerState<SearchRow> {
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Icons.search, size: 18),
-                hintText: query.mode == SearchMode.fileName ? 'ファイル名' : 'タグ名・値',
+                hintText: l10n.searchTargetLabel(query.mode),
                 border: const OutlineInputBorder(),
                 suffixIcon: search.active
                     ? IconButton(
                         icon: const Icon(Icons.close, size: 16),
-                        tooltip: '検索をやめる',
+                        tooltip: l10n.searchClose,
                         onPressed: () {
                           _controller.clear();
                           ref.read(searchProvider.notifier).clear();
@@ -169,7 +175,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
           ),
           PopupMenuButton<void>(
             icon: const Icon(Icons.tune, size: 20),
-            tooltip: '検索の対象と範囲',
+            tooltip: l10n.searchTargetAndScope,
             itemBuilder: (context) => [
               for (final mode in SearchMode.values)
                 CheckedPopupMenuItem<void>(
@@ -177,7 +183,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
                   onTap: () => notifier.update(
                     (current) => current.copyWith(mode: mode),
                   ),
-                  child: Text(searchModeLabel(mode)),
+                  child: Text(l10n.searchTargetLabel(mode)),
                 ),
               const PopupMenuDivider(),
               // 範囲（SPEC FR-Q3）。
@@ -187,7 +193,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
                   (current) =>
                       current.copyWith(includeCurrent: !current.includeCurrent),
                 ),
-                child: const Text('現在のフォルダ'),
+                child: Text(l10n.searchScopeCurrentFolder),
               ),
               CheckedPopupMenuItem<void>(
                 checked: query.includeBookmarks,
@@ -196,20 +202,20 @@ class _SearchRowState extends ConsumerState<SearchRow> {
                     includeBookmarks: !current.includeBookmarks,
                   ),
                 ),
-                child: const Text('ブックマーク'),
+                child: Text(l10n.bookmarks),
               ),
             ],
           ),
           if (search.running)
             IconButton(
               icon: const Icon(Icons.stop, size: 20),
-              tooltip: '中止（走査 ${search.scanned} 件）',
+              tooltip: l10n.searchStopScanned(search.scanned),
               onPressed: ref.read(searchProvider.notifier).stop,
             )
           else
             IconButton.filled(
               icon: const Icon(Icons.search, size: 20),
-              tooltip: '検索',
+              tooltip: l10n.search,
               onPressed: _submit,
             ),
           const SizedBox(width: 8),
@@ -225,6 +231,7 @@ class _SimilarRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final search = ref.watch(searchProvider);
     final notifier = ref.read(searchProvider.notifier);
 
@@ -235,9 +242,9 @@ class _SimilarRow extends ConsumerWidget {
           const SizedBox(width: 8),
           const Icon(Icons.image_search, size: 18),
           const SizedBox(width: 8),
-          Text('${search.seeds.length} 枚に似た画像'),
+          Text(l10n.similarToSeeds(search.seeds.length)),
           const SizedBox(width: 12),
-          const Text('距離'),
+          Text(l10n.distance),
           SizedBox(
             width: 180,
             child: Slider(
@@ -249,17 +256,17 @@ class _SimilarRow extends ConsumerWidget {
               onChanged: (value) => notifier.setThreshold(value.round()),
             ),
           ),
-          Text('${search.threshold} 以下'),
+          Text(l10n.distanceAtMost(search.threshold)),
           const SizedBox(width: 12),
           if (search.running)
-            Text('調べています… ${search.scanned} 件')
+            Text(l10n.scanningCount(search.scanned))
           else
-            Text('${search.results.length} 件'),
+            Text(l10n.itemCount(search.results.length)),
           const Spacer(),
           TextButton.icon(
             onPressed: notifier.clear,
             icon: const Icon(Icons.close, size: 16),
-            label: const Text('やめる'),
+            label: Text(l10n.actionStop),
           ),
           const SizedBox(width: 8),
         ],
@@ -277,6 +284,7 @@ class _DuplicateRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final search = ref.watch(searchProvider);
     final notifier = ref.read(searchProvider.notifier);
     final byReason = <DuplicateReason, int>{};
@@ -291,21 +299,29 @@ class _DuplicateRow extends ConsumerWidget {
           const SizedBox(width: 8),
           const Icon(Icons.copy_all, size: 18),
           const SizedBox(width: 8),
-          const Text('重複候補'),
+          Text(l10n.duplicateCandidates),
           const SizedBox(width: 12),
           if (search.running)
-            Text('調べています… ${search.scanned} 件')
+            Text(l10n.scanningCount(search.scanned))
           else if (search.duplicates.isEmpty)
-            const Text('見つかりませんでした')
+            Text(l10n.labelNotFound)
           else
-            Text('${search.duplicates.length} 組 / ${search.results.length} 件'),
+            Text(
+              l10n.duplicateGroupsCount(
+                search.duplicates.length,
+                search.results.length,
+              ),
+            ),
           const SizedBox(width: 12),
           for (final entry in byReason.entries)
             Padding(
               padding: const EdgeInsets.only(right: 6),
               child: Chip(
                 label: Text(
-                  '${duplicateReasonLabel(entry.key)} ${entry.value} 組',
+                  l10n.duplicateReasonGroups(
+                    l10n.duplicateReasonLabel(entry.key),
+                    entry.value,
+                  ),
                 ),
                 visualDensity: VisualDensity.compact,
               ),
@@ -315,12 +331,12 @@ class _DuplicateRow extends ConsumerWidget {
             TextButton.icon(
               onPressed: notifier.stop,
               icon: const Icon(Icons.stop, size: 16),
-              label: const Text('中止'),
+              label: Text(l10n.actionAbort),
             ),
           TextButton.icon(
             onPressed: notifier.clear,
             icon: const Icon(Icons.close, size: 16),
-            label: const Text('やめる'),
+            label: Text(l10n.actionStop),
           ),
           const SizedBox(width: 8),
         ],

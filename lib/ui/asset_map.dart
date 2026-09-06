@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:supercluster/supercluster.dart';
 
 import '../domain/models.dart';
+import '../l10n/l10n.dart';
 import '../state/selection.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
@@ -151,7 +152,7 @@ class _AssetMapState extends ConsumerState<AssetMap> {
     final theme = Theme.of(context);
     final index = _index;
     if (index == null) {
-      return const Center(child: Text('位置を持つ対象がありません'));
+      return Center(child: Text(context.l10n.mapNoLocated));
     }
     final ordered = [for (final asset in widget.assets) asset.path];
 
@@ -192,7 +193,7 @@ class _AssetMapState extends ConsumerState<AssetMap> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             color: theme.colorScheme.surface.withValues(alpha: 0.85),
             child: Text(
-              '${_located.length} 件に位置あり · © OpenStreetMap contributors',
+              context.l10n.mapAttribution(_located.length),
               style: theme.textTheme.bodySmall,
             ),
           ),
@@ -287,7 +288,7 @@ class _ClusterPin extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Tooltip(
-        message: '$count 件',
+        message: context.l10n.itemCount(count),
         child: Container(
           decoration: BoxDecoration(
             color: _clusterColor,
@@ -449,7 +450,7 @@ class _PreviewCard extends ConsumerWidget {
                 Center(
                   child: _RoundButton(
                     icon: Icons.play_arrow,
-                    tooltip: '拡大して見る',
+                    tooltip: context.l10n.mapOpenPreview,
                     onPressed: () => showAssetPreview(context),
                   ),
                 ),
@@ -459,7 +460,7 @@ class _PreviewCard extends ConsumerWidget {
                   top: 0,
                   child: _RoundButton(
                     icon: Icons.close,
-                    tooltip: '選択から外す',
+                    tooltip: context.l10n.mapRemoveFromSelection,
                     small: true,
                     onPressed: () =>
                         ref.read(selectionProvider.notifier).remove(asset.path),
@@ -474,7 +475,7 @@ class _PreviewCard extends ConsumerWidget {
                     child: Center(
                       child: _RoundButton(
                         icon: Icons.chevron_left,
-                        tooltip: '前の 1 件',
+                        tooltip: context.l10n.mapPreviousItem,
                         small: true,
                         onPressed: () => onStep(-1),
                       ),
@@ -487,7 +488,7 @@ class _PreviewCard extends ConsumerWidget {
                     child: Center(
                       child: _RoundButton(
                         icon: Icons.chevron_right,
-                        tooltip: '次の 1 件',
+                        tooltip: context.l10n.mapNextItem,
                         small: true,
                         onPressed: () => onStep(1),
                       ),
@@ -527,7 +528,10 @@ class _PreviewCard extends ConsumerWidget {
                   style: theme.textTheme.bodySmall,
                 ),
                 Text(
-                  formatCapturedAt(asset.summary?.capturedAt, short: true),
+                  context.l10n.formatCapturedAt(
+                    asset.summary?.capturedAt,
+                    short: true,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -606,7 +610,7 @@ class _MapControls extends StatelessWidget {
           children: [
             _MapButton(
               icon: Icons.add,
-              label: '拡大',
+              label: context.l10n.mapZoomIn,
               onPressed: camera.zoom >= maxZoom ? null : () => zoomBy(1),
             ),
             const SizedBox(height: 4),
@@ -625,7 +629,7 @@ class _MapControls extends StatelessWidget {
             const SizedBox(height: 4),
             _MapButton(
               icon: Icons.remove,
-              label: '縮小',
+              label: context.l10n.mapZoomOut,
               onPressed: camera.zoom <= (camera.minZoom ?? 0)
                   ? null
                   : () => zoomBy(-1),
@@ -633,13 +637,13 @@ class _MapControls extends StatelessWidget {
             const SizedBox(height: 8),
             _MapButton(
               icon: Icons.explore_outlined,
-              label: '北を上に戻す',
+              label: context.l10n.mapResetNorth,
               onPressed: north ? null : () => controller.rotate(0),
             ),
             const SizedBox(height: 8),
             _MapButton(
               icon: Icons.fullscreen,
-              label: '全体を表示',
+              label: context.l10n.mapFitAll,
               onPressed: onFitAll,
             ),
           ],

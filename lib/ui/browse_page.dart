@@ -11,6 +11,7 @@ import '../app_info.dart';
 import '../domain/folder_view.dart';
 import '../domain/models.dart';
 import '../domain/settings.dart';
+import '../l10n/l10n.dart';
 import '../state/library.dart';
 import '../state/navigation.dart';
 import '../state/search.dart';
@@ -44,7 +45,9 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
   bool _dropping = false;
 
   Future<void> _chooseFolder() async {
-    final path = await getDirectoryPath(confirmButtonText: '開く');
+    final path = await getDirectoryPath(
+      confirmButtonText: context.l10n.actionOpen,
+    );
     if (path == null) return;
     await ref.read(navigationProvider.notifier).open(path);
   }
@@ -272,7 +275,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               ButtonSegment(
                 value: mode,
                 icon: Icon(_viewModeIcons[mode]),
-                tooltip: viewModeLabel(mode),
+                tooltip: context.l10n.viewModeLabel(mode),
               ),
           ],
           selected: {settings.viewMode},
@@ -291,7 +294,10 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           },
           items: [
             for (final mode in SortMode.values)
-              DropdownMenuItem(value: mode, child: Text(sortModeLabel(mode))),
+              DropdownMenuItem(
+                value: mode,
+                child: Text(context.l10n.sortModeLabel(mode)),
+              ),
           ],
         ),
         if (settings.viewMode == ViewMode.grid) ...[
@@ -313,7 +319,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       FilledButton.icon(
         onPressed: _chooseFolder,
         icon: const Icon(Icons.folder_open),
-        label: const Text('フォルダを開く'),
+        label: Text(context.l10n.openFolder),
       ),
       _overflowMenu(rootPath),
     ];
@@ -326,20 +332,20 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       if (rootPath != null)
         PopupMenuButton<ViewMode>(
           icon: Icon(_viewModeIcons[settings.viewMode]),
-          tooltip: '表示',
+          tooltip: context.l10n.menuView,
           onSelected: _setViewMode,
           itemBuilder: (context) => [
             for (final mode in ViewMode.values)
               CheckedPopupMenuItem(
                 value: mode,
                 checked: mode == settings.viewMode,
-                child: Text(viewModeLabel(mode)),
+                child: Text(context.l10n.viewModeLabel(mode)),
               ),
           ],
         ),
       IconButton(
         icon: const Icon(Icons.folder_open),
-        tooltip: 'フォルダを開く',
+        tooltip: context.l10n.openFolder,
         onPressed: _chooseFolder,
       ),
       _overflowMenu(rootPath),
@@ -352,7 +358,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
         paneLayoutFor(MediaQuery.sizeOf(context).width) == PaneLayout.narrow;
 
     return PopupMenuButton<void>(
-      tooltip: 'その他',
+      tooltip: context.l10n.menuMore,
       itemBuilder: (context) => [
         // 狭い画面では並べ替えの選択がここに来る。
         if (narrow && rootPath != null)
@@ -362,21 +368,21 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               onTap: () => ref
                   .read(settingsProvider.notifier)
                   .update((current) => current.copyWith(sortMode: mode)),
-              child: Text(sortModeLabel(mode)),
+              child: Text(context.l10n.sortModeLabel(mode)),
             ),
         // 重複候補（SPEC FR-B9）。いま開いているフォルダの走査結果を見る。
         PopupMenuItem(
           enabled: rootPath != null,
           onTap: ref.read(searchProvider.notifier).startDuplicates,
-          child: const Text('重複候補を探す'),
+          child: Text(context.l10n.findDuplicates),
         ),
         PopupMenuItem(
           onTap: () => showSettingsDialog(context),
-          child: const Text('設定'),
+          child: Text(context.l10n.settings),
         ),
         PopupMenuItem(
           onTap: () => showVersionDialog(context),
-          child: const Text('バージョン情報'),
+          child: Text(context.l10n.about),
         ),
       ],
     );
@@ -394,15 +400,15 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       height: 60,
       selectedIndex: onMap ? 1 : 0,
       destinations: [
-        const NavigationDestination(
-          icon: Icon(Icons.photo_library_outlined),
-          selectedIcon: Icon(Icons.photo_library),
-          label: '一覧',
+        NavigationDestination(
+          icon: const Icon(Icons.photo_library_outlined),
+          selectedIcon: const Icon(Icons.photo_library),
+          label: context.l10n.navBrowse,
         ),
-        const NavigationDestination(
-          icon: Icon(Icons.map_outlined),
-          selectedIcon: Icon(Icons.map),
-          label: 'マップ',
+        NavigationDestination(
+          icon: const Icon(Icons.map_outlined),
+          selectedIcon: const Icon(Icons.map),
+          label: context.l10n.viewModeMap,
         ),
         NavigationDestination(
           icon: Badge(
@@ -410,7 +416,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
             label: Text('${selected.count}'),
             child: const Icon(Icons.info_outline),
           ),
-          label: 'メタ情報',
+          label: context.l10n.metadata,
         ),
       ],
       onDestinationSelected: (index) {
@@ -444,7 +450,13 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
     final search = ref.watch(searchProvider);
     if (listing.assets.isEmpty && listing.folders.isEmpty) {
       if (search.active) {
-        return Center(child: Text(search.running ? '検索しています…' : '見つかりませんでした'));
+        return Center(
+          child: Text(
+            search.running
+                ? context.l10n.searching
+                : context.l10n.labelNotFound,
+          ),
+        );
       }
       if (library.scanning) {
         return const Center(child: CircularProgressIndicator());
@@ -453,11 +465,13 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       final failure = library.failure;
       if (library.rootPath == null || failure != null) {
         return StartView(
-          message: failure == null ? null : folderErrorText(failure),
+          message: failure == null
+              ? null
+              : context.l10n.folderErrorText(failure),
           onOpen: _chooseFolder,
         );
       }
-      return const Center(child: Text('このフォルダに画像・動画はありません'));
+      return Center(child: Text(context.l10n.emptyFolder));
     }
     // 狭い画面ではパネルを隣に置けない。メタ情報はボトムシートで開く。
     if (!layout.hasSidePanel) return _view(listing);
@@ -515,7 +529,7 @@ class _DropOverlay extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: scheme.primary, width: 2),
           ),
-          child: const Text('ドロップしたフォルダを開きます'),
+          child: Text(context.l10n.dropToOpen),
         ),
       ),
     );
@@ -540,6 +554,7 @@ class _StatusBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final theme = Theme.of(context);
     return SizedBox(
       height: onOpenMetadata == null ? 28 : 36,
@@ -555,9 +570,9 @@ class _StatusBar extends ConsumerWidget {
           if (state.scanning) const SizedBox(width: 8),
           Flexible(
             child: Text(
-              '${state.total} 件'
-              '${state.scanning ? ' / 読み取り ${state.analyzed} 件' : ''}'
-              '${selected > 0 ? ' / 選択 $selected 件' : ''}',
+              '${l10n.itemCount(state.total)}'
+              '${state.scanning ? l10n.statusAnalyzed(state.analyzed) : ''}'
+              '${selected > 0 ? l10n.statusSelected(selected) : ''}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,
@@ -566,7 +581,7 @@ class _StatusBar extends ConsumerWidget {
           const Spacer(),
           if (state.errorCount > 0)
             Text(
-              'エラー ${state.errorCount} 件',
+              l10n.statusErrors(state.errorCount),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),
@@ -575,7 +590,7 @@ class _StatusBar extends ConsumerWidget {
           if (onOpenMetadata != null)
             IconButton(
               icon: const Icon(Icons.close, size: 18),
-              tooltip: '選択を解除',
+              tooltip: l10n.clearSelection,
               onPressed: selected == 0
                   ? null
                   : ref.read(selectionProvider.notifier).clear,

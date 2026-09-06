@@ -1,0 +1,542 @@
+{
+  "@@locale": "ja",
+  "actionClose": "閉じる",
+  "actionCancel": "取消",
+  "actionApply": "適用",
+  "actionClear": "解除",
+  "actionOpen": "開く",
+  "actionCopy": "コピー",
+  "actionExport": "書き出す",
+  "actionStop": "やめる",
+  "actionAbort": "中止",
+  "actionResetToDefault": "既定に戻す",
+  "valuePresent": "あり",
+  "@valuePresent": {
+    "description": "値があることを表す（列の表示、フィルタの選択肢）"
+  },
+  "valueAbsent": "なし",
+  "@valueAbsent": {
+    "description": "値がないことを表す（フィルタの選択肢）"
+  },
+  "valueNone": "なし",
+  "@valueNone": {
+    "description": "個数が 0 であることを表す（設定）"
+  },
+  "labelNotFound": "見つかりませんでした",
+  "labelNothingYet": "まだありません",
+  "itemCount": "{count} 件",
+  "@itemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "rangeText": "{from} 〜 {to}",
+  "@rangeText": {
+    "description": "範囲の絞り込みを 1 行で表す。両端は空のこともある",
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "choiceSeparator": "・",
+  "@choiceSeparator": {
+    "description": "選択肢を並べるときの区切り"
+  },
+  "unitBytes": "バイト",
+  "unitSeconds": "秒",
+  "dateTimePattern": "yyyy/MM/dd HH:mm:ss",
+  "@dateTimePattern": {
+    "description": "日時の書式（intl の DateFormat のパターン）"
+  },
+  "dateTimeShortPattern": "yyyy/MM/dd HH:mm",
+  "@dateTimeShortPattern": {
+    "description": "秒を落とした日時の書式"
+  },
+  "datePattern": "yyyy/MM/dd",
+  "@datePattern": {
+    "description": "日付だけの書式"
+  },
+  "viewModeGrid": "サムネイル",
+  "viewModeList": "リスト",
+  "viewModeGallery": "ギャラリー",
+  "viewModeMap": "マップ",
+  "sortModeCapturedAt": "撮影時刻",
+  "sortModeName": "ファイル名",
+  "sortModeSize": "サイズ",
+  "folderModeFlat": "展開して表示",
+  "folderModeFolders": "フォルダとして表示",
+  "columnCapturedAt": "撮影時刻",
+  "columnName": "ファイル名",
+  "columnKind": "種別",
+  "columnDimensions": "解像度",
+  "columnDuration": "長さ",
+  "columnLocation": "位置",
+  "columnCamera": "機材",
+  "columnLens": "レンズ",
+  "columnFileType": "形式",
+  "columnSize": "サイズ",
+  "columnFileModifiedAt": "更新時刻",
+  "columnFolder": "フォルダ",
+  "assetKindImage": "画像",
+  "assetKindVideo": "動画",
+  "offsetSourceGps": "GPS 時刻との差",
+  "offsetSourceQuickTimeUtc": "QuickTime 仕様 (UTC)",
+  "offsetSourceUnknown": "不明",
+  "offsetUnknown": "オフセット不明",
+  "offsetWithSource": "オフセット: {source}",
+  "@offsetWithSource": {
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "mixedValue": "複数の値",
+  "assetFailureUnrecognizedFormat": "形式を認識できませんでした",
+  "assetFailureUnreadable": "読み取りに失敗しました",
+  "folderFailureMissing": "フォルダが見つかりません",
+  "folderFailureUnreadable": "フォルダを読めませんでした",
+  "failureWithDetail": "{reason}: {detail}",
+  "@failureWithDetail": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "binaryValue": "(バイナリ)",
+  "binaryValueWithBytes": "(バイナリ {count} バイト)",
+  "@binaryValueWithBytes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeJustNow": "たった今",
+  "relativeMinutes": "{count} 分前",
+  "@relativeMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeHours": "{count} 時間前",
+  "@relativeHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "relativeDays": "{count} 日前",
+  "@relativeDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "navBack": "戻る",
+  "navForward": "進む",
+  "navParentFolder": "親フォルダへ",
+  "history": "履歴",
+  "bookmarks": "ブックマーク",
+  "bookmarkAdd": "ブックマークに入れる",
+  "bookmarkRemove": "ブックマークを外す",
+  "startHint": "フォルダを開くと、画像と動画を読み込みます",
+  "startDropHint": "ここへフォルダをドロップしても開けます",
+  "openFolder": "フォルダを開く",
+  "bookmarksEmpty": "フォルダを開いて ☆ を押すと、ここに残ります",
+  "recentFolders": "最近開いたフォルダ",
+  "menuView": "表示",
+  "menuMore": "その他",
+  "findDuplicates": "重複候補を探す",
+  "settings": "設定",
+  "about": "バージョン情報",
+  "navBrowse": "一覧",
+  "metadata": "メタ情報",
+  "searching": "検索しています…",
+  "emptyFolder": "このフォルダに画像・動画はありません",
+  "dropToOpen": "ドロップしたフォルダを開きます",
+  "statusAnalyzed": " / 読み取り {count} 件",
+  "@statusAnalyzed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statusSelected": " / 選択 {count} 件",
+  "@statusSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statusErrors": "エラー {count} 件",
+  "@statusErrors": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clearSelection": "選択を解除",
+  "viewFullScreen": "全面で見る",
+  "columnSettings": "列の設定",
+  "search": "検索",
+  "searchClose": "検索をやめる",
+  "searchHintFileName": "ファイル名で検索",
+  "searchHintMetadata": "タグ名・値、または Group:Name=値",
+  "searchTargetFileName": "ファイル名",
+  "searchTargetMetadata": "タグ名・値",
+  "searchTargetAndScope": "検索の対象と範囲",
+  "searchScopeCurrentFolder": "現在のフォルダ",
+  "searchStopScanned": "中止（走査 {count} 件）",
+  "@searchStopScanned": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchFound": "{count} 件見つかりました",
+  "@searchFound": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scanningCount": "調べています… {count} 件",
+  "@scanningCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "similarToSeeds": "{count} 枚に似た画像",
+  "@similarToSeeds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "distance": "距離",
+  "distanceAtMost": "{value} 以下",
+  "@distanceAtMost": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicateCandidates": "重複候補",
+  "duplicateGroupsCount": "{groups} 組 / {items} 件",
+  "@duplicateGroupsCount": {
+    "placeholders": {
+      "groups": {
+        "type": "int"
+      },
+      "items": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicateReasonGroups": "{reason} {count} 組",
+  "@duplicateReasonGroups": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duplicateReasonContent": "内容が同じ",
+  "duplicateReasonCapture": "撮影時刻と機材が同じ",
+  "clearAllFilters": "すべて解除",
+  "filterByColumn": "{column} で絞り込む",
+  "@filterByColumn": {
+    "placeholders": {
+      "column": {
+        "type": "String"
+      }
+    }
+  },
+  "filterContainsText": "含む文字列",
+  "filterContains": "「{query}」を含む",
+  "@filterContains": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "filterUseRegex": "正規表現として扱う",
+  "filterInvalidRegex": "正規表現として読めません",
+  "filterMin": "以上（{unit}）",
+  "@filterMin": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "filterMax": "以下（{unit}）",
+  "@filterMax": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "filterFromDate": "この日から",
+  "filterToDate": "この日まで",
+  "filterAny": "絞らない",
+  "filterNotSet": "指定なし",
+  "mapNoLocated": "位置を持つ対象がありません",
+  "mapAttribution": "{count} 件に位置あり · © OpenStreetMap contributors",
+  "@mapAttribution": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapOpenPreview": "拡大して見る",
+  "mapRemoveFromSelection": "選択から外す",
+  "mapPreviousItem": "前の 1 件",
+  "mapNextItem": "次の 1 件",
+  "mapZoomIn": "拡大",
+  "mapZoomOut": "縮小",
+  "mapResetNorth": "北を上に戻す",
+  "mapFitAll": "全体を表示",
+  "previewPrevious": "前へ",
+  "previewNext": "次へ",
+  "previewFrameBack": "1 コマ戻す",
+  "previewFrameForward": "1 コマ進める",
+  "previewRotateLeft": "左へ回す (Shift+R)",
+  "previewRotateRight": "右へ回す (R)",
+  "previewResetView": "表示を戻す (0)",
+  "previewClose": "閉じる (Esc)",
+  "playbackFailed": "再生できませんでした: {error}",
+  "@playbackFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsFolderScope": "現在のフォルダ以下",
+  "settingsFolderModeHint": "展開して表示は下位フォルダの対象もまとめて並べる。フォルダとして表示は直下だけを並べ、フォルダを開いて降りる。",
+  "settingsFolderThumbnails": "フォルダに出すサムネイルの枚数",
+  "thumbnailCount": "{count} 枚",
+  "@thumbnailCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cache": "キャッシュ",
+  "cacheStored": "{count} 件のメタ情報とサムネイルを保存しています",
+  "@cacheStored": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "cacheCounting": "数えています…",
+  "cacheUnreadable": "読めません: {error}",
+  "@cacheUnreadable": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cacheClear": "消去",
+  "listColumns": "リストの列",
+  "versionLine": "バージョン {version}",
+  "@versionLine": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "metadataEngineLine": "メタ情報エンジン: {name} {version}",
+  "@metadataEngineLine": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "selectAnAsset": "対象を選択してください",
+  "tagFilterHint": "タグ名・値で絞り込み",
+  "showPrintValues": "表示値に戻す",
+  "showRawValues": "生値を出す",
+  "commonValuesLimited": "先頭 {count} 件の共通値を表示しています",
+  "@commonValuesLimited": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "readFailedWith": "読み取りに失敗しました: {error}",
+  "@readFailedWith": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "readFailedCount": "{count} 件で読み取りに失敗しました",
+  "@readFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "summary": "要約",
+  "summaryPinHint": "タグの 📌 を押すと、その項目をここに出します",
+  "summaryAddField": "要約に項目を足す",
+  "summaryRemoveField": "要約から外す",
+  "summaryPinField": "要約に出す",
+  "selectedCount": "{count} 件を選択",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "totalSize": "（合計 {size}）",
+  "@totalSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "similarNeedsImage": "画像を選ぶと似た画像を探せます",
+  "findSimilarOne": "この画像に似た画像を探す",
+  "findSimilarMany": "選んだ {count} 枚に似た画像を探す",
+  "@findSimilarMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportToFile": "ファイルへ書き出す",
+  "exportAs": "{format} で書き出す",
+  "@exportAs": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "exportedAs": "{format} で書き出しました",
+  "@exportedAs": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFailed": "書き出しに失敗しました: {error}",
+  "@exportFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "exportFileBaseName": "{count}件のメタ情報",
+  "@exportFileBaseName": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copySummary": "要約をコピー",
+  "copySelectedTags": "選択したタグをコピー（{count} 件）",
+  "@copySelectedTags": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyAllTags": "表示中の全タグをコピー",
+  "copyAllAsJson": "要約と全タグを JSON でコピー",
+  "copyScopeSelectedTags": "選択した {count} 件のタグ",
+  "@copyScopeSelectedTags": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "copyScopeAllTags": "全タグ",
+  "copyScopeSummaryAndTags": "要約と全タグ",
+  "copiedLabel": "{label} をコピーしました",
+  "@copiedLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "hexDump": "16 進ダンプ",
+  "hexDumpClose": "16 進ダンプを閉じる",
+  "hexDumpHead": "全 {total} バイトのうち先頭 {shown} バイト",
+  "@hexDumpHead": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      },
+      "shown": {
+        "type": "int"
+      }
+    }
+  },
+  "summaryFieldName": "ファイル名",
+  "summaryFieldKind": "種別",
+  "summaryFieldCapturedAt": "撮影時刻",
+  "summaryFieldTimeBasis": "時刻の根拠",
+  "summaryFieldLocation": "位置",
+  "summaryFieldAltitude": "標高",
+  "summaryFieldCamera": "機材",
+  "summaryFieldLens": "レンズ",
+  "summaryFieldDimensions": "寸法",
+  "summaryFieldDuration": "長さ",
+  "summaryFieldFileType": "形式",
+  "summaryFieldSize": "サイズ"
+}

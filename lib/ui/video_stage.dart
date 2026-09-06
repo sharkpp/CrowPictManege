@@ -3,6 +3,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
 import '../domain/models.dart';
+import '../l10n/l10n.dart';
 
 /// 単体プレビューの動画に対する操作。プレビューの操作列から呼ぶ。
 class VideoStageHandle {
@@ -75,7 +76,7 @@ class _VideoStageState extends State<VideoStage> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            '再生できませんでした: $error',
+            context.l10n.playbackFailed(error),
             style: const TextStyle(color: Colors.white70),
             textAlign: TextAlign.center,
           ),
