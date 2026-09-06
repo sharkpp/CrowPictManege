@@ -22,7 +22,9 @@ import 'asset_map.dart';
 import 'asset_grid.dart';
 import 'asset_list.dart';
 import 'filter_bar.dart';
+import 'layout.dart';
 import 'metadata_panel.dart';
+import 'metadata_sheet.dart';
 import 'place_bar.dart';
 import 'search_row.dart';
 import 'settings_dialog.dart';
@@ -69,7 +71,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
         : ref.watch(folderListingProvider).folders;
     final assets = ref.watch(displayedAssetsProvider);
     final listing = FolderListing(folders: folders, assets: assets);
-    final wide = MediaQuery.sizeOf(context).width >= 1200;
+    final layout = paneLayoutFor(MediaQuery.sizeOf(context).width);
 
     // 検索欄などに入力している間は、一覧のキー操作を働かせない。
     VoidCallback unlessTyping(VoidCallback action) =>
@@ -102,7 +104,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           onDragEntered: (_) => setState(() => _dropping = true),
           onDragExited: (_) => setState(() => _dropping = false),
           onDragDone: (detail) => _openDropped(detail.files),
-          child: _scaffold(library, listing, wide),
+          child: _scaffold(library, listing, layout),
         ),
       ),
     );
@@ -136,88 +138,19 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       .read(selectionProvider.notifier)
       .step([for (final asset in assets) asset.path], delta);
 
-  Widget _scaffold(LibraryState library, FolderListing listing, bool wide) {
+  Widget _scaffold(
+    LibraryState library,
+    FolderListing listing,
+    PaneLayout layout,
+  ) {
     final rootPath = library.rootPath;
-    final settings = ref.watch(settingsProvider);
+    final narrow = layout == PaneLayout.narrow;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(rootPath == null ? appDisplayName : p.basename(rootPath)),
         titleTextStyle: Theme.of(context).textTheme.titleSmall,
-        actions: [
-          // 何も開いていない間は、表示の切り替えを出しても働く先が無い。
-          if (rootPath != null) ...[
-            SegmentedButton<ViewMode>(
-              segments: [
-                for (final mode in ViewMode.values)
-                  ButtonSegment(
-                    value: mode,
-                    icon: Icon(_viewModeIcons[mode]),
-                    tooltip: mode.label,
-                  ),
-              ],
-              selected: {settings.viewMode},
-              showSelectedIcon: false,
-              onSelectionChanged: (value) => ref
-                  .read(settingsProvider.notifier)
-                  .update((current) => current.copyWith(viewMode: value.first)),
-            ),
-            const SizedBox(width: 12),
-            DropdownButton<SortMode>(
-              value: settings.sortMode,
-              underline: const SizedBox.shrink(),
-              onChanged: (mode) {
-                if (mode == null) return;
-                ref
-                    .read(settingsProvider.notifier)
-                    .update((current) => current.copyWith(sortMode: mode));
-              },
-              items: [
-                for (final mode in SortMode.values)
-                  DropdownMenuItem(value: mode, child: Text(mode.label)),
-              ],
-            ),
-            if (settings.viewMode == ViewMode.grid) ...[
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 120,
-                child: Slider(
-                  value: settings.tileSize,
-                  min: 96,
-                  max: 320,
-                  onChanged: (value) => ref
-                      .read(settingsProvider.notifier)
-                      .update((current) => current.copyWith(tileSize: value)),
-                ),
-              ),
-            ],
-          ],
-          const SizedBox(width: 8),
-          FilledButton.icon(
-            onPressed: _chooseFolder,
-            icon: const Icon(Icons.folder_open),
-            label: const Text('フォルダを開く'),
-          ),
-          PopupMenuButton<void>(
-            tooltip: 'その他',
-            itemBuilder: (context) => [
-              // 重複候補（SPEC FR-B9）。いま開いているフォルダの走査結果を見る。
-              PopupMenuItem(
-                enabled: rootPath != null,
-                onTap: ref.read(searchProvider.notifier).startDuplicates,
-                child: const Text('重複候補を探す'),
-              ),
-              PopupMenuItem(
-                onTap: () => showSettingsDialog(context),
-                child: const Text('設定'),
-              ),
-              PopupMenuItem(
-                onTap: () => showVersionDialog(context),
-                child: const Text('バージョン情報'),
-              ),
-            ],
-          ),
-        ],
+        actions: narrow ? _narrowActions(rootPath) : _wideActions(rootPath),
       ),
       body: Column(
         children: [
@@ -231,7 +164,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           Expanded(
             child: Stack(
               children: [
-                Positioned.fill(child: _content(library, listing, wide)),
+                Positioned.fill(child: _content(library, listing, layout)),
                 if (_dropping) const Positioned.fill(child: _DropOverlay()),
               ],
             ),
@@ -240,13 +173,196 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           _StatusBar(
             state: library,
             selected: ref.watch(selectionProvider).count,
+            // 狭い画面では、選択集合の操作もこの帯に載せる（SPEC §9）。
+            onOpenMetadata: narrow ? () => showMetadataSheet(context) : null,
           ),
         ],
       ),
+      bottomNavigationBar: narrow ? _bottomNavigation() : null,
     );
   }
 
-  Widget _content(LibraryState library, FolderListing listing, bool wide) {
+  /// 広い・中くらいの画面の操作列。
+  List<Widget> _wideActions(String? rootPath) {
+    final settings = ref.watch(settingsProvider);
+    return [
+      // 何も開いていない間は、表示の切り替えを出しても働く先が無い。
+      if (rootPath != null) ...[
+        SegmentedButton<ViewMode>(
+          segments: [
+            for (final mode in ViewMode.values)
+              ButtonSegment(
+                value: mode,
+                icon: Icon(_viewModeIcons[mode]),
+                tooltip: mode.label,
+              ),
+          ],
+          selected: {settings.viewMode},
+          showSelectedIcon: false,
+          onSelectionChanged: (value) => _setViewMode(value.first),
+        ),
+        const SizedBox(width: 12),
+        DropdownButton<SortMode>(
+          value: settings.sortMode,
+          underline: const SizedBox.shrink(),
+          onChanged: (mode) {
+            if (mode == null) return;
+            ref
+                .read(settingsProvider.notifier)
+                .update((current) => current.copyWith(sortMode: mode));
+          },
+          items: [
+            for (final mode in SortMode.values)
+              DropdownMenuItem(value: mode, child: Text(mode.label)),
+          ],
+        ),
+        if (settings.viewMode == ViewMode.grid) ...[
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 120,
+            child: Slider(
+              value: settings.tileSize,
+              min: 96,
+              max: 320,
+              onChanged: (value) => ref
+                  .read(settingsProvider.notifier)
+                  .update((current) => current.copyWith(tileSize: value)),
+            ),
+          ),
+        ],
+      ],
+      const SizedBox(width: 8),
+      FilledButton.icon(
+        onPressed: _chooseFolder,
+        icon: const Icon(Icons.folder_open),
+        label: const Text('フォルダを開く'),
+      ),
+      _overflowMenu(rootPath),
+    ];
+  }
+
+  /// 狭い画面の操作列。並べ替えと表示の切り替えはメニューへ畳む（SPEC §9）。
+  List<Widget> _narrowActions(String? rootPath) {
+    final settings = ref.watch(settingsProvider);
+    return [
+      if (rootPath != null)
+        PopupMenuButton<ViewMode>(
+          icon: Icon(_viewModeIcons[settings.viewMode]),
+          tooltip: '表示',
+          onSelected: _setViewMode,
+          itemBuilder: (context) => [
+            for (final mode in ViewMode.values)
+              CheckedPopupMenuItem(
+                value: mode,
+                checked: mode == settings.viewMode,
+                child: Text(mode.label),
+              ),
+          ],
+        ),
+      IconButton(
+        icon: const Icon(Icons.folder_open),
+        tooltip: 'フォルダを開く',
+        onPressed: _chooseFolder,
+      ),
+      _overflowMenu(rootPath),
+    ];
+  }
+
+  Widget _overflowMenu(String? rootPath) {
+    final settings = ref.watch(settingsProvider);
+    final narrow =
+        paneLayoutFor(MediaQuery.sizeOf(context).width) == PaneLayout.narrow;
+
+    return PopupMenuButton<void>(
+      tooltip: 'その他',
+      itemBuilder: (context) => [
+        // 狭い画面では並べ替えの選択がここに来る。
+        if (narrow && rootPath != null)
+          for (final mode in SortMode.values)
+            CheckedPopupMenuItem<void>(
+              checked: mode == settings.sortMode,
+              onTap: () => ref
+                  .read(settingsProvider.notifier)
+                  .update((current) => current.copyWith(sortMode: mode)),
+              child: Text(mode.label),
+            ),
+        // 重複候補（SPEC FR-B9）。いま開いているフォルダの走査結果を見る。
+        PopupMenuItem(
+          enabled: rootPath != null,
+          onTap: ref.read(searchProvider.notifier).startDuplicates,
+          child: const Text('重複候補を探す'),
+        ),
+        PopupMenuItem(
+          onTap: () => showSettingsDialog(context),
+          child: const Text('設定'),
+        ),
+        PopupMenuItem(
+          onTap: () => showVersionDialog(context),
+          child: const Text('バージョン情報'),
+        ),
+      ],
+    );
+  }
+
+  /// 狭い画面の下部ナビゲーション（SPEC §9）。
+  ///
+  /// 一覧と地図を行き来する。メタ情報はボトムシートで開く。
+  Widget _bottomNavigation() {
+    final settings = ref.watch(settingsProvider);
+    final onMap = settings.viewMode == ViewMode.map;
+    final selected = ref.watch(selectionProvider);
+
+    return NavigationBar(
+      height: 60,
+      selectedIndex: onMap ? 1 : 0,
+      destinations: [
+        const NavigationDestination(
+          icon: Icon(Icons.photo_library_outlined),
+          selectedIcon: Icon(Icons.photo_library),
+          label: '一覧',
+        ),
+        const NavigationDestination(
+          icon: Icon(Icons.map_outlined),
+          selectedIcon: Icon(Icons.map),
+          label: 'マップ',
+        ),
+        NavigationDestination(
+          icon: Badge(
+            isLabelVisible: selected.count > 1,
+            label: Text('${selected.count}'),
+            child: const Icon(Icons.info_outline),
+          ),
+          label: 'メタ情報',
+        ),
+      ],
+      onDestinationSelected: (index) {
+        switch (index) {
+          case 0:
+            _setViewMode(_listViewMode);
+          case 1:
+            _setViewMode(ViewMode.map);
+          case 2:
+            showMetadataSheet(context);
+        }
+      },
+    );
+  }
+
+  /// 地図から一覧へ戻ったときに使う表示モード。
+  ViewMode _listViewMode = ViewMode.grid;
+
+  void _setViewMode(ViewMode mode) {
+    if (mode != ViewMode.map) _listViewMode = mode;
+    ref
+        .read(settingsProvider.notifier)
+        .update((current) => current.copyWith(viewMode: mode));
+  }
+
+  Widget _content(
+    LibraryState library,
+    FolderListing listing,
+    PaneLayout layout,
+  ) {
     final search = ref.watch(searchProvider);
     if (listing.assets.isEmpty && listing.folders.isEmpty) {
       if (search.active) {
@@ -261,11 +377,14 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       }
       return const Center(child: Text('このフォルダに画像・動画はありません'));
     }
+    // 狭い画面ではパネルを隣に置けない。メタ情報はボトムシートで開く。
+    if (!layout.hasSidePanel) return _view(listing);
+
     return Row(
       children: [
         Expanded(child: _view(listing)),
         const VerticalDivider(width: 1),
-        SizedBox(width: wide ? 380 : 320, child: const MetadataPanel()),
+        SizedBox(width: layout.sidePanelWidth, child: const MetadataPanel()),
       ],
     );
   }
@@ -322,17 +441,26 @@ class _DropOverlay extends StatelessWidget {
 }
 
 /// 進捗・件数・エラー件数（SPEC §9）。
-class _StatusBar extends StatelessWidget {
-  const _StatusBar({required this.state, required this.selected});
+///
+/// 狭い画面では選択集合の操作もここに載せ、常に見える 1 本の帯にする。
+class _StatusBar extends ConsumerWidget {
+  const _StatusBar({
+    required this.state,
+    required this.selected,
+    this.onOpenMetadata,
+  });
 
   final LibraryState state;
   final int selected;
 
+  /// 与えられた場合は選択集合の操作を出す（狭レイアウト）。
+  final VoidCallback? onOpenMetadata;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     return SizedBox(
-      height: 28,
+      height: onOpenMetadata == null ? 28 : 36,
       child: Row(
         children: [
           const SizedBox(width: 12),
@@ -343,11 +471,15 @@ class _StatusBar extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           if (state.scanning) const SizedBox(width: 8),
-          Text(
-            '${state.total} 件'
-            '${state.scanning ? ' / 読み取り ${state.analyzed} 件' : ''}'
-            '${selected > 0 ? ' / 選択 $selected 件' : ''}',
-            style: theme.textTheme.bodySmall,
+          Flexible(
+            child: Text(
+              '${state.total} 件'
+              '${state.scanning ? ' / 読み取り ${state.analyzed} 件' : ''}'
+              '${selected > 0 ? ' / 選択 $selected 件' : ''}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
           ),
           const Spacer(),
           if (state.errorCount > 0)
@@ -356,6 +488,15 @@ class _StatusBar extends StatelessWidget {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.error,
               ),
+            ),
+          // 選択集合の操作。開くのは下部ナビゲーションの「メタ情報」が担う。
+          if (onOpenMetadata != null)
+            IconButton(
+              icon: const Icon(Icons.close, size: 18),
+              tooltip: '選択を解除',
+              onPressed: selected == 0
+                  ? null
+                  : ref.read(selectionProvider.notifier).clear,
             ),
           const SizedBox(width: 12),
         ],

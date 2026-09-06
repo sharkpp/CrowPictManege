@@ -7,6 +7,8 @@ import '../domain/search.dart';
 import '../state/search.dart';
 
 /// 検索の入力と範囲の指定（SPEC §5.9）。
+///
+/// 幅が足りない場合は、対象と範囲の選択をメニューへ畳む（SPEC §9）。
 class SearchRow extends ConsumerStatefulWidget {
   const SearchRow({super.key});
 
@@ -34,10 +36,23 @@ class _SearchRowState extends ConsumerState<SearchRow> {
   Widget build(BuildContext context) {
     final query = ref.watch(searchQueryProvider);
     final search = ref.watch(searchProvider);
-    final notifier = ref.read(searchQueryProvider.notifier);
 
     if (search.isSimilar) return const _SimilarRow();
     if (search.isDuplicates) return const _DuplicateRow();
+
+    return LayoutBuilder(
+      builder: (context, constraints) => constraints.maxWidth < _fullRowWidth
+          ? _compact(query, search)
+          : _full(query, search),
+    );
+  }
+
+  /// 入力欄・対象・範囲・ボタンをすべて横に並べるのに要る幅。
+  static const _fullRowWidth = 900.0;
+
+  /// 幅が足りるときの検索行。
+  Widget _full(SearchQuery query, SearchState search) {
+    final notifier = ref.read(searchQueryProvider.notifier);
 
     return SizedBox(
       height: 44,
@@ -112,6 +127,88 @@ class _SearchRowState extends ConsumerState<SearchRow> {
             const SizedBox(width: 8),
             Text('${search.results.length} 件見つかりました'),
           ],
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+
+  /// 狭い画面の検索行。入力欄を伸ばし、対象と範囲はメニューに入れる。
+  Widget _compact(SearchQuery query, SearchState search) {
+    final notifier = ref.read(searchQueryProvider.notifier);
+
+    return SizedBox(
+      height: 44,
+      child: Row(
+        children: [
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              decoration: InputDecoration(
+                isDense: true,
+                prefixIcon: const Icon(Icons.search, size: 18),
+                hintText: query.mode == SearchMode.fileName ? 'ファイル名' : 'タグ名・値',
+                border: const OutlineInputBorder(),
+                suffixIcon: search.active
+                    ? IconButton(
+                        icon: const Icon(Icons.close, size: 16),
+                        tooltip: '検索をやめる',
+                        onPressed: () {
+                          _controller.clear();
+                          ref.read(searchProvider.notifier).clear();
+                        },
+                      )
+                    : null,
+              ),
+              onSubmitted: (_) => _submit(),
+            ),
+          ),
+          PopupMenuButton<void>(
+            icon: const Icon(Icons.tune, size: 20),
+            tooltip: '検索の対象と範囲',
+            itemBuilder: (context) => [
+              for (final mode in SearchMode.values)
+                CheckedPopupMenuItem<void>(
+                  checked: mode == query.mode,
+                  onTap: () => notifier.update(
+                    (current) => current.copyWith(mode: mode),
+                  ),
+                  child: Text(mode.label),
+                ),
+              const PopupMenuDivider(),
+              // 範囲（SPEC FR-Q3）。
+              CheckedPopupMenuItem<void>(
+                checked: query.includeCurrent,
+                onTap: () => notifier.update(
+                  (current) =>
+                      current.copyWith(includeCurrent: !current.includeCurrent),
+                ),
+                child: const Text('現在のフォルダ'),
+              ),
+              CheckedPopupMenuItem<void>(
+                checked: query.includeBookmarks,
+                onTap: () => notifier.update(
+                  (current) => current.copyWith(
+                    includeBookmarks: !current.includeBookmarks,
+                  ),
+                ),
+                child: const Text('ブックマーク'),
+              ),
+            ],
+          ),
+          if (search.running)
+            IconButton(
+              icon: const Icon(Icons.stop, size: 20),
+              tooltip: '中止（走査 ${search.scanned} 件）',
+              onPressed: ref.read(searchProvider.notifier).stop,
+            )
+          else
+            IconButton.filled(
+              icon: const Icon(Icons.search, size: 20),
+              tooltip: '検索',
+              onPressed: _submit,
+            ),
           const SizedBox(width: 8),
         ],
       ),
