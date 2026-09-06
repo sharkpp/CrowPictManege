@@ -61,7 +61,9 @@ class _FakeMetadata implements MetadataPort {
       category: 'preview',
       name: 'ThumbnailImage',
       description: 'サムネイル',
-      printValue: '(バイナリ 2 バイト)',
+      // 中身は値として出せないので、読み取り側は空で渡す。何と出すかは
+      // 表示側が決める（SPEC NFR-7）。
+      printValue: '',
       bytes: Uint8List.fromList([0x41, 0x42]),
       byteLength: 2,
       isBinary: true,
@@ -198,6 +200,17 @@ void main() {
 
     expect(find.text('0.008'), findsOneWidget);
     expect(find.text('1/125'), findsNothing);
+  });
+
+  testWidgets('バイナリタグは長さで示す（SPEC FR-V3）', (tester) async {
+    await pumpPanel(tester, 700);
+
+    await tester.scrollUntilVisible(
+      find.text('ThumbnailImage'),
+      120,
+      scrollable: scrollable,
+    );
+    expect(find.text('(バイナリ 2 バイト)'), findsOneWidget);
   });
 
   testWidgets('16 進ダンプはバイナリタグに出せる（SPEC FR-V3）', (tester) async {
