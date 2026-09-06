@@ -465,53 +465,75 @@ class _PreviewCard extends ConsumerWidget {
                         ref.read(selectionProvider.notifier).remove(asset.path),
                   ),
                 ),
+                // まとまりの中の送り（SPEC FR-M10）。サムネイルの左右に置く。
+                if (total > 1) ...[
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _RoundButton(
+                        icon: Icons.chevron_left,
+                        tooltip: '前の 1 件',
+                        small: true,
+                        onPressed: () => onStep(-1),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: _RoundButton(
+                        icon: Icons.chevron_right,
+                        tooltip: '次の 1 件',
+                        small: true,
+                        onPressed: () => onStep(1),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 1,
+                      ),
+                      color: Colors.black54,
+                      child: Text(
+                        '$position / $total',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 2, 6, 4),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // まとまりの中の送り（SPEC FR-M10）。
-                if (total > 1)
-                  _StepButton(
-                    icon: Icons.chevron_left,
-                    tooltip: '前の 1 件',
-                    onPressed: () => onStep(-1),
-                  ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        asset.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      Text(
-                        total > 1
-                            ? '$position / $total · '
-                                  '${formatCapturedAt(asset.summary?.capturedAt, short: true)}'
-                            : formatCapturedAt(
-                                asset.summary?.capturedAt,
-                                short: true,
-                              ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.outline,
-                        ),
-                      ),
-                    ],
+                Text(
+                  asset.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall,
+                ),
+                Text(
+                  formatCapturedAt(asset.summary?.capturedAt, short: true),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
                   ),
                 ),
-                if (total > 1)
-                  _StepButton(
-                    icon: Icons.chevron_right,
-                    tooltip: '次の 1 件',
-                    onPressed: () => onStep(1),
-                  ),
               ],
             ),
           ),
@@ -547,30 +569,6 @@ class _RoundButton extends StatelessWidget {
         minimumSize: small ? const Size(28, 28) : const Size(40, 40),
         padding: EdgeInsets.zero,
       ),
-      onPressed: onPressed,
-    );
-  }
-}
-
-class _StepButton extends StatelessWidget {
-  const _StepButton({
-    required this.icon,
-    required this.tooltip,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(icon, size: 18),
-      tooltip: tooltip,
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
       onPressed: onPressed,
     );
   }
