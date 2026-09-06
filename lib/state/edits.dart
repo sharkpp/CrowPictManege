@@ -9,6 +9,7 @@ import '../domain/edit_plan.dart';
 import '../domain/models.dart';
 import '../domain/supported_formats.dart';
 import '../ports/metadata_write_port.dart';
+import '../services/parallel.dart';
 import 'library.dart';
 import 'search.dart';
 import 'selection.dart';
@@ -171,21 +172,29 @@ class ApplyNotifier extends Notifier<ApplyState> {
     final failures = <String, WriteFailure>{};
     var done = 0;
 
-    for (final entry in preview.planned) {
-      try {
-        receipts.add(await port.apply(entry.asset.path, entry.plan));
-      } on MetadataWriteFailure catch (failure) {
-        failures[entry.asset.path] = failure.reason;
-      }
-      done++;
-      state = ApplyState(
-        running: true,
-        done: done,
-        total: preview.count,
-        receipts: List.of(receipts),
-        failures: Map.of(failures),
-      );
-    }
+    // 書き込みは 1 件ずつ独立している。並列に走らせて 1,000 件を現実的な
+    // 時間に収める（SPEC NFR-2、§7.3）。
+    await mapWithConcurrency<PlannedEdit, void>(
+      preview.planned,
+      concurrencyForPlatform(),
+      (entry) async {
+        try {
+          receipts.add(await port.apply(entry.asset.path, entry.plan));
+        } on MetadataWriteFailure catch (failure) {
+          failures[entry.asset.path] = failure.reason;
+        } catch (_) {
+          failures[entry.asset.path] = WriteFailure.unknown;
+        }
+        done++;
+        state = ApplyState(
+          running: true,
+          done: done,
+          total: preview.count,
+          receipts: List.of(receipts),
+          failures: Map.of(failures),
+        );
+      },
+    );
 
     state = ApplyState(
       done: done,

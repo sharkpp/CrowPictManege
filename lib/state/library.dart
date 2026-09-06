@@ -220,7 +220,7 @@ class LibraryNotifier extends Notifier<LibraryState> {
 
     final loader = SummaryLoader(
       ref.read(metadataPortProvider),
-      concurrency: _concurrency,
+      concurrency: concurrencyForPlatform(),
     );
 
     await for (final batch in loader.run(pending)) {
@@ -339,15 +339,6 @@ class LibraryNotifier extends Notifier<LibraryState> {
   void _dropMissingFromSelection() => ref
       .read(selectionProvider.notifier)
       .keepOnly({for (final asset in state.assets) asset.path});
-
-  static int get _concurrency {
-    final cores =
-        defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android
-        ? 2
-        : 6;
-    return cores;
-  }
 }
 
 final libraryProvider = NotifierProvider<LibraryNotifier, LibraryState>(
