@@ -940,6 +940,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get editTargetXmp => 'XMP';
 
   @override
+  String get editTargetQuickTime => 'QuickTime';
+
+  @override
   String get editTargetFileSystem => 'ファイル日時';
 
   @override

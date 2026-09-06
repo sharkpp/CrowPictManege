@@ -31,14 +31,14 @@ final _asset = MediaAsset(
   ),
 );
 
-/// 書き込めない形式（SPEC §8）。
+/// 書き込めない形式（SPEC §3.2、§8）。AVI は読めるが書けない。
 final _video = MediaAsset(
-  path: '/root/clip.mov',
-  name: 'clip.mov',
+  path: '/root/clip.avi',
+  name: 'clip.avi',
   kind: AssetKind.video,
   size: 1234,
   fileModifiedAt: DateTime(2024, 6, 1),
-  summary: const AssetSummary(fileType: 'MOV'),
+  summary: const AssetSummary(fileType: 'AVI'),
 );
 
 /// 編集の作業面（SPEC §5.3、FR-E5）。

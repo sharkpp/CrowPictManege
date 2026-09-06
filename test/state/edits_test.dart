@@ -50,8 +50,8 @@ void main() {
     for (final name in ['a.jpg', 'b.jpg']) {
       File('${root.path}/$name').writeAsBytesSync(source);
     }
-    // 書けない形式も 1 つ混ぜる（SPEC §8）。
-    File('${root.path}/clip.mov').writeAsBytesSync([0, 1, 2, 3]);
+    // 書けない形式も 1 つ混ぜる（SPEC §3.2、§8）。AVI は読めるが書けない。
+    File('${root.path}/clip.avi').writeAsBytesSync([0, 1, 2, 3]);
   });
 
   tearDown(() {
@@ -80,7 +80,7 @@ void main() {
     final container = await opened();
     container.read(selectionProvider.notifier).selectPaths([
       '${root.path}/a.jpg',
-      '${root.path}/clip.mov',
+      '${root.path}/clip.avi',
     ]);
     container
         .read(editQueueProvider.notifier)
@@ -88,7 +88,7 @@ void main() {
 
     final preview = container.read(editPreviewProvider);
     expect(preview.count, 1);
-    expect(preview.unwritable.single.name, 'clip.mov');
+    expect(preview.unwritable.single.name, 'clip.avi');
   });
 
   test('適用するとファイルへ書かれ、一覧が読み直される', () async {

@@ -38,10 +38,9 @@ bool isDecodableByFlutter(String path) {
   }.contains(path.substring(dot + 1).toLowerCase());
 }
 
-/// crowexif がメタ情報を書き込める形式（SPEC §3.1）。
+/// crowexif がメタ情報を書き込める形式（SPEC §3.1、§3.2）。
 ///
-/// 動画への書き込みは crowexif に ISO BMFF 書き込みが入るまで立たない
-/// （SPEC §3.2、§13）。
+/// 動画は ISO BMFF 系だけが書ける。AVI（RIFF）は読み取りのみとする。
 const _writableExtensions = {
   'jpg',
   'jpeg',
@@ -52,6 +51,11 @@ const _writableExtensions = {
   'webp',
   'heic',
   'heif',
+  'mp4',
+  'mov',
+  'm4v',
+  '3gp',
+  '3g2',
 };
 
 /// この対象のメタ情報を書き換えられるか。

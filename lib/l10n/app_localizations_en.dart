@@ -1042,6 +1042,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editTargetXmp => 'XMP';
 
   @override
+  String get editTargetQuickTime => 'QuickTime';
+
+  @override
   String get editTargetFileSystem => 'File date';
 
   @override

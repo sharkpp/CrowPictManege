@@ -142,7 +142,8 @@ void main() {
   });
 
   test('書けない形式は理由を添えて失敗する', () {
-    final other = '${temporary.path}/clip.mov';
+    // AVI は読めるが書けない（SPEC §3.2）。
+    final other = '${temporary.path}/clip.avi';
     File(other).writeAsStringSync('not an image');
 
     expect(
@@ -161,6 +162,86 @@ void main() {
         ),
       ),
     );
+  });
+
+  group('動画（SPEC §3.2、§13）', () {
+    late String moviePath;
+    late EditTarget movieTarget;
+
+    setUp(() {
+      moviePath = '${temporary.path}/clip.mp4';
+      File(
+        moviePath,
+      ).writeAsBytesSync(File('test/fixtures/movie.mp4').readAsBytesSync());
+      movieTarget = EditTarget(
+        path: moviePath,
+        fileName: 'clip.mp4',
+        fileModifiedAt: DateTime(2024, 6, 1),
+      );
+    });
+
+    test('時刻は UTC の瞬間として書き戻る', () {
+      final plan = planEdits([
+        SetTime(
+          DateTime(2024, 1, 15, 12, 34, 56),
+          offset: const Duration(hours: 9),
+        ),
+      ], movieTarget);
+
+      applyPlanSync(moviePath, plan, backupDirectory: backups);
+
+      final captured = readSummarySync(moviePath).capturedAt!;
+      expect(
+        captured.utcInstant,
+        DateTime.utc(2024, 1, 15, 3, 34, 56),
+        reason: '動画のヘッダはオフセットを持てないので UTC で持つ',
+      );
+    });
+
+    test('位置は座標として書き戻る', () {
+      final plan = planEdits(const [
+        SetLocation(latitude: 35.681236, longitude: 139.767125),
+      ], movieTarget);
+
+      applyPlanSync(moviePath, plan, backupDirectory: backups);
+
+      final location = readSummarySync(moviePath).location!;
+      expect(location.latitude, closeTo(35.681236, 1e-5));
+      expect(location.longitude, closeTo(139.767125, 1e-5));
+    });
+
+    test('位置の削除で位置が消える', () {
+      applyPlanSync(
+        moviePath,
+        planEdits(const [
+          SetLocation(latitude: -33.8688, longitude: -70.6693),
+        ], movieTarget),
+        backupDirectory: backups,
+      );
+      expect(readSummarySync(moviePath).location, isNotNull);
+
+      applyPlanSync(
+        moviePath,
+        planEdits(const [ClearLocation()], movieTarget),
+        backupDirectory: backups,
+      );
+      expect(readSummarySync(moviePath).location, isNull);
+    });
+
+    test('取り消せば元のファイルに戻る', () {
+      final before = File(moviePath).readAsBytesSync();
+      final receipt = applyPlanSync(
+        moviePath,
+        planEdits(const [
+          SetLocation(latitude: 35.0, longitude: 139.0),
+        ], movieTarget),
+        backupDirectory: backups,
+      );
+
+      expect(File(moviePath).readAsBytesSync(), isNot(before));
+      undoSync(receipt);
+      expect(File(moviePath).readAsBytesSync(), before);
+    });
   });
 
   test('無いファイルは書けない', () {

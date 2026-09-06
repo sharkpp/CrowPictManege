@@ -717,6 +717,7 @@
   "editClearQueue": "すべて外す",
   "editTargetExif": "Exif",
   "editTargetXmp": "XMP",
+  "editTargetQuickTime": "QuickTime",
   "editTargetFileSystem": "ファイル日時",
   "editApply": "適用",
   "editApplyCount": "{count} 件に適用",

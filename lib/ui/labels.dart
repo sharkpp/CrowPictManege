@@ -164,6 +164,7 @@ extension AppLabels on AppLocalizations {
   String timeTargetLabel(TimeTarget target) => switch (target) {
     TimeTarget.exif => editTargetExif,
     TimeTarget.xmp => editTargetXmp,
+    TimeTarget.quickTime => editTargetQuickTime,
     TimeTarget.fileSystem => editTargetFileSystem,
   };
 

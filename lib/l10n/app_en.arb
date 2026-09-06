@@ -274,6 +274,7 @@
   "editClearQueue": "Remove all",
   "editTargetExif": "Exif",
   "editTargetXmp": "XMP",
+  "editTargetQuickTime": "QuickTime",
   "editTargetFileSystem": "File date",
   "editApply": "Apply",
   "editApplyCount": "Apply to {count}",

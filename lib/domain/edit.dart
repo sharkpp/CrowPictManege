@@ -11,12 +11,20 @@ enum TimeTarget {
   /// XMP の日時（xmp:CreateDate / photoshop:DateCreated）。
   xmp,
 
+  /// QuickTime の日時（動画のヘッダが持つ時刻）。動画にだけ効く。
+  quickTime,
+
   /// ファイルシステムの更新日時。
   fileSystem,
 }
 
 /// 時刻を全て書く既定の組み合わせ（SPEC FR-E3-7）。
-const allTimeTargets = {TimeTarget.exif, TimeTarget.xmp, TimeTarget.fileSystem};
+const allTimeTargets = {
+  TimeTarget.exif,
+  TimeTarget.xmp,
+  TimeTarget.quickTime,
+  TimeTarget.fileSystem,
+};
 
 /// タイムゾーンを変えるときの解釈（SPEC §4.3 SetTimeZone）。
 enum TimeZoneMode {

@@ -1,6 +1,7 @@
 import 'edit.dart';
 import 'models.dart';
 import 'normalize.dart';
+import 'supported_formats.dart';
 
 /// ファイルへ加える 1 件の書き込み。
 ///
@@ -188,10 +189,13 @@ EditPlan planEdits(
     }
   }
 
+  // 動画はタグの置き場所が画像と違う。書き込み先はここで分ける（SPEC §3.3）。
+  final isMovie = kindForExtension(target.path) == AssetKind.video;
+
   final writes = <TagWrite>[
     if (capturedChanged && captured != null)
-      ..._timeWrites(captured, timeTargets),
-    if (locationChanged) ..._locationWrites(place),
+      ..._timeWrites(captured, timeTargets, isMovie: isMovie),
+    if (locationChanged) ..._locationWrites(place, isMovie: isMovie),
     // 直接指定は最後に置き、導いた値より後から効くようにする。
     ...direct,
   ];
@@ -234,10 +238,23 @@ CapturedAt _sameSource(CapturedAt from, DateTime wallClock) => CapturedAt(
 );
 
 /// 撮影時刻を、選ばれた書き込み先のタグへ落とす（SPEC §3.3、FR-E3-7）。
-List<TagWrite> _timeWrites(CapturedAt captured, Set<TimeTarget> targets) {
+List<TagWrite> _timeWrites(
+  CapturedAt captured,
+  Set<TimeTarget> targets, {
+  required bool isMovie,
+}) {
   final writes = <TagWrite>[];
   final wallClock = captured.wallClock;
   final offset = captured.offset;
+
+  // 動画のヘッダは UTC の瞬間しか持てない。オフセットの分を畳んで書く。
+  if (isMovie) {
+    if (!targets.contains(TimeTarget.quickTime)) return writes;
+    final stamp = exifDateTime(captured.utcInstant ?? wallClock);
+    writes.add(TagWrite('QuickTime', 'CreateDate', stamp));
+    writes.add(TagWrite('QuickTime', 'ModifyDate', stamp));
+    return writes;
+  }
 
   if (targets.contains(TimeTarget.exif)) {
     final stamp = exifDateTime(wallClock);
@@ -269,7 +286,21 @@ List<TagWrite> _timeWrites(CapturedAt captured, Set<TimeTarget> targets) {
 }
 
 /// 位置を GPS タグへ落とす。null なら位置を持つタグを消す（SPEC FR-E4-5）。
-List<TagWrite> _locationWrites(GeoPoint? point) {
+List<TagWrite> _locationWrites(GeoPoint? point, {required bool isMovie}) {
+  // 動画は座標を 1 つの文字列（ISO 6709）で持つ。組み立ては crowexif に任せ、
+  // ここは度の数を渡すだけにする。
+  if (isMovie) {
+    if (point == null) return const [TagWrite.clearGroup('GPS')];
+    final altitude = point.altitude;
+    return [
+      TagWrite(
+        'QuickTime',
+        'GPSCoordinates',
+        '${point.latitude} ${point.longitude}'
+            '${altitude == null ? '' : ' $altitude'}',
+      ),
+    ];
+  }
   if (point == null) {
     return const [
       TagWrite.clearGroup('GPS'),

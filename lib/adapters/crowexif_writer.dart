@@ -137,8 +137,14 @@ void _verify(String path, EditPlan plan) {
   }
 
   if (plan.capturedChanged) {
-    final wanted = plan.capturedAt?.wallClock;
-    final got = summary.capturedAt?.wallClock;
+    // 瞬間が分かるなら瞬間で見る。オフセットを持てない形式（動画のヘッダは
+    // UTC で持つ）では、壁時計の表記が変わっても同じ時刻でありうる。
+    final wantedInstant = plan.capturedAt?.utcInstant;
+    final gotInstant = summary.capturedAt?.utcInstant;
+    final wanted = wantedInstant ?? plan.capturedAt?.wallClock;
+    final got = wantedInstant != null && gotInstant != null
+        ? gotInstant
+        : summary.capturedAt?.wallClock;
     if (wanted == null || got == null || !_sameSecond(wanted, got)) {
       throw const MetadataWriteFailure(WriteFailure.verificationFailed);
     }
@@ -207,6 +213,7 @@ const _derivedNames = {
   'GPSLongitude',
   'GPSAltitude',
   'GPSAltitudeRef',
+  'GPSCoordinates',
 };
 
 /// 度分秒の有理数へ落とす分だけ、書いた値と読み直した値はわずかにずれる。

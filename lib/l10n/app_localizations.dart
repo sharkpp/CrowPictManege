@@ -1742,6 +1742,12 @@ abstract class AppLocalizations {
   /// **'XMP'**
   String get editTargetXmp;
 
+  /// No description provided for @editTargetQuickTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'QuickTime'**
+  String get editTargetQuickTime;
+
   /// No description provided for @editTargetFileSystem.
   ///
   /// In ja, this message translates to:
