@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../domain/models.dart';
+import 'labels.dart';
 
 final _dateTime = DateFormat('yyyy/MM/dd HH:mm:ss');
 final _dateTimeShort = DateFormat('yyyy/MM/dd HH:mm');
@@ -45,8 +46,8 @@ String formatCapturedAt(CapturedAt? captured, {bool short = false}) {
 String describeTimeBasis(CapturedAt captured) {
   final offset = captured.offset == null
       ? 'オフセット不明'
-      : 'オフセット: ${captured.offsetSource.label}';
-  return '${captured.source.label} / $offset';
+      : 'オフセット: ${offsetSourceLabel(captured.offsetSource)}';
+  return '${timeSourceLabel(captured.source)} / $offset';
 }
 
 String formatCoordinates(GeoPoint point) =>

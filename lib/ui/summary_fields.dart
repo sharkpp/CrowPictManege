@@ -15,7 +15,9 @@ Map<SummaryField, String> summaryFields(MediaAsset asset) {
     SummaryField.name: asset.name,
     SummaryField.kind: assetKindLabel(asset.kind),
     SummaryField.capturedAt: formatCapturedAt(captured),
-    SummaryField.timeBasis: captured == null ? '—' : describeTimeBasis(captured),
+    SummaryField.timeBasis: captured == null
+        ? '—'
+        : describeTimeBasis(captured),
     SummaryField.location: location == null ? '—' : formatCoordinates(location),
     SummaryField.altitude: location?.altitude == null
         ? '—'
@@ -50,7 +52,6 @@ String summaryFieldLabel(SummaryField field) => switch (field) {
 };
 
 /// 種別に出す言葉。
-String assetKindLabel(AssetKind kind) =>
-    kind == AssetKind.video ? '動画' : '画像';
+String assetKindLabel(AssetKind kind) => kind == AssetKind.video ? '動画' : '画像';
 
 String _orDash(String? value) => value == null || value.isEmpty ? '—' : value;

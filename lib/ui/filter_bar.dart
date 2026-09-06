@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/library.dart';
 import 'column_filter_dialog.dart';
+import 'labels.dart';
 
 /// 適用中の絞り込みを常に見せ、1 操作で解除できるようにする（SPEC FR-B19、FR-F5）。
 class FilterBar extends ConsumerWidget {
@@ -31,7 +32,7 @@ class FilterBar extends ConsumerWidget {
                       padding: const EdgeInsets.only(right: 6),
                       child: InputChip(
                         label: Text(
-                          '${entry.key.label}: ${entry.value.describe()}',
+                          '${columnLabel(entry.key)}: ${entry.value.describe()}',
                         ),
                         onPressed: () =>
                             showColumnFilterDialog(context, entry.key),
@@ -42,10 +43,7 @@ class FilterBar extends ConsumerWidget {
               ),
             ),
           ),
-          TextButton(
-            onPressed: notifier.clearAll,
-            child: const Text('すべて解除'),
-          ),
+          TextButton(onPressed: notifier.clearAll, child: const Text('すべて解除')),
           const SizedBox(width: 8),
         ],
       ),

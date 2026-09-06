@@ -2,36 +2,18 @@ import 'columns.dart';
 import 'pinned_fields.dart';
 
 /// 一覧の表示モード（SPEC FR-B10）。
-enum ViewMode {
-  grid('サムネイル'),
-  list('リスト'),
-  gallery('ギャラリー'),
-  map('マップ');
-
-  const ViewMode(this.label);
-  final String label;
-}
+enum ViewMode { grid, list, gallery, map }
 
 /// 並べ替えの基準。
-enum SortMode {
-  capturedAt('撮影時刻'),
-  name('ファイル名'),
-  size('サイズ');
-
-  const SortMode(this.label);
-  final String label;
-}
+enum SortMode { capturedAt, name, size }
 
 /// 現在のフォルダ以下の扱い（SPEC FR-B11、FR-P2）。
 enum FolderMode {
   /// 下位フォルダの対象をすべて 1 つの並びに出す。
-  flat('展開して表示'),
+  flat,
 
   /// 直下の対象とフォルダを並べ、フォルダを開いて降りる。
-  folders('フォルダとして表示');
-
-  const FolderMode(this.label);
-  final String label;
+  folders,
 }
 
 /// 永続化する設定（SPEC §5.10）。
@@ -77,40 +59,40 @@ class AppSettings {
     double? tileSize,
     List<ColumnLayout>? columns,
     List<String>? pinned,
-  }) =>
-      AppSettings(
-        folderMode: folderMode ?? this.folderMode,
-        folderThumbnails: folderThumbnails ?? this.folderThumbnails,
-        viewMode: viewMode ?? this.viewMode,
-        sortMode: sortMode ?? this.sortMode,
-        tileSize: tileSize ?? this.tileSize,
-        columns: columns ?? this.columns,
-        pinned: pinned ?? this.pinned,
-      );
+  }) => AppSettings(
+    folderMode: folderMode ?? this.folderMode,
+    folderThumbnails: folderThumbnails ?? this.folderThumbnails,
+    viewMode: viewMode ?? this.viewMode,
+    sortMode: sortMode ?? this.sortMode,
+    tileSize: tileSize ?? this.tileSize,
+    columns: columns ?? this.columns,
+    pinned: pinned ?? this.pinned,
+  );
 
   Map<String, String> toMap() => {
-        'folderMode': folderMode.name,
-        'folderThumbnails': '$folderThumbnails',
-        'viewMode': viewMode.name,
-        'sortMode': sortMode.name,
-        'tileSize': '$tileSize',
-        'columns': encodeColumns(columnLayouts),
-        'pinned': encodePinned(pinned),
-      };
+    'folderMode': folderMode.name,
+    'folderThumbnails': '$folderThumbnails',
+    'viewMode': viewMode.name,
+    'sortMode': sortMode.name,
+    'tileSize': '$tileSize',
+    'columns': encodeColumns(columnLayouts),
+    'pinned': encodePinned(pinned),
+  };
 
   /// 読めない値・知らない値は既定値に落とす。設定の壊れで起動できなくならないため。
   factory AppSettings.fromMap(Map<String, String> map) {
     const defaults = AppSettings();
     return AppSettings(
-      folderMode: _enumOf(FolderMode.values, map['folderMode']) ??
-          defaults.folderMode,
+      folderMode:
+          _enumOf(FolderMode.values, map['folderMode']) ?? defaults.folderMode,
       folderThumbnails:
-          (int.tryParse(map['folderThumbnails'] ?? '') ?? defaults.folderThumbnails)
+          (int.tryParse(map['folderThumbnails'] ?? '') ??
+                  defaults.folderThumbnails)
               .clamp(0, maxFolderThumbnails),
       viewMode: _enumOf(ViewMode.values, map['viewMode']) ?? defaults.viewMode,
       sortMode: _enumOf(SortMode.values, map['sortMode']) ?? defaults.sortMode,
-      tileSize:
-          (double.tryParse(map['tileSize'] ?? '') ?? defaults.tileSize).clamp(96, 320),
+      tileSize: (double.tryParse(map['tileSize'] ?? '') ?? defaults.tileSize)
+          .clamp(96, 320),
       columns: decodeColumns(map['columns']),
       pinned: decodePinned(map['pinned']),
     );

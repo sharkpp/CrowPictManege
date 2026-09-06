@@ -3,13 +3,10 @@ import 'models.dart';
 /// 重複候補と見なした理由（SPEC FR-B9）。
 enum DuplicateReason {
   /// 内容ハッシュが一致した。
-  content('内容が同じ'),
+  content,
 
   /// 撮影時刻と機材が一致した。連写の書き出し違いなどが当たる。
-  capture('撮影時刻と機材が同じ');
-
-  const DuplicateReason(this.label);
-  final String label;
+  capture,
 }
 
 /// 重複候補の 1 組（SPEC FR-B9）。

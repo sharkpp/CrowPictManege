@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/settings.dart';
 import '../state/places.dart';
 import '../state/settings.dart';
+import 'labels.dart';
 
 /// 設定（SPEC §5.10）。変更は即座に効き、そのまま保存される。
 Future<void> showSettingsDialog(BuildContext context) => showDialog<void>(
-      context: context,
-      builder: (context) => const _SettingsDialog(),
-    );
+  context: context,
+  builder: (context) => const _SettingsDialog(),
+);
 
 class _SettingsDialog extends ConsumerWidget {
   const _SettingsDialog();
@@ -26,7 +27,7 @@ class _SettingsDialog extends ConsumerWidget {
       content: SizedBox(
         width: 420,
         child: SingleChildScrollView(
-            child: Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -35,7 +36,10 @@ class _SettingsDialog extends ConsumerWidget {
               SegmentedButton<FolderMode>(
                 segments: [
                   for (final mode in FolderMode.values)
-                    ButtonSegment(value: mode, label: Text(mode.label)),
+                    ButtonSegment(
+                      value: mode,
+                      label: Text(folderModeLabel(mode)),
+                    ),
                 ],
                 selected: {settings.folderMode},
                 showSelectedIcon: false,
@@ -47,8 +51,9 @@ class _SettingsDialog extends ConsumerWidget {
               Text(
                 '展開して表示は下位フォルダの対象もまとめて並べる。'
                 'フォルダとして表示は直下だけを並べ、フォルダを開いて降りる。',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
               ),
               const SizedBox(height: 16),
               Text('フォルダに出すサムネイルの枚数', style: theme.textTheme.labelLarge),
@@ -115,8 +120,9 @@ class _CacheSection extends ConsumerWidget {
                   loading: () => '数えています…',
                   error: (error, _) => '読めません: $error',
                 ),
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.outline),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
               ),
             ],
           ),

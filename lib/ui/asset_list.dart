@@ -14,6 +14,7 @@ import 'column_display.dart';
 import 'column_filter_dialog.dart';
 import 'column_settings_dialog.dart';
 import 'folder_tile.dart';
+import 'labels.dart';
 
 /// リスト表示（SPEC FR-B3）。
 ///
@@ -265,7 +266,7 @@ class _HeaderCell extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    layout.column.label,
+                    columnLabel(layout.column),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: active

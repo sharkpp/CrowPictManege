@@ -5,6 +5,7 @@ import '../domain/duplicates.dart';
 import '../domain/perceptual_hash.dart';
 import '../domain/search.dart';
 import '../state/search.dart';
+import 'labels.dart';
 
 /// 検索の入力と範囲の指定（SPEC §5.9）。
 ///
@@ -88,7 +89,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
           SegmentedButton<SearchMode>(
             segments: [
               for (final mode in SearchMode.values)
-                ButtonSegment(value: mode, label: Text(mode.label)),
+                ButtonSegment(value: mode, label: Text(searchModeLabel(mode))),
             ],
             selected: {query.mode},
             showSelectedIcon: false,
@@ -174,7 +175,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
                   onTap: () => notifier.update(
                     (current) => current.copyWith(mode: mode),
                   ),
-                  child: Text(mode.label),
+                  child: Text(searchModeLabel(mode)),
                 ),
               const PopupMenuDivider(),
               // 範囲（SPEC FR-Q3）。
@@ -301,7 +302,9 @@ class _DuplicateRow extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(right: 6),
               child: Chip(
-                label: Text('${entry.key.label} ${entry.value} 組'),
+                label: Text(
+                  '${duplicateReasonLabel(entry.key)} ${entry.value} 組',
+                ),
                 visualDensity: VisualDensity.compact,
               ),
             ),

@@ -3,13 +3,7 @@ import 'columns.dart';
 import 'models.dart';
 
 /// 検索の対象（SPEC FR-Q1、FR-Q2）。
-enum SearchMode {
-  fileName('ファイル名'),
-  metadata('メタ情報');
-
-  const SearchMode(this.label);
-  final String label;
-}
+enum SearchMode { fileName, metadata }
 
 /// 検索の指定（SPEC §5.9）。
 class SearchQuery {
@@ -36,13 +30,12 @@ class SearchQuery {
     SearchMode? mode,
     bool? includeCurrent,
     bool? includeBookmarks,
-  }) =>
-      SearchQuery(
-        text: text ?? this.text,
-        mode: mode ?? this.mode,
-        includeCurrent: includeCurrent ?? this.includeCurrent,
-        includeBookmarks: includeBookmarks ?? this.includeBookmarks,
-      );
+  }) => SearchQuery(
+    text: text ?? this.text,
+    mode: mode ?? this.mode,
+    includeCurrent: includeCurrent ?? this.includeCurrent,
+    includeBookmarks: includeBookmarks ?? this.includeBookmarks,
+  );
 }
 
 /// `Group:Name=値` の指定を解いた形（SPEC FR-Q2）。
@@ -125,7 +118,9 @@ List<String> foldRoots(Iterable<String> roots, {required String separator}) {
   }
   return [
     for (final root in unique)
-      if (!unique.any((other) => other != root && _contains(other, root, separator)))
+      if (!unique.any(
+        (other) => other != root && _contains(other, root, separator),
+      ))
         root,
   ];
 }

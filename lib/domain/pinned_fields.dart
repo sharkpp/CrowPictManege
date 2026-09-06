@@ -60,7 +60,11 @@ List<String> decodePinned(String? encoded) {
 
 /// 要約に出す 1 行。
 class PinnedRow {
-  const PinnedRow({required this.key, required this.label, required this.value});
+  const PinnedRow({
+    required this.key,
+    required this.label,
+    required this.value,
+  });
 
   final String key;
   final String label;
@@ -85,11 +89,7 @@ List<PinnedRow> pinnedRows(
     final field = summaryFieldOfKey(key);
     if (field != null) {
       rows.add(
-        PinnedRow(
-          key: key,
-          label: labelOf(field),
-          value: fields[field] ?? '—',
-        ),
+        PinnedRow(key: key, label: labelOf(field), value: fields[field] ?? '—'),
       );
       continue;
     }

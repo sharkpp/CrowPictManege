@@ -30,6 +30,7 @@ import 'search_row.dart';
 import 'settings_dialog.dart';
 import 'start_view.dart';
 import 'version_dialog.dart';
+import 'labels.dart';
 
 /// 作業面（SPEC §9）。絞り込む → 選ぶ → 見る、を 1 画面で行う。
 class BrowsePage extends ConsumerStatefulWidget {
@@ -194,7 +195,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               ButtonSegment(
                 value: mode,
                 icon: Icon(_viewModeIcons[mode]),
-                tooltip: mode.label,
+                tooltip: viewModeLabel(mode),
               ),
           ],
           selected: {settings.viewMode},
@@ -213,7 +214,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           },
           items: [
             for (final mode in SortMode.values)
-              DropdownMenuItem(value: mode, child: Text(mode.label)),
+              DropdownMenuItem(value: mode, child: Text(sortModeLabel(mode))),
           ],
         ),
         if (settings.viewMode == ViewMode.grid) ...[
@@ -255,7 +256,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               CheckedPopupMenuItem(
                 value: mode,
                 checked: mode == settings.viewMode,
-                child: Text(mode.label),
+                child: Text(viewModeLabel(mode)),
               ),
           ],
         ),
@@ -284,7 +285,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               onTap: () => ref
                   .read(settingsProvider.notifier)
                   .update((current) => current.copyWith(sortMode: mode)),
-              child: Text(mode.label),
+              child: Text(sortModeLabel(mode)),
             ),
         // 重複候補（SPEC FR-B9）。いま開いているフォルダの走査結果を見る。
         PopupMenuItem(

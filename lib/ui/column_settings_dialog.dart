@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/columns.dart';
 import '../state/settings.dart';
+import 'labels.dart';
 
 /// 列の表示・非表示と並び順（SPEC FR-B18、FR-P4）。
 Future<void> showColumnSettingsDialog(BuildContext context) => showDialog<void>(
-      context: context,
-      builder: (context) => const _ColumnSettingsDialog(),
-    );
+  context: context,
+  builder: (context) => const _ColumnSettingsDialog(),
+);
 
 class _ColumnSettingsDialog extends ConsumerWidget {
   const _ColumnSettingsDialog();
@@ -42,7 +43,7 @@ class _ColumnSettingsDialog extends ConsumerWidget {
                 child: CheckboxListTile(
                   dense: true,
                   value: layouts[i].visible,
-                  title: Text(layouts[i].column.label),
+                  title: Text(columnLabel(layouts[i].column)),
                   secondary: const Icon(Icons.drag_handle, size: 20),
                   onChanged: (checked) {
                     final next = List.of(layouts);

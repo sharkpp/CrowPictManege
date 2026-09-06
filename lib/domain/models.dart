@@ -5,32 +5,26 @@ enum AssetKind { image, video }
 
 /// 撮影時刻の壁時計値がどのタグ由来かを表す（SPEC §4.2）。
 enum TimeSource {
-  exifDateTimeOriginal('EXIF:DateTimeOriginal'),
-  exifCreateDate('EXIF:CreateDate'),
-  xmpCreateDate('XMP:CreateDate'),
-  quickTimeCreateDate('QuickTime:CreateDate'),
-  fileModified('File:FileModifyDate');
-
-  const TimeSource(this.label);
-  final String label;
+  exifDateTimeOriginal,
+  exifCreateDate,
+  xmpCreateDate,
+  quickTimeCreateDate,
+  fileModified,
 }
 
 /// タイムゾーンオフセットの決定根拠。
 enum OffsetSource {
   /// Exif OffsetTime* が入っていた。
-  tag('OffsetTime'),
+  tag,
 
   /// GPS 時刻との差分から求めた。
-  gps('GPS 時刻との差'),
+  gps,
 
   /// QuickTime の CreateDate は仕様上 UTC である。
-  quickTimeUtc('QuickTime 仕様 (UTC)'),
+  quickTimeUtc,
 
   /// 決められなかった。
-  unknown('不明');
-
-  const OffsetSource(this.label);
-  final String label;
+  unknown,
 }
 
 /// 撮影時刻。壁時計時刻・オフセット・UTC 瞬間の 3 要素で保持する（SPEC §4.2）。
@@ -171,22 +165,22 @@ class MediaAsset {
   String get id => path;
 
   MediaAsset withSummary(AssetSummary value) => MediaAsset(
-        path: path,
-        name: name,
-        kind: kind,
-        size: size,
-        fileModifiedAt: fileModifiedAt,
-        summary: value,
-      );
+    path: path,
+    name: name,
+    kind: kind,
+    size: size,
+    fileModifiedAt: fileModifiedAt,
+    summary: value,
+  );
 
   MediaAsset withError(String message) => MediaAsset(
-        path: path,
-        name: name,
-        kind: kind,
-        size: size,
-        fileModifiedAt: fileModifiedAt,
-        error: message,
-      );
+    path: path,
+    name: name,
+    kind: kind,
+    size: size,
+    fileModifiedAt: fileModifiedAt,
+    error: message,
+  );
 
   /// 撮影時刻。読めていない場合はファイル更新時刻で代用する。
   DateTime get sortKey => summary?.capturedAt?.wallClock ?? fileModifiedAt;

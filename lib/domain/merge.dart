@@ -60,16 +60,18 @@ List<TagRecord> mergeTagRecords(List<List<TagRecord>> perAsset) {
   for (final entry in represent.entries) {
     final tag = entry.value;
     final value = _mergedValue(entry.key, perAssetValues);
-    merged.add(TagRecord(
-      group: tag.group,
-      subGroup: tag.subGroup,
-      category: tag.category,
-      name: tag.name,
-      description: tag.description,
-      printValue: value ?? mixedValueLabel,
-      rawValue: _mergedValue(entry.key, perAssetRaw) ?? mixedValueLabel,
-      isBinary: tag.isBinary && value != null,
-    ));
+    merged.add(
+      TagRecord(
+        group: tag.group,
+        subGroup: tag.subGroup,
+        category: tag.category,
+        name: tag.name,
+        description: tag.description,
+        printValue: value ?? mixedValueLabel,
+        rawValue: _mergedValue(entry.key, perAssetRaw) ?? mixedValueLabel,
+        isBinary: tag.isBinary && value != null,
+      ),
+    );
   }
   return merged;
 }

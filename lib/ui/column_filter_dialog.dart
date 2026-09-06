@@ -4,12 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
 import '../state/library.dart';
+import 'labels.dart';
 
 /// 1 つの列のフィルタを編集する（SPEC FR-B19）。
-Future<void> showColumnFilterDialog(
-  BuildContext context,
-  AssetColumn column,
-) =>
+Future<void> showColumnFilterDialog(BuildContext context, AssetColumn column) =>
     showDialog<void>(
       context: context,
       builder: (context) => _ColumnFilterDialog(column: column),
@@ -36,7 +34,8 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
   @override
   void initState() {
     super.initState();
-    final filter = ref.read(columnFiltersProvider)[widget.column] ??
+    final filter =
+        ref.read(columnFiltersProvider)[widget.column] ??
         emptyFilterFor(widget.column.valueType);
     _filter = filter;
     switch (filter) {
@@ -61,7 +60,7 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('${widget.column.label} で絞り込む'),
+      title: Text('${columnLabel(widget.column)} で絞り込む'),
       content: SizedBox(width: 360, child: _editor()),
       actions: [
         TextButton(
@@ -108,9 +107,8 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
               dense: true,
               title: const Text('正規表現として扱う'),
               value: regex,
-              onChanged: (value) => setState(
-                () => _filter = TextFilter(query, regex: value),
-              ),
+              onChanged: (value) =>
+                  setState(() => _filter = TextFilter(query, regex: value)),
             ),
             if (regex && !(_filter as TextFilter).isUsable)
               Align(
@@ -137,8 +135,8 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) => setState(
-                  () => _filter =
-                      RangeFilter(min: num.tryParse(value), max: max),
+                  () =>
+                      _filter = RangeFilter(min: num.tryParse(value), max: max),
                 ),
               ),
             ),
@@ -152,8 +150,8 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                   border: const OutlineInputBorder(),
                 ),
                 onChanged: (value) => setState(
-                  () => _filter =
-                      RangeFilter(min: min, max: num.tryParse(value)),
+                  () =>
+                      _filter = RangeFilter(min: min, max: num.tryParse(value)),
                 ),
               ),
             ),
@@ -167,8 +165,9 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
             _DateRow(
               label: 'この日から',
               value: from,
-              onChanged: (value) =>
-                  setState(() => _filter = DateRangeFilter(from: value, to: to)),
+              onChanged: (value) => setState(
+                () => _filter = DateRangeFilter(from: value, to: to),
+              ),
             ),
             _DateRow(
               label: 'この日まで',
@@ -179,7 +178,14 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
                   from: from,
                   to: value == null
                       ? null
-                      : DateTime(value.year, value.month, value.day, 23, 59, 59),
+                      : DateTime(
+                          value.year,
+                          value.month,
+                          value.day,
+                          23,
+                          59,
+                          59,
+                        ),
                 ),
               ),
             ),
