@@ -961,4 +961,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get tagEditQueued => '編集に積んだ';
+
+  @override
+  String get editConfirmTitle => '書き込みの確認';
+
+  @override
+  String editConfirmBody(int count) {
+    return '$count 件のファイルのメタ情報を書き換える。';
+  }
+
+  @override
+  String get editConfirmBackup => '原本の控えを取るので、直後なら取り消せる。';
+
+  @override
+  String get editConfirmNoBackup => '原本の控えを取らない設定なので、取り消せない。';
 }

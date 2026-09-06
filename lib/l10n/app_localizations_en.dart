@@ -1039,4 +1039,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tagEditQueued => 'Queued for editing';
+
+  @override
+  String get editConfirmTitle => 'Confirm the write';
+
+  @override
+  String editConfirmBody(int count) {
+    return 'This rewrites the metadata of $count files.';
+  }
+
+  @override
+  String get editConfirmBackup =>
+      'A copy of each original is kept, so this can be undone right after.';
+
+  @override
+  String get editConfirmNoBackup =>
+      'No copy of the originals is kept, so this cannot be undone.';
 }

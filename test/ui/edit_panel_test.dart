@@ -310,4 +310,29 @@ void main() {
       TimeAdoption.fileModified,
     );
   });
+
+  testWidgets('適用は件数を添えて確かめてから走らせる', (tester) async {
+    final container = await pumpPanel(
+      tester,
+      assets: [_asset],
+      selected: [_asset.path],
+    );
+    container
+        .read(editQueueProvider.notifier)
+        .add(const ShiftTime(Duration(hours: 1)));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('1 件に適用'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('書き込みの確認'), findsOneWidget);
+    expect(find.text('1 件のファイルのメタ情報を書き換える。'), findsOneWidget);
+
+    // 取りやめれば、積んだ操作はそのまま残る。
+    await tester.tap(find.widgetWithText(TextButton, '取消'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('書き込みの確認'), findsNothing);
+    expect(container.read(editQueueProvider).isNotEmpty, isTrue);
+  });
 }

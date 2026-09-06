@@ -1771,6 +1771,30 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'編集に積んだ'**
   String get tagEditQueued;
+
+  /// No description provided for @editConfirmTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き込みの確認'**
+  String get editConfirmTitle;
+
+  /// No description provided for @editConfirmBody.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件のファイルのメタ情報を書き換える。'**
+  String editConfirmBody(int count);
+
+  /// No description provided for @editConfirmBackup.
+  ///
+  /// In ja, this message translates to:
+  /// **'原本の控えを取るので、直後なら取り消せる。'**
+  String get editConfirmBackup;
+
+  /// No description provided for @editConfirmNoBackup.
+  ///
+  /// In ja, this message translates to:
+  /// **'原本の控えを取らない設定なので、取り消せない。'**
+  String get editConfirmNoBackup;
 }
 
 class _AppLocalizationsDelegate

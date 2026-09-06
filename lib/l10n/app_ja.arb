@@ -739,5 +739,16 @@
   "tagEditKindText": "文字",
   "tagEdit": "値を直す",
   "tagClear": "このタグを消す",
-  "tagEditQueued": "編集に積んだ"
+  "tagEditQueued": "編集に積んだ",
+  "editConfirmTitle": "書き込みの確認",
+  "editConfirmBody": "{count} 件のファイルのメタ情報を書き換える。",
+  "@editConfirmBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editConfirmBackup": "原本の控えを取るので、直後なら取り消せる。",
+  "editConfirmNoBackup": "原本の控えを取らない設定なので、取り消せない。"
 }

@@ -278,5 +278,9 @@
   "tagEditKindText": "Text",
   "tagEdit": "Edit the value",
   "tagClear": "Remove this tag",
-  "tagEditQueued": "Queued for editing"
+  "tagEditQueued": "Queued for editing",
+  "editConfirmTitle": "Confirm the write",
+  "editConfirmBody": "This rewrites the metadata of {count} files.",
+  "editConfirmBackup": "A copy of each original is kept, so this can be undone right after.",
+  "editConfirmNoBackup": "No copy of the originals is kept, so this cannot be undone."
 }

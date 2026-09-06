@@ -8,6 +8,7 @@ import '../domain/normalize.dart';
 import '../l10n/l10n.dart';
 import '../state/edits.dart';
 import '../state/search.dart';
+import '../state/settings.dart';
 import '../state/selection.dart';
 import 'format.dart';
 import 'labels.dart';
@@ -805,8 +806,71 @@ class _ApplyBar extends ConsumerWidget {
         ),
         onPressed: preview.isEmpty
             ? null
-            : () => ref.read(applyProvider.notifier).apply(preview),
+            : () => _confirmAndApply(context, ref, preview),
       ),
+    );
+  }
+
+  /// 元のファイルを書き換える前に、件数を添えて確かめる（SPEC §10）。
+  Future<void> _confirmAndApply(
+    BuildContext context,
+    WidgetRef ref,
+    EditPreview preview,
+  ) async {
+    final agreed = await showDialog<bool>(
+      context: context,
+      builder: (context) => _ConfirmDialog(preview: preview),
+    );
+    if (agreed != true) return;
+    await ref.read(applyProvider.notifier).apply(preview);
+  }
+}
+
+/// 書き込みの確認（SPEC §10）。件数と書き込み先、控えの有無を出す。
+class _ConfirmDialog extends ConsumerWidget {
+  const _ConfirmDialog({required this.preview});
+
+  final EditPreview preview;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final backup = ref.watch(settingsProvider).backupEnabled;
+
+    return AlertDialog(
+      title: Text(l10n.editConfirmTitle),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.editConfirmBody(preview.count)),
+            const SizedBox(height: 8),
+            Text(
+              '${l10n.editPreviewTargetTags}: ${preview.targetTags.join(', ')}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              backup ? l10n.editConfirmBackup : l10n.editConfirmNoBackup,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: backup ? null : Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.actionCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.editApply),
+        ),
+      ],
     );
   }
 }
