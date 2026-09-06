@@ -64,6 +64,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
             width: 260,
             child: TextField(
               controller: _controller,
+              focusNode: ref.watch(searchFocusProvider),
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Icons.search, size: 18),
@@ -146,6 +147,7 @@ class _SearchRowState extends ConsumerState<SearchRow> {
           Expanded(
             child: TextField(
               controller: _controller,
+              focusNode: ref.watch(searchFocusProvider),
               decoration: InputDecoration(
                 isDense: true,
                 prefixIcon: const Icon(Icons.search, size: 18),

@@ -98,6 +98,52 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
         const SingleActivator(LogicalKeyboardKey.enter): unlessTyping(
           () => _preview(assets),
         ),
+        // 上下の送り。サムネイル表示だけは 1 行ぶん動かすので、そちらが持つ。
+        if (ref.watch(settingsProvider).viewMode != ViewMode.grid) ...{
+          const SingleActivator(LogicalKeyboardKey.arrowDown): unlessTyping(
+            () => _step(assets, 1),
+          ),
+          const SingleActivator(LogicalKeyboardKey.arrowUp): unlessTyping(
+            () => _step(assets, -1),
+          ),
+        },
+        // 先頭・末尾へ。
+        const SingleActivator(LogicalKeyboardKey.home): unlessTyping(
+          () => _jump(assets, first: true),
+        ),
+        const SingleActivator(LogicalKeyboardKey.end): unlessTyping(
+          () => _jump(assets, first: false),
+        ),
+        // 選択の反転（SPEC FR-B8）。
+        const SingleActivator(LogicalKeyboardKey.keyI, meta: true, shift: true):
+            unlessTyping(() => _invert(assets)),
+        const SingleActivator(
+          LogicalKeyboardKey.keyI,
+          control: true,
+          shift: true,
+        ): unlessTyping(
+          () => _invert(assets),
+        ),
+        // 場所の移動（SPEC FR-B13、FR-B14）。入力中でも効いてよい操作。
+        const SingleActivator(LogicalKeyboardKey.bracketLeft, meta: true):
+            _back,
+        const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): _back,
+        const SingleActivator(LogicalKeyboardKey.bracketRight, meta: true):
+            _forward,
+        const SingleActivator(LogicalKeyboardKey.arrowRight, alt: true):
+            _forward,
+        const SingleActivator(LogicalKeyboardKey.arrowUp, meta: true): _up,
+        const SingleActivator(LogicalKeyboardKey.arrowUp, alt: true): _up,
+        // 検索欄へ移る（SPEC NFR-6）。
+        const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+            _focusSearch,
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            _focusSearch,
+        // 表示モードの切り替え。並びは画面の切り替えと同じ。
+        for (var i = 0; i < ViewMode.values.length; i++)
+          SingleActivator(_digitKeys[i], meta: true): unlessTyping(
+            () => _setViewMode(ViewMode.values[i]),
+          ),
       },
       child: Focus(
         autofocus: true,
@@ -117,6 +163,37 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
     if (context == null) return false;
     return context.widget is EditableText ||
         context.findAncestorWidgetOfExactType<EditableText>() != null;
+  }
+
+  /// 表示モードの切り替えに使う数字キー。
+  static const _digitKeys = [
+    LogicalKeyboardKey.digit1,
+    LogicalKeyboardKey.digit2,
+    LogicalKeyboardKey.digit3,
+    LogicalKeyboardKey.digit4,
+  ];
+
+  void _back() => ref.read(navigationProvider.notifier).back();
+  void _forward() => ref.read(navigationProvider.notifier).forward();
+  void _up() => ref.read(navigationProvider.notifier).up();
+
+  void _focusSearch() => ref.read(searchFocusProvider).requestFocus();
+
+  void _invert(List<MediaAsset> assets) => ref
+      .read(selectionProvider.notifier)
+      .invert([for (final asset in assets) asset.path]);
+
+  /// 先頭または末尾の 1 件を選ぶ。
+  void _jump(List<MediaAsset> assets, {required bool first}) {
+    if (assets.isEmpty) return;
+    final ordered = [for (final asset in assets) asset.path];
+    ref
+        .read(selectionProvider.notifier)
+        .tap(
+          first ? ordered.first : ordered.last,
+          ordered,
+          SelectionGesture.replace,
+        );
   }
 
   void _selectAll(List<MediaAsset> assets) => ref

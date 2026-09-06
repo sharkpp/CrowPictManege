@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/folder_view.dart';
@@ -28,6 +29,34 @@ class AssetGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selection = ref.watch(selectionProvider);
+    // 上下の送りは 1 行分。何列で並んでいるかはここでしか分からない
+    // （SPEC NFR-6）。
+    return LayoutBuilder(
+      builder: (context, constraints) => CallbackShortcuts(
+        bindings: {
+          SingleActivator(LogicalKeyboardKey.arrowDown): () =>
+              _stepRow(ref, _columns(constraints.maxWidth)),
+          SingleActivator(LogicalKeyboardKey.arrowUp): () =>
+              _stepRow(ref, -_columns(constraints.maxWidth)),
+        },
+        child: _grid(ref, selection),
+      ),
+    );
+  }
+
+  /// 1 行に並ぶ数。GridView と同じ決め方をする。
+  int _columns(double width) {
+    final padded = width - 16;
+    if (padded <= 0) return 1;
+    return (padded / tileSize).ceil().clamp(1, 1 << 20);
+  }
+
+  /// 主対象を [delta] 件ぶん動かす。フォルダの分は数に入れない。
+  void _stepRow(WidgetRef ref, int delta) => ref
+      .read(selectionProvider.notifier)
+      .step([for (final asset in assets) asset.path], delta);
+
+  Widget _grid(WidgetRef ref, Selection selection) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(

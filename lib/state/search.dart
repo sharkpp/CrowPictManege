@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
@@ -14,6 +15,13 @@ import '../services/similar_finder.dart';
 import 'library.dart';
 import 'places.dart';
 import 'selection.dart';
+
+/// 検索欄のフォーカス。キーボードだけで検索へ移れるようにする（SPEC NFR-6）。
+final searchFocusProvider = Provider<FocusNode>((ref) {
+  final node = FocusNode(debugLabel: 'search');
+  ref.onDispose(node.dispose);
+  return node;
+});
 
 /// 検索の指定（SPEC §5.9）。
 final searchQueryProvider = NotifierProvider<SearchQueryNotifier, SearchQuery>(
