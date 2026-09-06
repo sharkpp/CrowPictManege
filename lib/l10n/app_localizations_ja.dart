@@ -451,6 +451,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mapFitAll => '全体を表示';
 
   @override
+  String get mapRestrictToBounds => '表示範囲の中だけを出す';
+
+  @override
+  String get mapShowTrack => '撮影順に結ぶ';
+
+  @override
   String get mapPlaceMode => '地図で位置を決める';
 
   @override

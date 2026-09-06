@@ -505,6 +505,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapFitAll => 'Fit all';
 
   @override
+  String get mapRestrictToBounds => 'Show only what is in view';
+
+  @override
+  String get mapShowTrack => 'Join in capture order';
+
+  @override
   String get mapPlaceMode => 'Set a position on the map';
 
   @override

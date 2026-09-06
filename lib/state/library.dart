@@ -18,6 +18,7 @@ import '../services/parallel.dart';
 import '../services/summary_loader.dart';
 import '../services/thumbnail_cache.dart';
 import '../services/video_frame.dart';
+import 'map_view.dart';
 import 'places.dart';
 import 'selection.dart';
 import 'settings.dart';
@@ -389,16 +390,28 @@ class ColumnFiltersNotifier extends Notifier<Map<AssetColumn, ColumnFilter>> {
   void clearAll() => state = const {};
 }
 
-/// 列フィルタを通した一覧。フィルタが無いときは並べ替えた一覧をそのまま返す。
+/// 列フィルタと地図の表示範囲を通した一覧（SPEC FR-B19、FR-M3）。
+///
+/// 表示範囲での絞り込みが入っている間は、位置を持たない対象も外れる。
+/// 範囲の中に無いものは見えていないからである。
 final filteredAssetsProvider = Provider<List<MediaAsset>>((ref) {
   final filters = ref.watch(columnFiltersProvider);
+  final map = ref.watch(mapViewProvider);
   final assets = ref.watch(sortedAssetsProvider);
-  if (filters.isEmpty) return assets;
+  final bounds = map.isRestricting ? map.bounds : null;
+  if (filters.isEmpty && bounds == null) return assets;
   return [
     for (final asset in assets)
-      if (matchesColumnFilters(filters, asset)) asset,
+      if (matchesColumnFilters(filters, asset) &&
+          (bounds == null || _inBounds(bounds, asset)))
+        asset,
   ];
 });
+
+bool _inBounds(GeoBounds bounds, MediaAsset asset) {
+  final location = asset.summary?.location;
+  return location != null && bounds.contains(location);
+}
 
 /// いま画面に出す中身（SPEC FR-B11）。
 ///

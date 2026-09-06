@@ -85,6 +85,43 @@ class GeoPoint {
   final double? horizontalError;
 }
 
+/// 地図の表示範囲（SPEC FR-M3）。
+///
+/// 経度は日付変更線をまたぐことがある。西端が東端より大きい場合は、
+/// またいでいるものとして扱う。
+class GeoBounds {
+  const GeoBounds({
+    required this.south,
+    required this.west,
+    required this.north,
+    required this.east,
+  });
+
+  final double south;
+  final double west;
+  final double north;
+  final double east;
+
+  bool contains(GeoPoint point) {
+    if (point.latitude < south || point.latitude > north) return false;
+    if (west <= east) {
+      return point.longitude >= west && point.longitude <= east;
+    }
+    return point.longitude >= west || point.longitude <= east;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is GeoBounds &&
+      other.south == south &&
+      other.west == west &&
+      other.north == north &&
+      other.east == east;
+
+  @override
+  int get hashCode => Object.hash(south, west, north, east);
+}
+
 class CameraInfo {
   const CameraInfo({this.make, this.model, this.lens});
 

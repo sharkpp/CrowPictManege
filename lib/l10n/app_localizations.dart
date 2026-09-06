@@ -890,6 +890,18 @@ abstract class AppLocalizations {
   /// **'全体を表示'**
   String get mapFitAll;
 
+  /// No description provided for @mapRestrictToBounds.
+  ///
+  /// In ja, this message translates to:
+  /// **'表示範囲の中だけを出す'**
+  String get mapRestrictToBounds;
+
+  /// No description provided for @mapShowTrack.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影順に結ぶ'**
+  String get mapShowTrack;
+
   /// No description provided for @mapPlaceMode.
   ///
   /// In ja, this message translates to:

@@ -132,6 +132,8 @@
   "mapZoomOut": "Zoom out",
   "mapResetNorth": "Point north up",
   "mapFitAll": "Fit all",
+  "mapRestrictToBounds": "Show only what is in view",
+  "mapShowTrack": "Join in capture order",
   "mapPlaceMode": "Set a position on the map",
   "mapPlaceHint": "Tap the map to choose a position, then drag the pin",
   "mapPlaceSelectFirst": "Select items to give them a position",

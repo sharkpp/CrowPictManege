@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/l10n.dart';
 import '../state/library.dart';
+import '../state/map_view.dart';
 import 'column_filter_dialog.dart';
 import 'labels.dart';
 
@@ -14,7 +15,9 @@ class FilterBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final filters = ref.watch(columnFiltersProvider);
-    if (filters.isEmpty) return const SizedBox.shrink();
+    // 地図の表示範囲も絞り込みの 1 つ。ここから解除できるようにする（SPEC FR-M3）。
+    final restricting = ref.watch(mapViewProvider).restrictToBounds;
+    if (filters.isEmpty && !restricting) return const SizedBox.shrink();
     final notifier = ref.read(columnFiltersProvider.notifier);
 
     return SizedBox(
@@ -29,6 +32,16 @@ class FilterBar extends ConsumerWidget {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
+                  if (restricting)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: InputChip(
+                        label: Text(l10n.mapRestrictToBounds),
+                        onDeleted: ref
+                            .read(mapViewProvider.notifier)
+                            .clearRestrict,
+                      ),
+                    ),
                   for (final entry in filters.entries)
                     Padding(
                       padding: const EdgeInsets.only(right: 6),
@@ -47,7 +60,10 @@ class FilterBar extends ConsumerWidget {
             ),
           ),
           TextButton(
-            onPressed: notifier.clearAll,
+            onPressed: () {
+              notifier.clearAll();
+              ref.read(mapViewProvider.notifier).clearRestrict();
+            },
             child: Text(l10n.clearAllFilters),
           ),
           const SizedBox(width: 8),

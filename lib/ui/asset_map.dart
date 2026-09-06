@@ -8,6 +8,7 @@ import '../domain/edit.dart';
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
 import '../state/edits.dart';
+import '../state/map_view.dart';
 import '../state/selection.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
@@ -20,6 +21,9 @@ const _clusterColor = Color(0xFF0D3B57);
 
 /// 決めようとしている位置。既にある位置と見分けが付く色にする。
 const _pendingPinColor = Color(0xFF2E7D32);
+
+/// 撮影時刻順に結ぶ線（SPEC FR-M4）。
+const _trackColor = Color(0xFFF4511E);
 
 /// マップ表示（SPEC FR-B10、FR-M1、FR-M2）。
 ///
@@ -48,6 +52,9 @@ class _AssetMapState extends ConsumerState<AssetMap> {
 
   /// 位置を持たない対象。トレイに並べる（SPEC FR-M6）。
   List<MediaAsset> _unplaced = const [];
+
+  /// 撮影時刻順に結んだ道筋（SPEC FR-M4）。
+  List<LatLng> _track = const [];
   SuperclusterImmutable<MediaAsset>? _index;
   bool _ready = false;
 
@@ -99,6 +106,9 @@ class _AssetMapState extends ConsumerState<AssetMap> {
   /// 走査中は対象が少しずつ増えるので、そのたびに動かすと操作を邪魔する。
   void _refit({required bool hadNone}) {
     if (!_ready || _located.isEmpty) return;
+    // 表示範囲で絞っている間は動かさない。動かせば絞りが変わり、
+    // 絞りが変われば出る対象が変わって、いつまでも落ち着かない。
+    if (ref.read(mapViewProvider).restrictToBounds) return;
     if (hadNone) {
       _fitAll();
       return;
@@ -125,6 +135,10 @@ class _AssetMapState extends ConsumerState<AssetMap> {
       for (final asset in widget.assets)
         if (asset.summary?.location == null) asset,
     ];
+    // 軌跡は撮影時刻の順に結ぶ。並びは一覧の並べ替えに依らない。
+    final ordered = List.of(_located)
+      ..sort((a, b) => a.sortKey.compareTo(b.sortKey));
+    _track = [for (final asset in ordered) _pointOf(asset)];
     if (_located.isEmpty) {
       _index = null;
       return;
@@ -179,6 +193,51 @@ class _AssetMapState extends ConsumerState<AssetMap> {
       );
     }
     return leaves;
+  }
+
+  /// いま見えている範囲を知らせる（SPEC FR-M3）。
+  ///
+  /// 動かしている間は呼ばない。1 コマごとに絞り直しては、
+  /// 10 万件の一覧が付いてこられない。
+  void _reportBounds() {
+    final bounds = _controller.camera.visibleBounds;
+    ref
+        .read(mapViewProvider.notifier)
+        .setBounds(
+          GeoBounds(
+            south: bounds.south,
+            west: bounds.west,
+            north: bounds.north,
+            east: bounds.east,
+          ),
+        );
+  }
+
+  /// 地図が落ち着いたところで範囲を拾う。
+  void _onMapEvent(MapEvent event) {
+    if (!ref.read(mapViewProvider).restrictToBounds) return;
+    if (event is MapEventMoveEnd ||
+        event is MapEventFlingAnimationEnd ||
+        event is MapEventDoubleTapZoomEnd ||
+        event is MapEventRotateEnd ||
+        event is MapEventScrollWheelZoom ||
+        event is MapEventNonRotatedSizeChange) {
+      _reportBounds();
+    }
+  }
+
+  /// 表示範囲での絞り込みの入り切り（SPEC FR-M3）。
+  void _toggleRestrict() =>
+      ref.read(mapViewProvider.notifier).toggleRestrict(_visibleBounds());
+
+  GeoBounds _visibleBounds() {
+    final bounds = _controller.camera.visibleBounds;
+    return GeoBounds(
+      south: bounds.south,
+      west: bounds.west,
+      north: bounds.north,
+      east: bounds.east,
+    );
   }
 
   /// 地図を押したときの動き。
@@ -260,6 +319,7 @@ class _AssetMapState extends ConsumerState<AssetMap> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final view = ref.watch(mapViewProvider);
     final index = _index;
     final ordered = [for (final asset in widget.assets) asset.path];
 
@@ -278,7 +338,11 @@ class _AssetMapState extends ConsumerState<AssetMap> {
               initialCenter: const LatLng(0, 0),
               initialZoom: 1,
               maxZoom: _maxZoom,
-              onMapReady: () => _ready = true,
+              onMapReady: () {
+                _ready = true;
+                _reportBounds();
+              },
+              onMapEvent: _onMapEvent,
               onTap: _onTap,
               interactionOptions: InteractionOptions(
                 flags: _grabbingPin
@@ -298,6 +362,19 @@ class _AssetMapState extends ConsumerState<AssetMap> {
                     ? darkModeTileBuilder
                     : null,
               ),
+              // 軌跡はマーカーの下に敷く。マーカーを押せなくしない。
+              if (view.showTrack && _track.length > 1)
+                PolylineLayer(
+                  polylines: [
+                    Polyline(
+                      points: _track,
+                      color: _trackColor,
+                      strokeWidth: 3,
+                      borderColor: Colors.white70,
+                      borderStrokeWidth: 1,
+                    ),
+                  ],
+                ),
               if (index != null)
                 _Markers(
                   index: index,
@@ -315,6 +392,10 @@ class _AssetMapState extends ConsumerState<AssetMap> {
               _MapControls(
                 maxZoom: _maxZoom,
                 onFitAll: _located.isEmpty ? null : _fitAll,
+                restricting: view.restrictToBounds,
+                onToggleRestrict: _toggleRestrict,
+                showTrack: view.showTrack,
+                onToggleTrack: ref.read(mapViewProvider.notifier).toggleTrack,
                 placing: _placing,
                 onTogglePlacing: _togglePlacing,
                 unplaced: _unplaced.length,
@@ -749,6 +830,10 @@ class _MapControls extends StatelessWidget {
     required this.unplaced,
     required this.trayOpen,
     required this.onToggleTray,
+    required this.restricting,
+    required this.onToggleRestrict,
+    required this.showTrack,
+    required this.onToggleTrack,
   });
 
   final double maxZoom;
@@ -765,6 +850,14 @@ class _MapControls extends StatelessWidget {
   final bool trayOpen;
   final VoidCallback onToggleTray;
 
+  /// 表示範囲で一覧を絞っているか（SPEC FR-M3）。
+  final bool restricting;
+  final VoidCallback onToggleRestrict;
+
+  /// 撮影時刻順の軌跡を出しているか（SPEC FR-M4）。
+  final bool showTrack;
+  final VoidCallback onToggleTrack;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -777,16 +870,15 @@ class _MapControls extends StatelessWidget {
       (camera.zoom + delta).clamp(camera.minZoom ?? 0, maxZoom),
     );
 
-    // 右下に寄せる。左下は出典の表示に使う。
-    return Align(
-      alignment: Alignment.bottomRight,
+    // 地図の見方を変える入口は右上へ横に並べる。縦に積むと右端が塞がり、
+    // その裏のマーカーを押せなくなる。
+    final modes = Align(
+      alignment: Alignment.topRight,
       child: Padding(
         padding: const EdgeInsets.all(8),
-        child: Column(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // 位置を決める・落とし元を出す。地図を直すための入口を上に置く。
             _MapButton(
               icon: Icons.add_location_alt_outlined,
               label: context.l10n.mapPlaceMode,
@@ -794,7 +886,7 @@ class _MapControls extends StatelessWidget {
               onPressed: onTogglePlacing,
             ),
             if (unplaced > 0) ...[
-              const SizedBox(height: 4),
+              const SizedBox(width: 4),
               _MapButton(
                 icon: Icons.image_not_supported_outlined,
                 label: context.l10n.mapUnplacedTray(unplaced),
@@ -802,7 +894,34 @@ class _MapControls extends StatelessWidget {
                 onPressed: onToggleTray,
               ),
             ],
-            const SizedBox(height: 8),
+            const SizedBox(width: 4),
+            _MapButton(
+              icon: Icons.filter_alt_outlined,
+              label: context.l10n.mapRestrictToBounds,
+              selected: restricting,
+              onPressed: onToggleRestrict,
+            ),
+            const SizedBox(width: 4),
+            _MapButton(
+              icon: Icons.timeline,
+              label: context.l10n.mapShowTrack,
+              selected: showTrack,
+              onPressed: onToggleTrack,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    // 動かす操作は右下に寄せる。左下は出典の表示に使う。
+    final navigation = Align(
+      alignment: Alignment.bottomRight,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
             _MapButton(
               icon: Icons.add,
               label: context.l10n.mapZoomIn,
@@ -845,6 +964,8 @@ class _MapControls extends StatelessWidget {
         ),
       ),
     );
+
+    return Stack(children: [modes, navigation]);
   }
 }
 
@@ -892,7 +1013,8 @@ class _TopBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Positioned(
-      top: 8,
+      // 右上の操作の下へ置く。重ねると操作を押せなくなる。
+      top: 56,
       left: 8,
       right: 8,
       child: Material(

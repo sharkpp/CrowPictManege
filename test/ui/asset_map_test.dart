@@ -1,6 +1,7 @@
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/state/edits.dart';
+import 'package:crow_pict_manege/state/map_view.dart';
 import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
 import 'package:crow_pict_manege/ui/asset_map.dart';
@@ -370,5 +371,36 @@ void main() {
   testWidgets('位置を持つ対象しか無ければトレイの入口を出さない', (tester) async {
     await pumpMap(tester, [near1, far]);
     expect(find.byTooltip('位置なし 1 件'), findsNothing);
+  });
+
+  /// 地図を絞り込みに使い、撮影順に結ぶ（SPEC FR-M3、FR-M4）。
+  testWidgets('表示範囲での絞り込みを入れると、いまの範囲が伝わる', (tester) async {
+    final container = await pumpMap(tester, [near1, far]);
+    expect(container.read(mapViewProvider).restrictToBounds, isFalse);
+
+    await tester.tap(find.byTooltip('表示範囲の中だけを出す'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final view = container.read(mapViewProvider);
+    expect(view.restrictToBounds, isTrue);
+    expect(view.bounds, isNotNull);
+    expect(
+      view.bounds!.contains(near1.summary!.location!),
+      isTrue,
+      reason: '全体表示から入れれば、見えているものは範囲の中',
+    );
+  });
+
+  testWidgets('撮影順の軌跡は入り切りできる', (tester) async {
+    await pumpMap(tester, [near1, far]);
+    expect(find.byType(PolylineLayer), findsNothing);
+
+    await tester.tap(find.byTooltip('撮影順に結ぶ'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(PolylineLayer), findsOneWidget);
+
+    await tester.tap(find.byTooltip('撮影順に結ぶ'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(PolylineLayer), findsNothing);
   });
 }

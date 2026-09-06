@@ -327,6 +327,8 @@
   "mapZoomOut": "縮小",
   "mapResetNorth": "北を上に戻す",
   "mapFitAll": "全体を表示",
+  "mapRestrictToBounds": "表示範囲の中だけを出す",
+  "mapShowTrack": "撮影順に結ぶ",
   "mapPlaceMode": "地図で位置を決める",
   "mapPlaceHint": "地図を押して位置を決める。ピンはドラッグで動かせる",
   "mapPlaceSelectFirst": "対象を選ぶと位置を付けられます",
