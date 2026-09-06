@@ -598,6 +598,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapShowTrack => 'Join in capture order';
 
   @override
+  String get mapSearchPlace => 'Search for a place';
+
+  @override
+  String get mapSearchDisabled => 'Turn place search on in the settings';
+
+  @override
   String get mapPlaceMode => 'Set a position on the map';
 
   @override
@@ -1142,6 +1148,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get writeFailureUnknown => 'Could not write';
+
+  @override
+  String get settingsSectionMap => 'Map';
+
+  @override
+  String get settingsTileUrl => 'Map tile URL';
+
+  @override
+  String get settingsGeocoding => 'Use place search and reverse lookup';
+
+  @override
+  String get settingsGeocodingHint =>
+      'Once on, what you search for and the coordinates of your items are sent to the service below.';
+
+  @override
+  String get settingsGeocodingEndpoint => 'Place service';
 
   @override
   String get settingsSectionBackup => 'Backups';

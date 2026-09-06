@@ -7,9 +7,13 @@ import 'package:supercluster/supercluster.dart';
 import '../domain/edit.dart';
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
+import '../app_info.dart';
+import '../ports/geocoder_port.dart';
 import '../state/edits.dart';
+import '../state/geocoder.dart';
 import '../state/map_view.dart';
 import '../state/selection.dart';
+import '../state/settings.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
 import 'format.dart';
@@ -274,6 +278,13 @@ class _AssetMapState extends ConsumerState<AssetMap> {
     });
   }
 
+  /// 探して見つかった場所へ寄り、そこを決めようとしている位置にする。
+  void _moveTo(LatLng point) {
+    setState(() => _pending = point);
+    // 探した先が画面の外では確かめようがない。寄りすぎない程度に寄せる。
+    _controller.move(point, _controller.camera.zoom.clamp(14.0, _maxZoom));
+  }
+
   /// 拾った座標を選択集合へ積む（SPEC FR-E4-2、FR-E4-3）。
   ///
   /// ここではまだファイルに触らない。適用は編集の作業面から行う（SPEC FR-E5）。
@@ -320,6 +331,7 @@ class _AssetMapState extends ConsumerState<AssetMap> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final view = ref.watch(mapViewProvider);
+    final settings = ref.watch(settingsProvider);
     final index = _index;
     final ordered = [for (final asset in widget.assets) asset.path];
 
@@ -352,9 +364,9 @@ class _AssetMapState extends ConsumerState<AssetMap> {
             ),
             children: [
               TileLayer(
-                // タイルは設定で差し替えられるようにする（SPEC FR-M7）。R7 で設定へ出す。
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'net.sharkpp.crowpictmanege',
+                // タイルの取得先は設定で差し替えられる（SPEC FR-M7）。
+                urlTemplate: settings.tileUrl,
+                userAgentPackageName: appIdentifier,
                 maxZoom: _maxZoom,
                 maxNativeZoom: _maxNativeZoom,
                 // 暗いテーマではタイルの色を反転させ、地図も暗くする（SPEC FR-M15）。
@@ -434,6 +446,7 @@ class _AssetMapState extends ConsumerState<AssetMap> {
               point: _pending,
               onCommit: _commitPlacement,
               onCancel: _togglePlacing,
+              onPicked: _moveTo,
             ),
           )
         else if (_located.isEmpty)
@@ -778,10 +791,38 @@ class _PreviewCard extends ConsumerWidget {
                     color: theme.colorScheme.outline,
                   ),
                 ),
+                // 座標から引いた地名（SPEC FR-M8）。既定では引かない。
+                _PlaceName(point: asset.summary!.location!),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 座標から引いた地名（SPEC FR-M8）。
+///
+/// 設定で有効にしていなければ何も出さない。引けるまでは何も出さず、
+/// 場所の名前が分かったところで 1 行だけ足す。
+class _PlaceName extends ConsumerWidget {
+  const _PlaceName({required this.point});
+
+  final GeoPoint point;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(geocoderProvider) == null) return const SizedBox.shrink();
+    final name = ref.watch(placeNameProvider(placeKeyOf(point))).value;
+    if (name == null) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+    return Text(
+      name,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.outline,
       ),
     );
   }
@@ -1033,47 +1074,158 @@ class _TopBanner extends StatelessWidget {
 /// 位置を決めている間の帯（SPEC FR-E4-2、FR-M5）。
 ///
 /// 拾った座標を見せ、選択集合へ積むまでを 1 か所で済ませる。
-class _PlacementBar extends ConsumerWidget {
+class _PlacementBar extends ConsumerStatefulWidget {
   const _PlacementBar({
     required this.point,
     required this.onCommit,
     required this.onCancel,
+    required this.onPicked,
   });
 
   final LatLng? point;
   final VoidCallback onCommit;
   final VoidCallback onCancel;
 
+  /// 探して選んだ場所。
+  final void Function(LatLng point) onPicked;
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PlacementBar> createState() => _PlacementBarState();
+}
+
+class _PlacementBarState extends ConsumerState<_PlacementBar> {
+  final _query = TextEditingController();
+  bool _searching = false;
+
+  @override
+  void dispose() {
+    _query.dispose();
+    super.dispose();
+  }
+
+  /// 地名から場所を探す（SPEC FR-M5）。
+  ///
+  /// 見つかったものが 1 つならそこへ、いくつかあれば選ばせる。
+  Future<void> _search() async {
+    final geocoder = ref.read(geocoderProvider);
+    if (geocoder == null || _query.text.trim().isEmpty) return;
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l10n = context.l10n;
+    final box = context.findRenderObject() as RenderBox?;
+
+    setState(() => _searching = true);
+    List<PlaceMatch> matches;
+    try {
+      matches = await geocoder.search(_query.text);
+    } catch (_) {
+      matches = const [];
+    }
+    if (!mounted) return;
+    setState(() => _searching = false);
+
+    if (matches.isEmpty) {
+      messenger?.showSnackBar(SnackBar(content: Text(l10n.labelNotFound)));
+      return;
+    }
+    final chosen = matches.length == 1
+        ? matches.first
+        : await _choose(matches, box);
+    if (chosen == null) return;
+    widget.onPicked(LatLng(chosen.point.latitude, chosen.point.longitude));
+  }
+
+  Future<PlaceMatch?> _choose(List<PlaceMatch> matches, RenderBox? box) {
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final origin = box == null || overlay == null
+        ? Rect.zero
+        : box.localToGlobal(Offset.zero) & box.size;
+    return showMenu<PlaceMatch>(
+      context: context,
+      position: RelativeRect.fromRect(origin, Offset.zero & overlay!.size),
+      items: [
+        for (final match in matches)
+          PopupMenuItem(
+            value: match,
+            child: SizedBox(width: 420, child: Text(match.name, maxLines: 2)),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final count = ref.watch(selectionProvider).count;
-    final place = point;
+    final geocoder = ref.watch(geocoderProvider);
+    final place = widget.point;
     final ready = place != null && count > 0;
 
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Text(
-            count == 0
-                ? l10n.mapPlaceSelectFirst
-                : place == null
-                ? l10n.mapPlaceHint
-                : formatCoordinates(
-                    GeoPoint(
-                      latitude: place.latitude,
-                      longitude: place.longitude,
-                    ),
-                  ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+        // 地名で探す（SPEC FR-M5）。使えないときは隠さず、理由を添えて止める。
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _query,
+                enabled: geocoder != null,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                  hintText: geocoder == null
+                      ? l10n.mapSearchDisabled
+                      : l10n.mapSearchPlace,
+                  suffixIcon: _searching
+                      ? const Padding(
+                          padding: EdgeInsets.all(8),
+                          child: SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.search, size: 18),
+                          tooltip: l10n.mapSearchPlace,
+                          onPressed: geocoder == null ? null : _search,
+                        ),
+                ),
+                onSubmitted: (_) => _search(),
+              ),
+            ),
+          ],
         ),
-        TextButton(onPressed: onCancel, child: Text(l10n.actionStop)),
-        const SizedBox(width: 8),
-        FilledButton(
-          onPressed: ready ? onCommit : null,
-          child: Text(l10n.mapPlaceCommit(count)),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                count == 0
+                    ? l10n.mapPlaceSelectFirst
+                    : place == null
+                    ? l10n.mapPlaceHint
+                    : formatCoordinates(
+                        GeoPoint(
+                          latitude: place.latitude,
+                          longitude: place.longitude,
+                        ),
+                      ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            TextButton(
+              onPressed: widget.onCancel,
+              child: Text(l10n.actionStop),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: ready ? widget.onCommit : null,
+              child: Text(l10n.mapPlaceCommit(count)),
+            ),
+          ],
         ),
       ],
     );

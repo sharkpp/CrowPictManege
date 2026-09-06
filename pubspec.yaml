@@ -47,6 +47,8 @@ dependencies:
   media_kit_libs_video: ^1.0.7
   # OS の共有機能への引き渡し（SPEC FR-T5）。各 OS の共有シートを 1 実装で賄う。
   share_plus: ^13.3.0
+  # 地名の検索と逆引き（SPEC FR-M5、FR-M8）。既定では使わない。
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

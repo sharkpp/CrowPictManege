@@ -33,6 +33,9 @@ class AppSettings {
     this.backupDirectory,
     this.backupGenerations = 3,
     this.transferTargets = const [],
+    this.tileUrl = defaultTileUrl,
+    this.geocodingEnabled = false,
+    this.geocodingEndpoint = defaultGeocodingEndpoint,
   });
 
   final FolderMode folderMode;
@@ -66,6 +69,22 @@ class AppSettings {
   /// よく使う転送先（SPEC FR-T3）。デスクトップだけで使う。
   final List<TransferTarget> transferTargets;
 
+  /// 地図タイルの取得先（SPEC FR-M7）。
+  final String tileUrl;
+
+  /// 座標を外へ送る機能を使うか（SPEC FR-M8、NFR-5）。既定では使わない。
+  final bool geocodingEnabled;
+
+  /// 地名の検索と逆引きの相手（SPEC FR-M5、FR-M8）。
+  final String geocodingEndpoint;
+
+  /// 既定の地図タイル。OpenStreetMap のラスタタイル（SPEC FR-M7）。
+  static const defaultTileUrl =
+      'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  /// 既定の地名の相手。OpenStreetMap の Nominatim。
+  static const defaultGeocodingEndpoint = 'https://nominatim.openstreetmap.org';
+
   static const maxFolderThumbnails = 8;
   static const maxBackupGenerations = 20;
 
@@ -82,6 +101,9 @@ class AppSettings {
     bool clearBackupDirectory = false,
     int? backupGenerations,
     List<TransferTarget>? transferTargets,
+    String? tileUrl,
+    bool? geocodingEnabled,
+    String? geocodingEndpoint,
   }) => AppSettings(
     folderMode: folderMode ?? this.folderMode,
     folderThumbnails: folderThumbnails ?? this.folderThumbnails,
@@ -96,6 +118,9 @@ class AppSettings {
         : (backupDirectory ?? this.backupDirectory),
     backupGenerations: backupGenerations ?? this.backupGenerations,
     transferTargets: transferTargets ?? this.transferTargets,
+    tileUrl: tileUrl ?? this.tileUrl,
+    geocodingEnabled: geocodingEnabled ?? this.geocodingEnabled,
+    geocodingEndpoint: geocodingEndpoint ?? this.geocodingEndpoint,
   );
 
   Map<String, String> toMap() => {
@@ -110,6 +135,9 @@ class AppSettings {
     'backupDirectory': backupDirectory ?? '',
     'backupGenerations': '$backupGenerations',
     'transferTargets': encodeTransferTargets(transferTargets),
+    'tileUrl': tileUrl,
+    'geocodingEnabled': '$geocodingEnabled',
+    'geocodingEndpoint': geocodingEndpoint,
   };
 
   /// ピン留めの保存先。
@@ -143,6 +171,13 @@ class AppSettings {
                   defaults.backupGenerations)
               .clamp(1, maxBackupGenerations),
       transferTargets: decodeTransferTargets(map['transferTargets']),
+      tileUrl: (map['tileUrl'] ?? '').isEmpty
+          ? defaults.tileUrl
+          : map['tileUrl']!,
+      geocodingEnabled: map['geocodingEnabled'] == 'true',
+      geocodingEndpoint: (map['geocodingEndpoint'] ?? '').isEmpty
+          ? defaults.geocodingEndpoint
+          : map['geocodingEndpoint']!,
     );
   }
 }

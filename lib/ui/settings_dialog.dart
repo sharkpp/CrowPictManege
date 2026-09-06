@@ -88,6 +88,8 @@ class _SettingsDialog extends ConsumerWidget {
                 ],
               ),
               const Divider(height: 24),
+              const _MapSection(),
+              const Divider(height: 24),
               const _BackupSection(),
               const Divider(height: 24),
               const _CacheSection(),
@@ -142,6 +144,106 @@ class _CacheSection extends ConsumerWidget {
           },
           child: Text(l10n.cacheClear),
         ),
+      ],
+    );
+  }
+}
+
+/// 地図（SPEC FR-M7、FR-M8）。
+///
+/// 地名の検索と逆引きは座標や言葉を外へ送る。既定では止めておき、
+/// 何が外へ出るかを添えて選ばせる（SPEC NFR-5）。
+class _MapSection extends ConsumerStatefulWidget {
+  const _MapSection();
+
+  @override
+  ConsumerState<_MapSection> createState() => _MapSectionState();
+}
+
+class _MapSectionState extends ConsumerState<_MapSection> {
+  late final _tile = TextEditingController(
+    text: ref.read(settingsProvider).tileUrl,
+  );
+  late final _endpoint = TextEditingController(
+    text: ref.read(settingsProvider).geocodingEndpoint,
+  );
+
+  @override
+  void dispose() {
+    _tile.dispose();
+    _endpoint.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final notifier = ref.read(settingsProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.settingsSectionMap, style: theme.textTheme.labelLarge),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _tile,
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                  labelText: l10n.settingsTileUrl,
+                ),
+                onSubmitted: (value) => notifier.update(
+                  (current) => current.copyWith(
+                    tileUrl: value.trim().isEmpty
+                        ? AppSettings.defaultTileUrl
+                        : value.trim(),
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close),
+              tooltip: l10n.actionResetToDefault,
+              onPressed: () {
+                _tile.text = AppSettings.defaultTileUrl;
+                notifier.update(
+                  (current) =>
+                      current.copyWith(tileUrl: AppSettings.defaultTileUrl),
+                );
+              },
+            ),
+          ],
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.settingsGeocoding),
+          subtitle: Text(l10n.settingsGeocodingHint),
+          value: settings.geocodingEnabled,
+          onChanged: (value) => notifier.update(
+            (current) => current.copyWith(geocodingEnabled: value),
+          ),
+        ),
+        if (settings.geocodingEnabled)
+          TextField(
+            controller: _endpoint,
+            decoration: InputDecoration(
+              isDense: true,
+              border: const OutlineInputBorder(),
+              labelText: l10n.settingsGeocodingEndpoint,
+            ),
+            onSubmitted: (value) => notifier.update(
+              (current) => current.copyWith(
+                geocodingEndpoint: value.trim().isEmpty
+                    ? AppSettings.defaultGeocodingEndpoint
+                    : value.trim(),
+              ),
+            ),
+          ),
       ],
     );
   }

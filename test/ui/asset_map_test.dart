@@ -1,7 +1,11 @@
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/state/edits.dart';
+import 'package:crow_pict_manege/adapters/catalog_database.dart';
+import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/state/map_view.dart';
+import 'package:crow_pict_manege/state/places.dart';
+import 'package:crow_pict_manege/state/settings.dart';
 import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
 import 'package:crow_pict_manege/ui/asset_map.dart';
@@ -51,6 +55,12 @@ void main() {
         // 拡大表示は画面に出ている並びを見る。
         if (displayed != null)
           displayedAssetsProvider.overrideWithValue(displayed),
+        // 設定はプロセス内に閉じたカタログへ書く（アプリ領域を触らない）。
+        catalogProvider.overrideWith((ref) {
+          final catalog = DriftCatalog(CatalogDatabase.memory());
+          ref.onDispose(catalog.close);
+          return catalog;
+        }),
       ],
     );
     addTearDown(container.dispose);
@@ -402,5 +412,43 @@ void main() {
     await tester.tap(find.byTooltip('撮影順に結ぶ'));
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(PolylineLayer), findsNothing);
+  });
+
+  testWidgets('地図タイルの取得先は設定に従う（SPEC FR-M7）', (tester) async {
+    final container = await pumpMap(tester, [near1]);
+    container
+        .read(settingsProvider.notifier)
+        .update(
+          (current) => current.copyWith(
+            tileUrl: 'https://tiles.example/{z}/{x}/{y}.png',
+          ),
+        );
+    // 設定の保存は落ち着いてから書き込む。その分を進める。
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(
+      tester.widget<TileLayer>(find.byType(TileLayer)).urlTemplate,
+      'https://tiles.example/{z}/{x}/{y}.png',
+    );
+  });
+
+  testWidgets('地名の検索は、切ってあるなら理由を添えて止める（SPEC FR-M8、NFR-5）', (tester) async {
+    final container = await pumpMap(tester, [near1]);
+    await tester.tap(find.byTooltip('地図で位置を決める'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('地名の検索は設定で有効にできます'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextField>(find.widgetWithText(TextField, '地名の検索は設定で有効にできます'))
+          .enabled,
+      isFalse,
+    );
+
+    container
+        .read(settingsProvider.notifier)
+        .update((current) => current.copyWith(geocodingEnabled: true));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('地名で探す'), findsWidgets);
   });
 }

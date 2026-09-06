@@ -536,6 +536,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mapShowTrack => '撮影順に結ぶ';
 
   @override
+  String get mapSearchPlace => '地名で探す';
+
+  @override
+  String get mapSearchDisabled => '地名の検索は設定で有効にできます';
+
+  @override
   String get mapPlaceMode => '地図で位置を決める';
 
   @override
@@ -1038,6 +1044,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get writeFailureUnknown => '書き込めなかった';
+
+  @override
+  String get settingsSectionMap => '地図';
+
+  @override
+  String get settingsTileUrl => '地図タイルの取得先';
+
+  @override
+  String get settingsGeocoding => '地名の検索と逆引きを使う';
+
+  @override
+  String get settingsGeocodingHint => '有効にすると、探した言葉と対象の座標が下の相手へ送られます。';
+
+  @override
+  String get settingsGeocodingEndpoint => '地名の相手';
 
   @override
   String get settingsSectionBackup => '原本の控え';

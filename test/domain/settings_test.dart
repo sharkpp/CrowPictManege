@@ -1,5 +1,6 @@
 import 'package:crow_pict_manege/domain/pinned_fields.dart';
 import 'package:crow_pict_manege/domain/settings.dart';
+import 'package:crow_pict_manege/domain/transfer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 設定の符号化・復号（SPEC FR-P1）。
@@ -20,6 +21,35 @@ void main() {
     expect(restored.viewMode, ViewMode.gallery);
     expect(restored.sortMode, SortMode.name);
     expect(restored.tileSize, 220);
+  });
+
+  test('地図と転送先も保存して読み直せる（SPEC FR-M7、FR-M8、FR-T3）', () {
+    const settings = AppSettings(
+      tileUrl: 'https://tiles.example/{z}/{x}/{y}.png',
+      geocodingEnabled: true,
+      geocodingEndpoint: 'https://places.example',
+      transferTargets: [
+        TransferTarget(name: '現像', command: '/Applications/RAW.app'),
+      ],
+    );
+
+    final restored = AppSettings.fromMap(settings.toMap());
+
+    expect(restored.tileUrl, 'https://tiles.example/{z}/{x}/{y}.png');
+    expect(restored.geocodingEnabled, isTrue);
+    expect(restored.geocodingEndpoint, 'https://places.example');
+    expect(restored.transferTargets.single.name, '現像');
+  });
+
+  test('地名の引き当ては既定で止まっている（SPEC NFR-5）', () {
+    const settings = AppSettings();
+    expect(settings.geocodingEnabled, isFalse);
+    expect(AppSettings.fromMap(const {}).geocodingEnabled, isFalse);
+  });
+
+  test('地図タイルの取得先が空なら既定へ戻す', () {
+    final settings = AppSettings.fromMap(const {'tileUrl': ''});
+    expect(settings.tileUrl, AppSettings.defaultTileUrl);
   });
 
   test('保存が無ければ既定値になる', () {

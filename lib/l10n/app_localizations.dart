@@ -1040,6 +1040,18 @@ abstract class AppLocalizations {
   /// **'撮影順に結ぶ'**
   String get mapShowTrack;
 
+  /// No description provided for @mapSearchPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'地名で探す'**
+  String get mapSearchPlace;
+
+  /// No description provided for @mapSearchDisabled.
+  ///
+  /// In ja, this message translates to:
+  /// **'地名の検索は設定で有効にできます'**
+  String get mapSearchDisabled;
+
   /// No description provided for @mapPlaceMode.
   ///
   /// In ja, this message translates to:
@@ -1885,6 +1897,36 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'書き込めなかった'**
   String get writeFailureUnknown;
+
+  /// No description provided for @settingsSectionMap.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図'**
+  String get settingsSectionMap;
+
+  /// No description provided for @settingsTileUrl.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図タイルの取得先'**
+  String get settingsTileUrl;
+
+  /// No description provided for @settingsGeocoding.
+  ///
+  /// In ja, this message translates to:
+  /// **'地名の検索と逆引きを使う'**
+  String get settingsGeocoding;
+
+  /// No description provided for @settingsGeocodingHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'有効にすると、探した言葉と対象の座標が下の相手へ送られます。'**
+  String get settingsGeocodingHint;
+
+  /// No description provided for @settingsGeocodingEndpoint.
+  ///
+  /// In ja, this message translates to:
+  /// **'地名の相手'**
+  String get settingsGeocodingEndpoint;
 
   /// No description provided for @settingsSectionBackup.
   ///
