@@ -451,6 +451,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mapFitAll => '全体を表示';
 
   @override
+  String get mapPlaceMode => '地図で位置を決める';
+
+  @override
+  String get mapPlaceHint => '地図を押して位置を決める。ピンはドラッグで動かせる';
+
+  @override
+  String get mapPlaceSelectFirst => '対象を選ぶと位置を付けられます';
+
+  @override
+  String mapPlaceCommit(int count) {
+    return '$count 件に積む';
+  }
+
+  @override
+  String mapPlaceQueued(int count) {
+    return '$count 件に位置を積んだ';
+  }
+
+  @override
+  String get mapPendingPin => '決めようとしている位置';
+
+  @override
+  String mapUnplacedTray(int count) {
+    return '位置なし $count 件';
+  }
+
+  @override
+  String get mapUnplacedHint => '地図へドラッグすると、その場所を積む';
+
+  @override
+  String mapPlaced(String name) {
+    return '$name に位置を積んだ';
+  }
+
+  @override
   String get previewPrevious => '前へ';
 
   @override
@@ -860,6 +895,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String editOpSetLocation(String latitude, String longitude) {
     return '位置を $latitude, $longitude にする';
+  }
+
+  @override
+  String editOpPlaceAsset(String name, String latitude, String longitude) {
+    return '$name の位置を $latitude, $longitude にする';
   }
 
   @override

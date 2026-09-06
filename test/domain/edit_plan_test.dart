@@ -17,9 +17,11 @@ EditTarget _target({
   CapturedAt? capturedAt,
   GeoPoint? location,
   String fileName = 'photo.jpg',
+  String path = '/root/photo.jpg',
   DateTime? fileModifiedAt,
   int index = 0,
 }) => EditTarget(
+  path: path,
   fileName: fileName,
   fileModifiedAt: fileModifiedAt ?? DateTime(2024, 6, 1, 9, 0, 0),
   capturedAt: capturedAt,

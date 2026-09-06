@@ -36,12 +36,16 @@ class TagWrite {
 /// 判断に要る材料をここにまとめて渡す。
 class EditTarget {
   const EditTarget({
+    required this.path,
     required this.fileName,
     required this.fileModifiedAt,
     this.capturedAt,
     this.location,
     this.index = 0,
   });
+
+  /// 対象の実体の参照。当てる相手を選ぶ操作（[PlaceAsset]）が見る。
+  final String path;
 
   final String fileName;
   final DateTime fileModifiedAt;
@@ -162,6 +166,11 @@ EditPlan planEdits(
           // 高度を与えなかった場合は元の高度を保つ。
           altitude: altitude ?? place?.altitude,
         );
+        locationChanged = true;
+      case PlaceAsset(:final path, :final point):
+        // 落とした 1 件にだけ効く。他の対象は素通りする。
+        if (path != target.path) break;
+        place = point;
         locationChanged = true;
       case ClearLocation():
         place = null;

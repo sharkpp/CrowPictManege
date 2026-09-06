@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// 書き込みは対象ごとの姿に依らないので、相手は既定のもので足りる。
 final _target = EditTarget(
+  path: '/root/photo.jpg',
   fileName: 'photo.jpg',
   fileModifiedAt: DateTime(2024, 6, 1),
 );

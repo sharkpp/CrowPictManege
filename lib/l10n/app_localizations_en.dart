@@ -505,6 +505,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapFitAll => 'Fit all';
 
   @override
+  String get mapPlaceMode => 'Set a position on the map';
+
+  @override
+  String get mapPlaceHint =>
+      'Tap the map to choose a position, then drag the pin';
+
+  @override
+  String get mapPlaceSelectFirst => 'Select items to give them a position';
+
+  @override
+  String mapPlaceCommit(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Queue for $count items',
+      one: 'Queue for 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String mapPlaceQueued(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Queued a position for $count items',
+      one: 'Queued a position for 1 item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mapPendingPin => 'The position being chosen';
+
+  @override
+  String mapUnplacedTray(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count without a location',
+      one: '1 without a location',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get mapUnplacedHint => 'Drag onto the map to queue that position';
+
+  @override
+  String mapPlaced(String name) {
+    return 'Queued a position for $name';
+  }
+
+  @override
   String get previewPrevious => 'Previous';
 
   @override
@@ -935,6 +989,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String editOpSetLocation(String latitude, String longitude) {
     return 'Set location to $latitude, $longitude';
+  }
+
+  @override
+  String editOpPlaceAsset(String name, String latitude, String longitude) {
+    return 'Set $name to $latitude, $longitude';
   }
 
   @override

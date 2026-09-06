@@ -1,4 +1,6 @@
+import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
+import 'package:crow_pict_manege/state/edits.dart';
 import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
 import 'package:crow_pict_manege/ui/asset_map.dart';
@@ -65,9 +67,10 @@ void main() {
     return container;
   }
 
-  testWidgets('位置を持つ対象が無ければそう伝える', (tester) async {
+  testWidgets('位置を持つ対象が無くても地図は出す（SPEC FR-E4-2）', (tester) async {
     await pumpMap(tester, [noLocation]);
     expect(find.text('位置を持つ対象がありません'), findsOneWidget);
+    expect(find.byType(FlutterMap), findsOneWidget, reason: '付けるためにも地図が要る');
   });
 
   testWidgets('十分に寄れば近いピンも分かれる', (tester) async {
@@ -268,5 +271,104 @@ void main() {
       tester.widget<TileLayer>(find.byType(TileLayer)).tileBuilder,
       isNotNull,
     );
+  });
+
+  /// 地図から位置を決める（SPEC FR-E4-2、FR-M5、FR-M6）。
+  ///
+  /// 積むところまでを見る。ファイルへ書くのは編集の作業面の役目なので、
+  /// ここでは操作の列に入ったことだけを確かめる。
+  testWidgets('地図を押して選択集合に位置を積む', (tester) async {
+    final container = await pumpMap(tester, [near1, far]);
+    container.read(selectionProvider.notifier).selectPaths([
+      near1.path,
+      far.path,
+    ]);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.byTooltip('地図で位置を決める'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byTooltip('決めようとしている位置'), findsOneWidget);
+
+    // 決めている間は、何も無いところを押しても選択を解かない。
+    await tester.tapAt(const Offset(120, 480));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(container.read(selectionProvider).count, 2);
+
+    await tester.tap(find.text('2 件に積む'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(container.read(editQueueProvider).edits.single, isA<SetLocation>());
+    expect(find.byTooltip('決めようとしている位置'), findsNothing, reason: '積んだら決め終わり');
+  });
+
+  testWidgets('ピンをドラッグして位置を詰める', (tester) async {
+    final container = await pumpMap(tester, [near1]);
+    container.read(selectionProvider.notifier).selectPaths([near1.path]);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await tester.tap(find.byTooltip('地図で位置を決める'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // 掴んでから動かす。掴んだ知らせが地図へ届く間を空ける。
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byTooltip('決めようとしている位置')),
+    );
+    await tester.pump();
+    await gesture.moveBy(const Offset(40, 0));
+    await tester.pump();
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.text('1 件に積む'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final edit = container.read(editQueueProvider).edits.single as SetLocation;
+    expect(
+      edit.longitude,
+      greaterThan(near1.summary!.location!.longitude),
+      reason: '右へ動かせば東へ寄る',
+    );
+  });
+
+  testWidgets('選択が無ければ積めない', (tester) async {
+    await pumpMap(tester, [near1]);
+
+    await tester.tap(find.byTooltip('地図で位置を決める'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('対象を選ぶと位置を付けられます'), findsOneWidget);
+    expect(
+      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      isNull,
+    );
+  });
+
+  testWidgets('トレイから地図へ落とすとその 1 件に位置が付く（SPEC FR-M6）', (tester) async {
+    final container = await pumpMap(tester, [near1, noLocation]);
+
+    await tester.tap(find.byTooltip('位置なし 1 件'));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('d.jpg'), findsOneWidget);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('d.jpg')),
+    );
+    await gesture.moveTo(const Offset(500, 300));
+    await tester.pump();
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final edit = container.read(editQueueProvider).edits.single;
+    expect(edit, isA<PlaceAsset>());
+    expect((edit as PlaceAsset).path, noLocation.path);
+    expect(
+      container.read(selectionProvider).paths,
+      contains(noLocation.path),
+      reason: '落とした 1 件は編集の対象に入れる',
+    );
+  });
+
+  testWidgets('位置を持つ対象しか無ければトレイの入口を出さない', (tester) async {
+    await pumpMap(tester, [near1, far]);
+    expect(find.byTooltip('位置なし 1 件'), findsNothing);
   });
 }

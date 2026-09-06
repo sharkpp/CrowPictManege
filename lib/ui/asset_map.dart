@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:supercluster/supercluster.dart';
 
+import '../domain/edit.dart';
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
+import '../state/edits.dart';
 import '../state/selection.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
@@ -16,11 +18,16 @@ const _pinColor = Color(0xFF1B6AA5);
 const _selectedPinColor = Color(0xFFF4511E);
 const _clusterColor = Color(0xFF0D3B57);
 
+/// 決めようとしている位置。既にある位置と見分けが付く色にする。
+const _pendingPinColor = Color(0xFF2E7D32);
+
 /// マップ表示（SPEC FR-B10、FR-M1、FR-M2）。
 ///
 /// 位置を持つ対象をマーカーで出し、近いものはまとめて件数で示す。
 /// 選択は一覧と双方向に同期し、選択中の 1 件はサムネイルで示す。
-/// 表示範囲での絞り込みと地図からの位置設定は段階 3 で足す。
+/// 地図を押して選択集合の位置を決め（SPEC FR-E4-2、FR-M5）、位置を持たない
+/// 対象はトレイから地図へ落として付ける（SPEC FR-M6）。
+/// 表示範囲での絞り込みと軌跡は R2 で足す。
 class AssetMap extends ConsumerStatefulWidget {
   const AssetMap({super.key, required this.assets});
 
@@ -33,10 +40,33 @@ class AssetMap extends ConsumerStatefulWidget {
 class _AssetMapState extends ConsumerState<AssetMap> {
   final _controller = MapController();
 
-  /// 位置を持つ対象。地図に出せるのはこれだけ。
+  /// 地図の実体。落とし先の座標を求めるために画面上の位置を要る。
+  final _mapKey = GlobalKey();
+
+  /// 位置を持つ対象。マーカーに出せるのはこれだけ。
   List<MediaAsset> _located = const [];
+
+  /// 位置を持たない対象。トレイに並べる（SPEC FR-M6）。
+  List<MediaAsset> _unplaced = const [];
   SuperclusterImmutable<MediaAsset>? _index;
   bool _ready = false;
+
+  /// 地図で位置を決めている最中か（SPEC FR-E4-2）。
+  ///
+  /// この間は地図の押下が座標拾いになるので、選択は解かない（SPEC FR-M11）。
+  bool _placing = false;
+
+  /// 拾った座標。決めるまでは積まない（SPEC FR-E5）。
+  LatLng? _pending;
+
+  /// 位置なしのトレイを開いているか。
+  bool _trayOpen = false;
+
+  /// ピンを掴んでいる最中か。
+  ///
+  /// 指の動きは地図とピンの両方が欲しがる。掴んでいる間は地図の側を止めて、
+  /// ピンだけが動くようにする。
+  bool _grabbingPin = false;
 
   /// 地図の限界。タイルの実体は [_maxNativeZoom] までで、それより先は
   /// タイルを引き伸ばして寄る。同じ場所で撮った写真を分けて見るために要る。
@@ -90,6 +120,10 @@ class _AssetMapState extends ConsumerState<AssetMap> {
     _located = [
       for (final asset in widget.assets)
         if (asset.summary?.location != null) asset,
+    ];
+    _unplaced = [
+      for (final asset in widget.assets)
+        if (asset.summary?.location == null) asset,
     ];
     if (_located.isEmpty) {
       _index = null;
@@ -147,45 +181,159 @@ class _AssetMapState extends ConsumerState<AssetMap> {
     return leaves;
   }
 
+  /// 地図を押したときの動き。
+  ///
+  /// 位置を決めている間は座標を拾う（SPEC FR-E4-2、FR-M5）。そうでなければ
+  /// 何も無いところを押したものとして選択を解く（SPEC FR-M11）。
+  void _onTap(TapPosition position, LatLng point) {
+    if (_placing) {
+      setState(() => _pending = point);
+      return;
+    }
+    ref.read(selectionProvider.notifier).clear();
+  }
+
+  /// 位置を決める・やめるの切り替え。
+  ///
+  /// 決め始めるときは、主対象の位置か、いま見えている中心を初めの場所にする。
+  /// 白紙から押させるより、動かして詰めるほうが早い。
+  void _togglePlacing() {
+    setState(() {
+      _placing = !_placing;
+      if (!_placing) {
+        _pending = null;
+        return;
+      }
+      final primary = ref.read(selectionProvider).primary;
+      final located = [
+        for (final asset in _located)
+          if (asset.path == primary) asset,
+      ];
+      _pending = located.isEmpty
+          ? _controller.camera.center
+          : _pointOf(located.first);
+    });
+  }
+
+  /// 拾った座標を選択集合へ積む（SPEC FR-E4-2、FR-E4-3）。
+  ///
+  /// ここではまだファイルに触らない。適用は編集の作業面から行う（SPEC FR-E5）。
+  void _commitPlacement() {
+    final point = _pending;
+    final count = ref.read(selectionProvider).count;
+    if (point == null || count == 0) return;
+    ref
+        .read(editQueueProvider.notifier)
+        .add(SetLocation(latitude: point.latitude, longitude: point.longitude));
+    setState(() {
+      _placing = false;
+      _pending = null;
+    });
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(context.l10n.mapPlaceQueued(count))),
+    );
+  }
+
+  /// トレイから落とした 1 件に、落とした場所を付ける（SPEC FR-M6）。
+  void _drop(DragTargetDetails<MediaAsset> details) {
+    final box = _mapKey.currentContext?.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    // 落とした先は画面上の位置で来る。地図の中の座標へ直す。
+    final point = _controller.camera.screenOffsetToLatLng(
+      box.globalToLocal(details.offset),
+    );
+    final asset = details.data;
+    ref.read(selectionProvider.notifier).include(asset.path);
+    ref
+        .read(editQueueProvider.notifier)
+        .add(
+          PlaceAsset(
+            asset.path,
+            GeoPoint(latitude: point.latitude, longitude: point.longitude),
+          ),
+        );
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(context.l10n.mapPlaced(asset.name))),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final index = _index;
-    if (index == null) {
-      return Center(child: Text(context.l10n.mapNoLocated));
-    }
     final ordered = [for (final asset in widget.assets) asset.path];
 
     return Stack(
       children: [
-        FlutterMap(
-          mapController: _controller,
-          options: MapOptions(
-            // 既定では位置を持つ対象がなるべく大きく入るよう寄せる。
-            initialCameraFit: _fit(),
-            maxZoom: _maxZoom,
-            onMapReady: () => _ready = true,
-            // 何も無いところを押したら選択を解く（SPEC FR-M11）。
-            onTap: (_, _) => ref.read(selectionProvider.notifier).clear(),
-          ),
-          children: [
-            TileLayer(
-              // タイルは設定で差し替えられるようにする（SPEC FR-M7）。段階 3 で設定へ出す。
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'net.sharkpp.crowpictmanege',
+        // トレイから落とした 1 件を受ける（SPEC FR-M6）。地図の面すべてが落とし先。
+        DragTarget<MediaAsset>(
+          onAcceptWithDetails: _drop,
+          builder: (context, _, _) => FlutterMap(
+            key: _mapKey,
+            mapController: _controller,
+            options: MapOptions(
+              // 既定では位置を持つ対象がなるべく大きく入るよう寄せる。
+              // 1 件も無い場合は世界全体から始める。位置を付けるにも地図が要る。
+              initialCameraFit: _located.isEmpty ? null : _fit(),
+              initialCenter: const LatLng(0, 0),
+              initialZoom: 1,
               maxZoom: _maxZoom,
-              maxNativeZoom: _maxNativeZoom,
-              // 暗いテーマではタイルの色を反転させ、地図も暗くする（SPEC FR-M15）。
-              tileBuilder: theme.brightness == Brightness.dark
-                  ? darkModeTileBuilder
-                  : null,
+              onMapReady: () => _ready = true,
+              onTap: _onTap,
+              interactionOptions: InteractionOptions(
+                flags: _grabbingPin
+                    ? InteractiveFlag.none
+                    : InteractiveFlag.all,
+              ),
             ),
-            _Markers(index: index, ordered: ordered, onCluster: _openCluster),
-            _SelectedPreview(located: _located),
-            // 操作は地図の子として置く。カメラが動けば自分で作り直される。
-            _MapControls(maxZoom: _maxZoom, onFitAll: _fitAll),
-          ],
+            children: [
+              TileLayer(
+                // タイルは設定で差し替えられるようにする（SPEC FR-M7）。R7 で設定へ出す。
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'net.sharkpp.crowpictmanege',
+                maxZoom: _maxZoom,
+                maxNativeZoom: _maxNativeZoom,
+                // 暗いテーマではタイルの色を反転させ、地図も暗くする（SPEC FR-M15）。
+                tileBuilder: theme.brightness == Brightness.dark
+                    ? darkModeTileBuilder
+                    : null,
+              ),
+              if (index != null)
+                _Markers(
+                  index: index,
+                  ordered: ordered,
+                  onCluster: _openCluster,
+                ),
+              _SelectedPreview(located: _located),
+              if (_pending != null)
+                _PendingPin(
+                  point: _pending!,
+                  onMove: (point) => setState(() => _pending = point),
+                  onGrab: (grabbing) => setState(() => _grabbingPin = grabbing),
+                ),
+              // 操作は地図の子として置く。カメラが動けば自分で作り直される。
+              _MapControls(
+                maxZoom: _maxZoom,
+                onFitAll: _located.isEmpty ? null : _fitAll,
+                placing: _placing,
+                onTogglePlacing: _togglePlacing,
+                unplaced: _unplaced.length,
+                trayOpen: _trayOpen,
+                onToggleTray: () => setState(() => _trayOpen = !_trayOpen),
+              ),
+            ],
+          ),
         ),
+        if (_trayOpen)
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 28,
+            child: _UnplacedTray(
+              assets: _unplaced,
+              onClose: () => setState(() => _trayOpen = false),
+            ),
+          ),
         Positioned(
           left: 8,
           bottom: 8,
@@ -198,6 +346,17 @@ class _AssetMapState extends ConsumerState<AssetMap> {
             ),
           ),
         ),
+        // 上端の帯。位置を決めている間の案内と、出せる対象が無いときの断り。
+        if (_placing)
+          _TopBanner(
+            child: _PlacementBar(
+              point: _pending,
+              onCommit: _commitPlacement,
+              onCancel: _togglePlacing,
+            ),
+          )
+        else if (_located.isEmpty)
+          _TopBanner(child: Text(context.l10n.mapNoLocated)),
       ],
     );
   }
@@ -582,10 +741,29 @@ class _RoundButton extends StatelessWidget {
 ///
 /// 地図の子として置くので、カメラが動けば自分で作り直される。
 class _MapControls extends StatelessWidget {
-  const _MapControls({required this.maxZoom, required this.onFitAll});
+  const _MapControls({
+    required this.maxZoom,
+    required this.onFitAll,
+    required this.placing,
+    required this.onTogglePlacing,
+    required this.unplaced,
+    required this.trayOpen,
+    required this.onToggleTray,
+  });
 
   final double maxZoom;
-  final VoidCallback onFitAll;
+
+  /// null なら寄せる先が無い（位置を持つ対象が 1 件も無い）。
+  final VoidCallback? onFitAll;
+
+  /// 地図で位置を決めている最中か（SPEC FR-E4-2）。
+  final bool placing;
+  final VoidCallback onTogglePlacing;
+
+  /// 位置を持たない対象の数（SPEC FR-M6）。0 ならトレイの入口を出さない。
+  final int unplaced;
+  final bool trayOpen;
+  final VoidCallback onToggleTray;
 
   @override
   Widget build(BuildContext context) {
@@ -608,6 +786,23 @@ class _MapControls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
+            // 位置を決める・落とし元を出す。地図を直すための入口を上に置く。
+            _MapButton(
+              icon: Icons.add_location_alt_outlined,
+              label: context.l10n.mapPlaceMode,
+              selected: placing,
+              onPressed: onTogglePlacing,
+            ),
+            if (unplaced > 0) ...[
+              const SizedBox(height: 4),
+              _MapButton(
+                icon: Icons.image_not_supported_outlined,
+                label: context.l10n.mapUnplacedTray(unplaced),
+                selected: trayOpen,
+                onPressed: onToggleTray,
+              ),
+            ],
+            const SizedBox(height: 8),
             _MapButton(
               icon: Icons.add,
               label: context.l10n.mapZoomIn,
@@ -658,24 +853,274 @@ class _MapButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.selected = false,
   });
 
   final IconData icon;
   final String label;
+
+  /// 入り切りのある操作で、いま入っているか。入っていれば色を変える。
+  final bool selected;
 
   /// null なら押せない状態にする（これ以上寄れない、すでに北向きなど）。
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Material(
-      color: Theme.of(context).colorScheme.surface,
+      color: selected ? scheme.primary : scheme.surface,
       elevation: 2,
       borderRadius: BorderRadius.circular(4),
       child: IconButton(
         icon: Icon(icon, size: 20),
+        color: selected ? scheme.onPrimary : null,
         tooltip: label,
         onPressed: onPressed,
+      ),
+    );
+  }
+}
+
+/// 上端に出す帯。地図の上でも読めるよう、面の色を敷く。
+class _TopBanner extends StatelessWidget {
+  const _TopBanner({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Positioned(
+      top: 8,
+      left: 8,
+      right: 8,
+      child: Material(
+        color: theme.colorScheme.surface.withValues(alpha: 0.92),
+        elevation: 2,
+        borderRadius: BorderRadius.circular(4),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+/// 位置を決めている間の帯（SPEC FR-E4-2、FR-M5）。
+///
+/// 拾った座標を見せ、選択集合へ積むまでを 1 か所で済ませる。
+class _PlacementBar extends ConsumerWidget {
+  const _PlacementBar({
+    required this.point,
+    required this.onCommit,
+    required this.onCancel,
+  });
+
+  final LatLng? point;
+  final VoidCallback onCommit;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final count = ref.watch(selectionProvider).count;
+    final place = point;
+    final ready = place != null && count > 0;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            count == 0
+                ? l10n.mapPlaceSelectFirst
+                : place == null
+                ? l10n.mapPlaceHint
+                : formatCoordinates(
+                    GeoPoint(
+                      latitude: place.latitude,
+                      longitude: place.longitude,
+                    ),
+                  ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        TextButton(onPressed: onCancel, child: Text(l10n.actionStop)),
+        const SizedBox(width: 8),
+        FilledButton(
+          onPressed: ready ? onCommit : null,
+          child: Text(l10n.mapPlaceCommit(count)),
+        ),
+      ],
+    );
+  }
+}
+
+/// 決めようとしている位置のピン（SPEC FR-E4-2、FR-M5）。
+///
+/// 押した場所から、ドラッグで詰められる。ピンを掴んでいる間は地図を動かさない。
+class _PendingPin extends StatelessWidget {
+  const _PendingPin({
+    required this.point,
+    required this.onMove,
+    required this.onGrab,
+  });
+
+  final LatLng point;
+  final void Function(LatLng point) onMove;
+
+  /// 掴んだ・離したの知らせ。掴んでいる間は地図を止めてもらう。
+  final void Function(bool grabbing) onGrab;
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = MapCamera.of(context);
+    return MarkerLayer(
+      markers: [
+        Marker(
+          point: point,
+          width: 48,
+          height: 48,
+          // ピンの先が座標を指す。
+          alignment: Alignment.topCenter,
+          // 生の指の動きで受ける。地図の側と取り合いにならない。
+          child: Listener(
+            onPointerDown: (_) => onGrab(true),
+            onPointerMove: (event) => onMove(
+              camera.screenOffsetToLatLng(
+                camera.latLngToScreenOffset(point) + event.delta,
+              ),
+            ),
+            onPointerUp: (_) => onGrab(false),
+            onPointerCancel: (_) => onGrab(false),
+            child: Tooltip(
+              message: context.l10n.mapPendingPin,
+              child: const Icon(
+                Icons.place,
+                size: 48,
+                color: _pendingPinColor,
+                shadows: [Shadow(color: Colors.black54, blurRadius: 4)],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 位置を持たない対象のトレイ（SPEC FR-M6）。
+///
+/// ここから地図へ落とすと、落とした場所がその 1 件だけに付く。
+class _UnplacedTray extends StatelessWidget {
+  const _UnplacedTray({required this.assets, required this.onClose});
+
+  final List<MediaAsset> assets;
+  final VoidCallback onClose;
+
+  static const _width = 152.0;
+  static const _tile = 112.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.l10n;
+
+    return Material(
+      color: theme.colorScheme.surface.withValues(alpha: 0.94),
+      elevation: 3,
+      child: SizedBox(
+        width: _width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 4, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.mapUnplacedTray(assets.length),
+                      style: theme.textTheme.labelLarge,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 16),
+                    tooltip: l10n.actionClose,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: onClose,
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                l10n.mapUnplacedHint,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+            const Divider(height: 12),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.only(bottom: 8),
+                itemCount: assets.length,
+                itemBuilder: (context, index) =>
+                    _UnplacedTile(asset: assets[index]),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// トレイの 1 件。地図へ落とすために掴める。
+class _UnplacedTile extends StatelessWidget {
+  const _UnplacedTile({required this.asset});
+
+  final MediaAsset asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final thumbnail = SizedBox(
+      width: _UnplacedTray._tile,
+      height: _UnplacedTray._tile,
+      child: AssetThumbnail(asset: asset, size: _UnplacedTray._tile),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Draggable<MediaAsset>(
+        data: asset,
+        // 落とし先は指の位置で決める。掴んだ場所のずれを持ち込まない。
+        dragAnchorStrategy: pointerDragAnchorStrategy,
+        feedback: Transform.translate(
+          offset: const Offset(-_UnplacedTray._tile / 2, -_UnplacedTray._tile),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Opacity(opacity: 0.85, child: thumbnail),
+          ),
+        ),
+        childWhenDragging: Opacity(opacity: 0.3, child: thumbnail),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            thumbnail,
+            Text(
+              asset.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }

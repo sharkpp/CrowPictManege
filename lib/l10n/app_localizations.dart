@@ -890,6 +890,60 @@ abstract class AppLocalizations {
   /// **'全体を表示'**
   String get mapFitAll;
 
+  /// No description provided for @mapPlaceMode.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図で位置を決める'**
+  String get mapPlaceMode;
+
+  /// No description provided for @mapPlaceHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図を押して位置を決める。ピンはドラッグで動かせる'**
+  String get mapPlaceHint;
+
+  /// No description provided for @mapPlaceSelectFirst.
+  ///
+  /// In ja, this message translates to:
+  /// **'対象を選ぶと位置を付けられます'**
+  String get mapPlaceSelectFirst;
+
+  /// No description provided for @mapPlaceCommit.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件に積む'**
+  String mapPlaceCommit(int count);
+
+  /// No description provided for @mapPlaceQueued.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件に位置を積んだ'**
+  String mapPlaceQueued(int count);
+
+  /// No description provided for @mapPendingPin.
+  ///
+  /// In ja, this message translates to:
+  /// **'決めようとしている位置'**
+  String get mapPendingPin;
+
+  /// No description provided for @mapUnplacedTray.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置なし {count} 件'**
+  String mapUnplacedTray(int count);
+
+  /// No description provided for @mapUnplacedHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図へドラッグすると、その場所を積む'**
+  String get mapUnplacedHint;
+
+  /// No description provided for @mapPlaced.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} に位置を積んだ'**
+  String mapPlaced(String name);
+
   /// No description provided for @previewPrevious.
   ///
   /// In ja, this message translates to:
@@ -1591,6 +1645,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'位置を {latitude}, {longitude} にする'**
   String editOpSetLocation(String latitude, String longitude);
+
+  /// No description provided for @editOpPlaceAsset.
+  ///
+  /// In ja, this message translates to:
+  /// **'{name} の位置を {latitude}, {longitude} にする'**
+  String editOpPlaceAsset(String name, String latitude, String longitude);
 
   /// No description provided for @editOpClearLocation.
   ///

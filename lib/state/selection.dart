@@ -102,6 +102,16 @@ class SelectionNotifier extends Notifier<Selection> {
     );
   }
 
+  /// 選択集合へ 1 件足し、その 1 件を主対象にする（SPEC FR-M6）。
+  ///
+  /// 地図へ落として位置を付けるときに使う。落とすたびに選び直していては、
+  /// 前に落とした分が編集の対象から外れてしまう。
+  void include(String path) => state = Selection(
+    paths: {...state.paths, path},
+    primary: path,
+    anchor: state.anchor ?? path,
+  );
+
   /// 選択集合はそのままに、主対象だけを移す（SPEC FR-M10）。
   ///
   /// 地図のまとまりの中を送るときに使う。送っても集合からは外れない。

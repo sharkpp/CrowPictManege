@@ -193,6 +193,11 @@ extension AppLabels on AppLocalizations {
       latitude.toStringAsFixed(6),
       longitude.toStringAsFixed(6),
     ),
+    PlaceAsset(:final path, :final point) => editOpPlaceAsset(
+      path.split(RegExp(r'[/\\]')).last,
+      point.latitude.toStringAsFixed(6),
+      point.longitude.toStringAsFixed(6),
+    ),
     ClearLocation() => editOpClearLocation,
     DistributeTime(:final start, :final interval) => editOpDistributeTime(
       formatDateTime(start),

@@ -327,6 +327,43 @@
   "mapZoomOut": "縮小",
   "mapResetNorth": "北を上に戻す",
   "mapFitAll": "全体を表示",
+  "mapPlaceMode": "地図で位置を決める",
+  "mapPlaceHint": "地図を押して位置を決める。ピンはドラッグで動かせる",
+  "mapPlaceSelectFirst": "対象を選ぶと位置を付けられます",
+  "mapPlaceCommit": "{count} 件に積む",
+  "@mapPlaceCommit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPlaceQueued": "{count} 件に位置を積んだ",
+  "@mapPlaceQueued": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapPendingPin": "決めようとしている位置",
+  "mapUnplacedTray": "位置なし {count} 件",
+  "@mapUnplacedTray": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mapUnplacedHint": "地図へドラッグすると、その場所を積む",
+  "mapPlaced": "{name} に位置を積んだ",
+  "@mapPlaced": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "previewPrevious": "前へ",
   "previewNext": "次へ",
   "previewFrameBack": "1 コマ戻す",
@@ -661,6 +698,20 @@
   "editOpSetLocation": "位置を {latitude}, {longitude} にする",
   "@editOpSetLocation": {
     "placeholders": {
+      "latitude": {
+        "type": "String"
+      },
+      "longitude": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpPlaceAsset": "{name} の位置を {latitude}, {longitude} にする",
+  "@editOpPlaceAsset": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
       "latitude": {
         "type": "String"
       },

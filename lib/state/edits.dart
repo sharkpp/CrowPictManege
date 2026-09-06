@@ -33,10 +33,19 @@ class EditQueueNotifier extends Notifier<EditQueue> {
   @override
   EditQueue build() => const EditQueue();
 
-  void add(AssetEdit edit) => state = EditQueue(
-    edits: [...state.edits, edit],
-    timeTargets: state.timeTargets,
-  );
+  void add(AssetEdit edit) {
+    // 同じ 1 件へ落とし直した場合は、前の落とし場所を置き換える（SPEC FR-M6）。
+    // 積み重ねても最後の 1 つしか効かないので、列に残しても読み手を惑わせるだけ。
+    final edits = [
+      for (final existing in state.edits)
+        if (!(edit is PlaceAsset &&
+            existing is PlaceAsset &&
+            existing.path == edit.path))
+          existing,
+      edit,
+    ];
+    state = EditQueue(edits: edits, timeTargets: state.timeTargets);
+  }
 
   void removeAt(int index) {
     final edits = List.of(state.edits)..removeAt(index);
@@ -111,6 +120,7 @@ final editPreviewProvider = Provider<EditPreview>((ref) {
     final plan = planEdits(
       queue.edits,
       EditTarget(
+        path: asset.path,
         fileName: asset.name,
         fileModifiedAt: asset.fileModifiedAt,
         capturedAt: asset.summary?.capturedAt,

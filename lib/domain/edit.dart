@@ -125,6 +125,18 @@ final class AdoptTime extends AssetEdit {
   final TimeAdoption from;
 }
 
+/// 落とした 1 件にだけ位置を付ける（SPEC FR-M6）。
+///
+/// 地図へのドラッグは対象ごとに落とす場所が違う。選択集合の全体へ配る
+/// [SetLocation] とは別に、当てる相手を自分で持つ操作として扱う。
+final class PlaceAsset extends AssetEdit {
+  const PlaceAsset(this.path, this.point);
+
+  /// 当てる相手。これ以外の対象には効かない。
+  final String path;
+  final GeoPoint point;
+}
+
 /// 位置を消す（SPEC FR-E4-5）。公開前のプライバシー処理として明示的に提供する。
 final class ClearLocation extends AssetEdit {
   const ClearLocation();
