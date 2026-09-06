@@ -33,6 +33,25 @@ class AssetList extends ConsumerWidget {
         if (layout.visible) layout,
     ];
 
+    // 列を並べきれない幅では 2 行要約に退避する（SPEC FR-B3）。
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          constraints.maxWidth < _widthOf(layouts)
+          ? _SummaryList(assets: assets, folders: folders)
+          : _table(context, ref, layouts, selection),
+    );
+  }
+
+  /// 列を並べるのに要る幅。
+  static double _widthOf(List<ColumnLayout> layouts) =>
+      layouts.fold(0, (sum, layout) => sum + layout.width);
+
+  Widget _table(
+    BuildContext context,
+    WidgetRef ref,
+    List<ColumnLayout> layouts,
+    Selection selection,
+  ) {
     return Column(
       children: [
         _Header(layouts: layouts),
@@ -66,6 +85,118 @@ class AssetList extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// 列を並べきれない幅での 2 行要約（SPEC FR-B3）。
+///
+/// 1 行目にファイル名、2 行目に撮影時刻と主な属性を出す。列の付け替えと
+/// 列フィルタはこの幅では出せないので、絞り込みは検索とフィルタ帯に任せる。
+class _SummaryList extends ConsumerWidget {
+  const _SummaryList({required this.assets, required this.folders});
+
+  final List<MediaAsset> assets;
+  final List<FolderGroup> folders;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selection = ref.watch(selectionProvider);
+
+    return ListView.builder(
+      itemCount: folders.length + assets.length,
+      itemExtent: 52,
+      itemBuilder: (context, index) {
+        if (index < folders.length) {
+          return FolderRow(folder: folders[index]);
+        }
+        final asset = assets[index - folders.length];
+        final ordered = [for (final a in assets) a.path];
+        return _SummaryRow(
+          asset: asset,
+          selected: selection.contains(asset.path),
+          onTap: () => ref
+              .read(selectionProvider.notifier)
+              .tap(asset.path, ordered, gestureFromKeyboard()),
+          onOpen: () {
+            ref
+                .read(selectionProvider.notifier)
+                .tap(asset.path, ordered, SelectionGesture.replace);
+            showAssetPreview(context);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({
+    required this.asset,
+    required this.selected,
+    required this.onTap,
+    required this.onOpen,
+  });
+
+  final MediaAsset asset;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final summary = asset.summary;
+    final second = [
+      columnDisplay(AssetColumn.capturedAt, asset),
+      if (summary?.width != null) '${summary!.width} × ${summary.height}',
+      if (summary?.duration != null) columnDisplay(AssetColumn.duration, asset),
+      columnDisplay(AssetColumn.size, asset),
+    ].join(' · ');
+
+    return InkWell(
+      onTap: onTap,
+      onDoubleTap: onOpen,
+      child: Container(
+        color: selected ? theme.colorScheme.primaryContainer : null,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              asset.kind == AssetKind.video
+                  ? Icons.movie_outlined
+                  : Icons.image_outlined,
+              size: 16,
+              color: theme.colorScheme.outline,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    asset.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  Text(
+                    second,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (summary?.location != null)
+              Icon(Icons.place, size: 14, color: theme.colorScheme.outline),
+          ],
+        ),
+      ),
     );
   }
 }
