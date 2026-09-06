@@ -22,13 +22,14 @@ import 'asset_preview.dart';
 import 'asset_map.dart';
 import 'asset_grid.dart';
 import 'asset_list.dart';
+import 'edit_sheet.dart';
 import 'filter_bar.dart';
 import 'layout.dart';
-import 'metadata_panel.dart';
 import 'metadata_sheet.dart';
 import 'place_bar.dart';
 import 'search_row.dart';
 import 'settings_dialog.dart';
+import 'side_panel.dart';
 import 'start_view.dart';
 import 'version_dialog.dart';
 import 'labels.dart';
@@ -390,7 +391,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
 
   /// 狭い画面の下部ナビゲーション（SPEC §9）。
   ///
-  /// 一覧と地図を行き来する。メタ情報はボトムシートで開く。
+  /// 一覧と地図を行き来する。メタ情報と編集はボトムシートで開く。
   Widget _bottomNavigation() {
     final settings = ref.watch(settingsProvider);
     final onMap = settings.viewMode == ViewMode.map;
@@ -418,6 +419,11 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           ),
           label: context.l10n.metadata,
         ),
+        NavigationDestination(
+          icon: const Icon(Icons.edit_outlined),
+          selectedIcon: const Icon(Icons.edit),
+          label: context.l10n.navEdit,
+        ),
       ],
       onDestinationSelected: (index) {
         switch (index) {
@@ -427,6 +433,8 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
             _setViewMode(ViewMode.map);
           case 2:
             showMetadataSheet(context);
+          case 3:
+            showEditSheet(context);
         }
       },
     );
@@ -480,7 +488,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       children: [
         Expanded(child: _view(listing)),
         const VerticalDivider(width: 1),
-        SizedBox(width: layout.sidePanelWidth, child: const MetadataPanel()),
+        SizedBox(width: layout.sidePanelWidth, child: const SidePanel()),
       ],
     );
   }

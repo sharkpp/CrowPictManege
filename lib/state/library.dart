@@ -274,6 +274,67 @@ class LibraryNotifier extends Notifier<LibraryState> {
     _dropMissingFromSelection();
   }
 
+  /// 書き戻した対象を読み直す（SPEC §4.4、FR-E6-3）。
+  ///
+  /// カタログはキャッシュであり、真実はファイル側にある。書き込みの後は
+  /// 大きさと更新時刻も変わるので、キャッシュごと入れ替える。
+  Future<void> refresh(List<String> paths) async {
+    if (paths.isEmpty) return;
+    final targets = paths.toSet();
+    final port = ref.read(metadataPortProvider);
+    final thumbnails = ref.read(thumbnailCacheProvider);
+    final assets = List.of(state.assets);
+    final toStore = <CachedAsset>[];
+
+    for (var i = 0; i < assets.length; i++) {
+      final asset = assets[i];
+      if (!targets.contains(asset.path)) continue;
+
+      final FileStat stat;
+      try {
+        stat = File(asset.path).statSync();
+      } on FileSystemException {
+        continue;
+      }
+      final reloaded = MediaAsset(
+        path: asset.path,
+        name: asset.name,
+        kind: asset.kind,
+        size: stat.size,
+        fileModifiedAt: stat.modified,
+      );
+
+      AssetSummary? summary;
+      AssetError? error;
+      try {
+        summary = await port.readSummary(asset.path);
+      } on MetadataFailure catch (failure) {
+        error = AssetError(failure.reason);
+      } catch (failure) {
+        error = AssetError(AssetFailure.unreadable, detail: '$failure');
+      }
+
+      assets[i] = summary != null
+          ? reloaded.withSummary(summary)
+          : reloaded.withError(error!);
+      thumbnails.put(asset.path, summary?.embeddedThumbnail);
+      ref.invalidate(allTagsProvider(asset.path));
+      toStore.add(
+        CachedAsset(
+          path: reloaded.path,
+          size: reloaded.size,
+          fileModifiedAt: reloaded.fileModifiedAt,
+          summary: summary,
+          thumbnail: summary?.embeddedThumbnail,
+          error: error?.encode(),
+        ),
+      );
+    }
+
+    state = state.copyWith(assets: assets);
+    await ref.read(catalogProvider).storeCachedAssets(toStore);
+  }
+
   /// 走査のやり直しで消えた対象を選択集合から落とす。
   void _dropMissingFromSelection() => ref
       .read(selectionProvider.notifier)

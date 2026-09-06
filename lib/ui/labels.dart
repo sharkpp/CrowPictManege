@@ -2,10 +2,12 @@ import '../domain/asset_error.dart';
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
 import '../domain/duplicates.dart';
+import '../domain/edit.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/search.dart';
 import '../domain/settings.dart';
+import '../ports/metadata_write_port.dart';
 import '../l10n/l10n.dart';
 import 'format.dart';
 
@@ -145,5 +147,67 @@ extension AppLabels on AppLocalizations {
     if (value == mixedValueMark) return mixedValue;
     if (tag.isBinary) return binaryValueText(tag.byteLength);
     return value;
+  }
+
+  /// 書き込みが立たなかった理由に出す言葉（SPEC FR-E7）。
+  String writeFailureLabel(WriteFailure reason) => switch (reason) {
+    WriteFailure.unsupportedFormat => writeFailureUnsupportedFormat,
+    WriteFailure.unsupportedTag => writeFailureUnsupportedTag,
+    WriteFailure.notPermitted => writeFailureNotPermitted,
+    WriteFailure.verificationFailed => writeFailureVerificationFailed,
+    WriteFailure.unknown => writeFailureUnknown,
+  };
+
+  /// 時刻の書き込み先に出す言葉（SPEC FR-E3-7）。
+  String timeTargetLabel(TimeTarget target) => switch (target) {
+    TimeTarget.exif => editTargetExif,
+    TimeTarget.xmp => editTargetXmp,
+    TimeTarget.fileSystem => editTargetFileSystem,
+  };
+
+  /// タイムゾーンの扱いに出す言葉（SPEC §4.3）。
+  String timeZoneModeLabel(TimeZoneMode mode) => switch (mode) {
+    TimeZoneMode.reinterpret => editTimeZoneReinterpret,
+    TimeZoneMode.convert => editTimeZoneConvert,
+  };
+
+  /// 積んだ操作 1 件に出す言葉（SPEC FR-E5）。
+  String editText(AssetEdit edit) => switch (edit) {
+    SetTag(:final group, :final name, :final value) => editOpSetTag(
+      '$group:$name',
+      value,
+    ),
+    ClearTag(:final group, :final name) => editOpClearTag('$group:$name'),
+    ShiftTime(:final delta) => editOpShiftTime(formatShift(delta)),
+    SetTime(:final wallClock, :final offset) => editOpSetTime(
+      offset == null
+          ? formatDateTime(wallClock)
+          : '${formatDateTime(wallClock)} ${formatOffset(offset)}',
+    ),
+    SetTimeZone(:final offset, :final mode) => editOpSetTimeZone(
+      formatOffset(offset),
+      timeZoneModeLabel(mode),
+    ),
+    SetLocation(:final latitude, :final longitude) => editOpSetLocation(
+      latitude.toStringAsFixed(6),
+      longitude.toStringAsFixed(6),
+    ),
+    ClearLocation() => editOpClearLocation,
+  };
+
+  /// ずらす量を、値のある単位だけ並べて出す。
+  String formatShift(Duration delta) {
+    final magnitude = delta.abs();
+    final parts = <String>[
+      if (magnitude.inDays != 0) '${magnitude.inDays} $editUnitDays',
+      if (magnitude.inHours % 24 != 0)
+        '${magnitude.inHours % 24} $editUnitHours',
+      if (magnitude.inMinutes % 60 != 0)
+        '${magnitude.inMinutes % 60} $editUnitMinutes',
+      if (magnitude.inSeconds % 60 != 0)
+        '${magnitude.inSeconds % 60} $editUnitSeconds',
+    ];
+    if (parts.isEmpty) parts.add('0 $editUnitSeconds');
+    return '${delta.isNegative ? '-' : '+'}${parts.join(' ')}';
   }
 }

@@ -688,4 +688,223 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get summaryFieldSize => 'サイズ';
+
+  @override
+  String get navEdit => '編集';
+
+  @override
+  String get editSelectAssets => '編集する対象を選ぶ';
+
+  @override
+  String get editSectionTime => '撮影時刻';
+
+  @override
+  String get editSectionLocation => '位置';
+
+  @override
+  String get editSectionTargets => '書き込み先';
+
+  @override
+  String get editSectionQueue => '積んだ操作';
+
+  @override
+  String get editSectionPreview => '適用前の見通し';
+
+  @override
+  String get editShiftLabel => 'ずらす';
+
+  @override
+  String get editShiftForward => '進める';
+
+  @override
+  String get editShiftBack => '戻す';
+
+  @override
+  String get editUnitDays => '日';
+
+  @override
+  String get editUnitHours => '時';
+
+  @override
+  String get editUnitMinutes => '分';
+
+  @override
+  String get editUnitSeconds => '秒';
+
+  @override
+  String get editSetTimeLabel => '時刻を決める';
+
+  @override
+  String get editTimeHint => '2024-01-15 12:34:56';
+
+  @override
+  String get editOffsetLabel => 'オフセット';
+
+  @override
+  String get editOffsetHint => '+09:00';
+
+  @override
+  String get editTimeZoneLabel => 'タイムゾーン';
+
+  @override
+  String get editTimeZoneReinterpret => '読み替える';
+
+  @override
+  String get editTimeZoneConvert => '変換する';
+
+  @override
+  String get editTimeZoneReinterpretHint => '壁時計時刻を保ち、指す瞬間を変える';
+
+  @override
+  String get editTimeZoneConvertHint => '指す瞬間を保ち、壁時計時刻を変える';
+
+  @override
+  String get editLatitude => '緯度';
+
+  @override
+  String get editLongitude => '経度';
+
+  @override
+  String get editAltitude => '標高';
+
+  @override
+  String get editSetLocationLabel => '位置を決める';
+
+  @override
+  String get editClearLocation => '位置を消す';
+
+  @override
+  String get editCopyLocationFromPrimary => '主対象の位置を使う';
+
+  @override
+  String get editAdd => '積む';
+
+  @override
+  String get editQueueEmpty => 'まだ何も積んでいない';
+
+  @override
+  String get editRemove => '外す';
+
+  @override
+  String get editClearQueue => 'すべて外す';
+
+  @override
+  String get editTargetExif => 'Exif';
+
+  @override
+  String get editTargetXmp => 'XMP';
+
+  @override
+  String get editTargetFileSystem => 'ファイル日時';
+
+  @override
+  String get editApply => '適用';
+
+  @override
+  String editApplyCount(int count) {
+    return '$count 件に適用';
+  }
+
+  @override
+  String editApplying(int done, int total) {
+    return '$done / $total 件';
+  }
+
+  @override
+  String get editPreviewNothing => '変わるものがない';
+
+  @override
+  String get editPreviewTargetTags => '書き込み先のタグ';
+
+  @override
+  String editPreviewMore(int count) {
+    return 'ほか $count 件';
+  }
+
+  @override
+  String editUnwritable(int count) {
+    return '$count 件はこの形式に書き込めない';
+  }
+
+  @override
+  String editResultSucceeded(int count) {
+    return '$count 件に書き込んだ';
+  }
+
+  @override
+  String editResultFailed(int count) {
+    return '$count 件が失敗';
+  }
+
+  @override
+  String get editUndo => '取り消す';
+
+  @override
+  String get editInvalidValue => '値を読めない';
+
+  @override
+  String editOpShiftTime(String amount) {
+    return '$amount ずらす';
+  }
+
+  @override
+  String editOpSetTime(String time) {
+    return '$time にする';
+  }
+
+  @override
+  String editOpSetTimeZone(String offset, String mode) {
+    return 'タイムゾーンを $offset に$mode';
+  }
+
+  @override
+  String editOpSetLocation(String latitude, String longitude) {
+    return '位置を $latitude, $longitude にする';
+  }
+
+  @override
+  String get editOpClearLocation => '位置を消す';
+
+  @override
+  String editOpSetTag(String tag, String value) {
+    return '$tag を $value にする';
+  }
+
+  @override
+  String editOpClearTag(String tag) {
+    return '$tag を消す';
+  }
+
+  @override
+  String get writeFailureUnsupportedFormat => 'この形式には書き込めない';
+
+  @override
+  String get writeFailureUnsupportedTag => 'このタグはこの形式に入らない';
+
+  @override
+  String get writeFailureNotPermitted => '書き込む権限がない';
+
+  @override
+  String get writeFailureVerificationFailed => '書き戻した値が違ったので元へ戻した';
+
+  @override
+  String get writeFailureUnknown => '書き込めなかった';
+
+  @override
+  String get settingsSectionBackup => '原本の控え';
+
+  @override
+  String get settingsBackupEnabled => '書き込みの前に控えを取る';
+
+  @override
+  String get settingsBackupGenerations => '残す世代数';
+
+  @override
+  String get settingsBackupDirectory => '控えの置き場所';
+
+  @override
+  String get settingsBackupDefaultDirectory => '既定の場所';
+
+  @override
+  String get settingsBackupChoose => '選ぶ';
 }

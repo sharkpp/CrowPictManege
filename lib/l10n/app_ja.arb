@@ -538,5 +538,166 @@
   "summaryFieldDimensions": "寸法",
   "summaryFieldDuration": "長さ",
   "summaryFieldFileType": "形式",
-  "summaryFieldSize": "サイズ"
+  "summaryFieldSize": "サイズ",
+  "navEdit": "編集",
+  "editSelectAssets": "編集する対象を選ぶ",
+  "editSectionTime": "撮影時刻",
+  "editSectionLocation": "位置",
+  "editSectionTargets": "書き込み先",
+  "editSectionQueue": "積んだ操作",
+  "editSectionPreview": "適用前の見通し",
+  "editShiftLabel": "ずらす",
+  "editShiftForward": "進める",
+  "editShiftBack": "戻す",
+  "editUnitDays": "日",
+  "editUnitHours": "時",
+  "editUnitMinutes": "分",
+  "editUnitSeconds": "秒",
+  "editSetTimeLabel": "時刻を決める",
+  "editTimeHint": "2024-01-15 12:34:56",
+  "editOffsetLabel": "オフセット",
+  "editOffsetHint": "+09:00",
+  "editTimeZoneLabel": "タイムゾーン",
+  "editTimeZoneReinterpret": "読み替える",
+  "editTimeZoneConvert": "変換する",
+  "editTimeZoneReinterpretHint": "壁時計時刻を保ち、指す瞬間を変える",
+  "editTimeZoneConvertHint": "指す瞬間を保ち、壁時計時刻を変える",
+  "editLatitude": "緯度",
+  "editLongitude": "経度",
+  "editAltitude": "標高",
+  "editSetLocationLabel": "位置を決める",
+  "editClearLocation": "位置を消す",
+  "editCopyLocationFromPrimary": "主対象の位置を使う",
+  "editAdd": "積む",
+  "editQueueEmpty": "まだ何も積んでいない",
+  "editRemove": "外す",
+  "editClearQueue": "すべて外す",
+  "editTargetExif": "Exif",
+  "editTargetXmp": "XMP",
+  "editTargetFileSystem": "ファイル日時",
+  "editApply": "適用",
+  "editApplyCount": "{count} 件に適用",
+  "@editApplyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editApplying": "{done} / {total} 件",
+  "@editApplying": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "editPreviewNothing": "変わるものがない",
+  "editPreviewTargetTags": "書き込み先のタグ",
+  "editPreviewMore": "ほか {count} 件",
+  "@editPreviewMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editUnwritable": "{count} 件はこの形式に書き込めない",
+  "@editUnwritable": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editResultSucceeded": "{count} 件に書き込んだ",
+  "@editResultSucceeded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editResultFailed": "{count} 件が失敗",
+  "@editResultFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "editUndo": "取り消す",
+  "editInvalidValue": "値を読めない",
+  "editOpShiftTime": "{amount} ずらす",
+  "@editOpShiftTime": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpSetTime": "{time} にする",
+  "@editOpSetTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpSetTimeZone": "タイムゾーンを {offset} に{mode}",
+  "@editOpSetTimeZone": {
+    "placeholders": {
+      "offset": {
+        "type": "String"
+      },
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpSetLocation": "位置を {latitude}, {longitude} にする",
+  "@editOpSetLocation": {
+    "placeholders": {
+      "latitude": {
+        "type": "String"
+      },
+      "longitude": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpClearLocation": "位置を消す",
+  "editOpSetTag": "{tag} を {value} にする",
+  "@editOpSetTag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "editOpClearTag": "{tag} を消す",
+  "@editOpClearTag": {
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      }
+    }
+  },
+  "writeFailureUnsupportedFormat": "この形式には書き込めない",
+  "writeFailureUnsupportedTag": "このタグはこの形式に入らない",
+  "writeFailureNotPermitted": "書き込む権限がない",
+  "writeFailureVerificationFailed": "書き戻した値が違ったので元へ戻した",
+  "writeFailureUnknown": "書き込めなかった",
+  "settingsSectionBackup": "原本の控え",
+  "settingsBackupEnabled": "書き込みの前に控えを取る",
+  "settingsBackupGenerations": "残す世代数",
+  "settingsBackupDirectory": "控えの置き場所",
+  "settingsBackupDefaultDirectory": "既定の場所",
+  "settingsBackupChoose": "選ぶ"
 }

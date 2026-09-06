@@ -1,3 +1,4 @@
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -87,6 +88,8 @@ class _SettingsDialog extends ConsumerWidget {
                 ],
               ),
               const Divider(height: 24),
+              const _BackupSection(),
+              const Divider(height: 24),
               const _CacheSection(),
             ],
           ),
@@ -138,6 +141,99 @@ class _CacheSection extends ConsumerWidget {
             ref.invalidate(cachedAssetCountProvider);
           },
           child: Text(l10n.cacheClear),
+        ),
+      ],
+    );
+  }
+}
+
+/// 原本の控え（SPEC FR-E6-2）。書き込みの前に取り、取り消しの元になる。
+class _BackupSection extends ConsumerWidget {
+  const _BackupSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final settings = ref.watch(settingsProvider);
+    final notifier = ref.read(settingsProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.settingsSectionBackup, style: theme.textTheme.labelLarge),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.settingsBackupEnabled),
+          value: settings.backupEnabled,
+          onChanged: (value) => notifier.update(
+            (current) => current.copyWith(backupEnabled: value),
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(child: Text(l10n.settingsBackupGenerations)),
+            IconButton(
+              icon: const Icon(Icons.remove),
+              onPressed: settings.backupGenerations <= 1
+                  ? null
+                  : () => notifier.update(
+                      (current) => current.copyWith(
+                        backupGenerations: current.backupGenerations - 1,
+                      ),
+                    ),
+            ),
+            Text('${settings.backupGenerations}'),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed:
+                  settings.backupGenerations >= AppSettings.maxBackupGenerations
+                  ? null
+                  : () => notifier.update(
+                      (current) => current.copyWith(
+                        backupGenerations: current.backupGenerations + 1,
+                      ),
+                    ),
+            ),
+          ],
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.settingsBackupDirectory),
+                  Text(
+                    settings.backupDirectory ??
+                        l10n.settingsBackupDefaultDirectory,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.outline,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                final chosen = await getDirectoryPath();
+                if (chosen == null) return;
+                notifier.update(
+                  (current) => current.copyWith(backupDirectory: chosen),
+                );
+              },
+              child: Text(l10n.settingsBackupChoose),
+            ),
+            if (settings.backupDirectory != null)
+              IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: l10n.actionResetToDefault,
+                onPressed: () => notifier.update(
+                  (current) => current.copyWith(clearBackupDirectory: true),
+                ),
+              ),
+          ],
         ),
       ],
     );

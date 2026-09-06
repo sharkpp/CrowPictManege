@@ -28,6 +28,9 @@ class AppSettings {
     this.tileSize = 160,
     this.columns = const [],
     this.pinned = defaultPinnedKeys,
+    this.backupEnabled = true,
+    this.backupDirectory,
+    this.backupGenerations = 3,
   });
 
   final FolderMode folderMode;
@@ -49,7 +52,17 @@ class AppSettings {
   /// 要約に出す項目（SPEC FR-V2）。空なら要約を出さない。
   final List<String> pinned;
 
+  /// 書き込みの前に原本の控えを取るか（SPEC FR-E6-2）。
+  final bool backupEnabled;
+
+  /// 控えの置き場所。null ならアプリ領域の既定の場所（SPEC FR-E6-2）。
+  final String? backupDirectory;
+
+  /// 1 つの原本について残す控えの世代数（SPEC FR-E6-2）。
+  final int backupGenerations;
+
   static const maxFolderThumbnails = 8;
+  static const maxBackupGenerations = 20;
 
   AppSettings copyWith({
     FolderMode? folderMode,
@@ -59,6 +72,10 @@ class AppSettings {
     double? tileSize,
     List<ColumnLayout>? columns,
     List<String>? pinned,
+    bool? backupEnabled,
+    String? backupDirectory,
+    bool clearBackupDirectory = false,
+    int? backupGenerations,
   }) => AppSettings(
     folderMode: folderMode ?? this.folderMode,
     folderThumbnails: folderThumbnails ?? this.folderThumbnails,
@@ -67,6 +84,11 @@ class AppSettings {
     tileSize: tileSize ?? this.tileSize,
     columns: columns ?? this.columns,
     pinned: pinned ?? this.pinned,
+    backupEnabled: backupEnabled ?? this.backupEnabled,
+    backupDirectory: clearBackupDirectory
+        ? null
+        : (backupDirectory ?? this.backupDirectory),
+    backupGenerations: backupGenerations ?? this.backupGenerations,
   );
 
   Map<String, String> toMap() => {
@@ -77,6 +99,9 @@ class AppSettings {
     'tileSize': '$tileSize',
     'columns': encodeColumns(columnLayouts),
     _pinnedKey: encodePinned(pinned),
+    'backupEnabled': '$backupEnabled',
+    'backupDirectory': backupDirectory ?? '',
+    'backupGenerations': '$backupGenerations',
   };
 
   /// ピン留めの保存先。
@@ -101,6 +126,14 @@ class AppSettings {
           .clamp(96, 320),
       columns: decodeColumns(map['columns']),
       pinned: decodePinned(map[_pinnedKey]),
+      backupEnabled: map['backupEnabled'] != 'false',
+      backupDirectory: (map['backupDirectory'] ?? '').isEmpty
+          ? null
+          : map['backupDirectory'],
+      backupGenerations:
+          (int.tryParse(map['backupGenerations'] ?? '') ??
+                  defaults.backupGenerations)
+              .clamp(1, maxBackupGenerations),
     );
   }
 }

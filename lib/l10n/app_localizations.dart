@@ -1285,6 +1285,396 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'サイズ'**
   String get summaryFieldSize;
+
+  /// No description provided for @navEdit.
+  ///
+  /// In ja, this message translates to:
+  /// **'編集'**
+  String get navEdit;
+
+  /// No description provided for @editSelectAssets.
+  ///
+  /// In ja, this message translates to:
+  /// **'編集する対象を選ぶ'**
+  String get editSelectAssets;
+
+  /// No description provided for @editSectionTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影時刻'**
+  String get editSectionTime;
+
+  /// No description provided for @editSectionLocation.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置'**
+  String get editSectionLocation;
+
+  /// No description provided for @editSectionTargets.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き込み先'**
+  String get editSectionTargets;
+
+  /// No description provided for @editSectionQueue.
+  ///
+  /// In ja, this message translates to:
+  /// **'積んだ操作'**
+  String get editSectionQueue;
+
+  /// No description provided for @editSectionPreview.
+  ///
+  /// In ja, this message translates to:
+  /// **'適用前の見通し'**
+  String get editSectionPreview;
+
+  /// No description provided for @editShiftLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'ずらす'**
+  String get editShiftLabel;
+
+  /// No description provided for @editShiftForward.
+  ///
+  /// In ja, this message translates to:
+  /// **'進める'**
+  String get editShiftForward;
+
+  /// No description provided for @editShiftBack.
+  ///
+  /// In ja, this message translates to:
+  /// **'戻す'**
+  String get editShiftBack;
+
+  /// No description provided for @editUnitDays.
+  ///
+  /// In ja, this message translates to:
+  /// **'日'**
+  String get editUnitDays;
+
+  /// No description provided for @editUnitHours.
+  ///
+  /// In ja, this message translates to:
+  /// **'時'**
+  String get editUnitHours;
+
+  /// No description provided for @editUnitMinutes.
+  ///
+  /// In ja, this message translates to:
+  /// **'分'**
+  String get editUnitMinutes;
+
+  /// No description provided for @editUnitSeconds.
+  ///
+  /// In ja, this message translates to:
+  /// **'秒'**
+  String get editUnitSeconds;
+
+  /// No description provided for @editSetTimeLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'時刻を決める'**
+  String get editSetTimeLabel;
+
+  /// No description provided for @editTimeHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'2024-01-15 12:34:56'**
+  String get editTimeHint;
+
+  /// No description provided for @editOffsetLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'オフセット'**
+  String get editOffsetLabel;
+
+  /// No description provided for @editOffsetHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'+09:00'**
+  String get editOffsetHint;
+
+  /// No description provided for @editTimeZoneLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'タイムゾーン'**
+  String get editTimeZoneLabel;
+
+  /// No description provided for @editTimeZoneReinterpret.
+  ///
+  /// In ja, this message translates to:
+  /// **'読み替える'**
+  String get editTimeZoneReinterpret;
+
+  /// No description provided for @editTimeZoneConvert.
+  ///
+  /// In ja, this message translates to:
+  /// **'変換する'**
+  String get editTimeZoneConvert;
+
+  /// No description provided for @editTimeZoneReinterpretHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'壁時計時刻を保ち、指す瞬間を変える'**
+  String get editTimeZoneReinterpretHint;
+
+  /// No description provided for @editTimeZoneConvertHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'指す瞬間を保ち、壁時計時刻を変える'**
+  String get editTimeZoneConvertHint;
+
+  /// No description provided for @editLatitude.
+  ///
+  /// In ja, this message translates to:
+  /// **'緯度'**
+  String get editLatitude;
+
+  /// No description provided for @editLongitude.
+  ///
+  /// In ja, this message translates to:
+  /// **'経度'**
+  String get editLongitude;
+
+  /// No description provided for @editAltitude.
+  ///
+  /// In ja, this message translates to:
+  /// **'標高'**
+  String get editAltitude;
+
+  /// No description provided for @editSetLocationLabel.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置を決める'**
+  String get editSetLocationLabel;
+
+  /// No description provided for @editClearLocation.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置を消す'**
+  String get editClearLocation;
+
+  /// No description provided for @editCopyLocationFromPrimary.
+  ///
+  /// In ja, this message translates to:
+  /// **'主対象の位置を使う'**
+  String get editCopyLocationFromPrimary;
+
+  /// No description provided for @editAdd.
+  ///
+  /// In ja, this message translates to:
+  /// **'積む'**
+  String get editAdd;
+
+  /// No description provided for @editQueueEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ何も積んでいない'**
+  String get editQueueEmpty;
+
+  /// No description provided for @editRemove.
+  ///
+  /// In ja, this message translates to:
+  /// **'外す'**
+  String get editRemove;
+
+  /// No description provided for @editClearQueue.
+  ///
+  /// In ja, this message translates to:
+  /// **'すべて外す'**
+  String get editClearQueue;
+
+  /// No description provided for @editTargetExif.
+  ///
+  /// In ja, this message translates to:
+  /// **'Exif'**
+  String get editTargetExif;
+
+  /// No description provided for @editTargetXmp.
+  ///
+  /// In ja, this message translates to:
+  /// **'XMP'**
+  String get editTargetXmp;
+
+  /// No description provided for @editTargetFileSystem.
+  ///
+  /// In ja, this message translates to:
+  /// **'ファイル日時'**
+  String get editTargetFileSystem;
+
+  /// No description provided for @editApply.
+  ///
+  /// In ja, this message translates to:
+  /// **'適用'**
+  String get editApply;
+
+  /// No description provided for @editApplyCount.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件に適用'**
+  String editApplyCount(int count);
+
+  /// No description provided for @editApplying.
+  ///
+  /// In ja, this message translates to:
+  /// **'{done} / {total} 件'**
+  String editApplying(int done, int total);
+
+  /// No description provided for @editPreviewNothing.
+  ///
+  /// In ja, this message translates to:
+  /// **'変わるものがない'**
+  String get editPreviewNothing;
+
+  /// No description provided for @editPreviewTargetTags.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き込み先のタグ'**
+  String get editPreviewTargetTags;
+
+  /// No description provided for @editPreviewMore.
+  ///
+  /// In ja, this message translates to:
+  /// **'ほか {count} 件'**
+  String editPreviewMore(int count);
+
+  /// No description provided for @editUnwritable.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件はこの形式に書き込めない'**
+  String editUnwritable(int count);
+
+  /// No description provided for @editResultSucceeded.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件に書き込んだ'**
+  String editResultSucceeded(int count);
+
+  /// No description provided for @editResultFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件が失敗'**
+  String editResultFailed(int count);
+
+  /// No description provided for @editUndo.
+  ///
+  /// In ja, this message translates to:
+  /// **'取り消す'**
+  String get editUndo;
+
+  /// No description provided for @editInvalidValue.
+  ///
+  /// In ja, this message translates to:
+  /// **'値を読めない'**
+  String get editInvalidValue;
+
+  /// No description provided for @editOpShiftTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'{amount} ずらす'**
+  String editOpShiftTime(String amount);
+
+  /// No description provided for @editOpSetTime.
+  ///
+  /// In ja, this message translates to:
+  /// **'{time} にする'**
+  String editOpSetTime(String time);
+
+  /// No description provided for @editOpSetTimeZone.
+  ///
+  /// In ja, this message translates to:
+  /// **'タイムゾーンを {offset} に{mode}'**
+  String editOpSetTimeZone(String offset, String mode);
+
+  /// No description provided for @editOpSetLocation.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置を {latitude}, {longitude} にする'**
+  String editOpSetLocation(String latitude, String longitude);
+
+  /// No description provided for @editOpClearLocation.
+  ///
+  /// In ja, this message translates to:
+  /// **'位置を消す'**
+  String get editOpClearLocation;
+
+  /// No description provided for @editOpSetTag.
+  ///
+  /// In ja, this message translates to:
+  /// **'{tag} を {value} にする'**
+  String editOpSetTag(String tag, String value);
+
+  /// No description provided for @editOpClearTag.
+  ///
+  /// In ja, this message translates to:
+  /// **'{tag} を消す'**
+  String editOpClearTag(String tag);
+
+  /// No description provided for @writeFailureUnsupportedFormat.
+  ///
+  /// In ja, this message translates to:
+  /// **'この形式には書き込めない'**
+  String get writeFailureUnsupportedFormat;
+
+  /// No description provided for @writeFailureUnsupportedTag.
+  ///
+  /// In ja, this message translates to:
+  /// **'このタグはこの形式に入らない'**
+  String get writeFailureUnsupportedTag;
+
+  /// No description provided for @writeFailureNotPermitted.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き込む権限がない'**
+  String get writeFailureNotPermitted;
+
+  /// No description provided for @writeFailureVerificationFailed.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き戻した値が違ったので元へ戻した'**
+  String get writeFailureVerificationFailed;
+
+  /// No description provided for @writeFailureUnknown.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き込めなかった'**
+  String get writeFailureUnknown;
+
+  /// No description provided for @settingsSectionBackup.
+  ///
+  /// In ja, this message translates to:
+  /// **'原本の控え'**
+  String get settingsSectionBackup;
+
+  /// No description provided for @settingsBackupEnabled.
+  ///
+  /// In ja, this message translates to:
+  /// **'書き込みの前に控えを取る'**
+  String get settingsBackupEnabled;
+
+  /// No description provided for @settingsBackupGenerations.
+  ///
+  /// In ja, this message translates to:
+  /// **'残す世代数'**
+  String get settingsBackupGenerations;
+
+  /// No description provided for @settingsBackupDirectory.
+  ///
+  /// In ja, this message translates to:
+  /// **'控えの置き場所'**
+  String get settingsBackupDirectory;
+
+  /// No description provided for @settingsBackupDefaultDirectory.
+  ///
+  /// In ja, this message translates to:
+  /// **'既定の場所'**
+  String get settingsBackupDefaultDirectory;
+
+  /// No description provided for @settingsBackupChoose.
+  ///
+  /// In ja, this message translates to:
+  /// **'選ぶ'**
+  String get settingsBackupChoose;
 }
 
 class _AppLocalizationsDelegate

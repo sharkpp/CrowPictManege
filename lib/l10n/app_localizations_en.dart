@@ -761,4 +761,228 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get summaryFieldSize => 'Size';
+
+  @override
+  String get navEdit => 'Edit';
+
+  @override
+  String get editSelectAssets => 'Select what to edit';
+
+  @override
+  String get editSectionTime => 'Capture time';
+
+  @override
+  String get editSectionLocation => 'Location';
+
+  @override
+  String get editSectionTargets => 'Write to';
+
+  @override
+  String get editSectionQueue => 'Queued changes';
+
+  @override
+  String get editSectionPreview => 'Before applying';
+
+  @override
+  String get editShiftLabel => 'Shift';
+
+  @override
+  String get editShiftForward => 'Later';
+
+  @override
+  String get editShiftBack => 'Earlier';
+
+  @override
+  String get editUnitDays => 'd';
+
+  @override
+  String get editUnitHours => 'h';
+
+  @override
+  String get editUnitMinutes => 'm';
+
+  @override
+  String get editUnitSeconds => 's';
+
+  @override
+  String get editSetTimeLabel => 'Set time';
+
+  @override
+  String get editTimeHint => '2024-01-15 12:34:56';
+
+  @override
+  String get editOffsetLabel => 'Offset';
+
+  @override
+  String get editOffsetHint => '+09:00';
+
+  @override
+  String get editTimeZoneLabel => 'Time zone';
+
+  @override
+  String get editTimeZoneReinterpret => 'Reinterpret';
+
+  @override
+  String get editTimeZoneConvert => 'Convert';
+
+  @override
+  String get editTimeZoneReinterpretHint =>
+      'Keep the wall clock, change the instant';
+
+  @override
+  String get editTimeZoneConvertHint =>
+      'Keep the instant, change the wall clock';
+
+  @override
+  String get editLatitude => 'Latitude';
+
+  @override
+  String get editLongitude => 'Longitude';
+
+  @override
+  String get editAltitude => 'Altitude';
+
+  @override
+  String get editSetLocationLabel => 'Set location';
+
+  @override
+  String get editClearLocation => 'Remove location';
+
+  @override
+  String get editCopyLocationFromPrimary => 'Use the focused asset\'s location';
+
+  @override
+  String get editAdd => 'Queue';
+
+  @override
+  String get editQueueEmpty => 'Nothing queued yet';
+
+  @override
+  String get editRemove => 'Remove';
+
+  @override
+  String get editClearQueue => 'Remove all';
+
+  @override
+  String get editTargetExif => 'Exif';
+
+  @override
+  String get editTargetXmp => 'XMP';
+
+  @override
+  String get editTargetFileSystem => 'File date';
+
+  @override
+  String get editApply => 'Apply';
+
+  @override
+  String editApplyCount(int count) {
+    return 'Apply to $count';
+  }
+
+  @override
+  String editApplying(int done, int total) {
+    return '$done of $total';
+  }
+
+  @override
+  String get editPreviewNothing => 'Nothing would change';
+
+  @override
+  String get editPreviewTargetTags => 'Tags written';
+
+  @override
+  String editPreviewMore(int count) {
+    return 'and $count more';
+  }
+
+  @override
+  String editUnwritable(int count) {
+    return '$count cannot be written in this format';
+  }
+
+  @override
+  String editResultSucceeded(int count) {
+    return 'Wrote $count';
+  }
+
+  @override
+  String editResultFailed(int count) {
+    return '$count failed';
+  }
+
+  @override
+  String get editUndo => 'Undo';
+
+  @override
+  String get editInvalidValue => 'Cannot read this value';
+
+  @override
+  String editOpShiftTime(String amount) {
+    return 'Shift by $amount';
+  }
+
+  @override
+  String editOpSetTime(String time) {
+    return 'Set to $time';
+  }
+
+  @override
+  String editOpSetTimeZone(String offset, String mode) {
+    return '$mode the time zone to $offset';
+  }
+
+  @override
+  String editOpSetLocation(String latitude, String longitude) {
+    return 'Set location to $latitude, $longitude';
+  }
+
+  @override
+  String get editOpClearLocation => 'Remove location';
+
+  @override
+  String editOpSetTag(String tag, String value) {
+    return 'Set $tag to $value';
+  }
+
+  @override
+  String editOpClearTag(String tag) {
+    return 'Remove $tag';
+  }
+
+  @override
+  String get writeFailureUnsupportedFormat => 'This format cannot be written';
+
+  @override
+  String get writeFailureUnsupportedTag =>
+      'This tag has no place in this format';
+
+  @override
+  String get writeFailureNotPermitted => 'No permission to write';
+
+  @override
+  String get writeFailureVerificationFailed =>
+      'The value read back differed, so the original was restored';
+
+  @override
+  String get writeFailureUnknown => 'Could not write';
+
+  @override
+  String get settingsSectionBackup => 'Backups';
+
+  @override
+  String get settingsBackupEnabled =>
+      'Keep a copy of the original before writing';
+
+  @override
+  String get settingsBackupGenerations => 'Generations kept';
+
+  @override
+  String get settingsBackupDirectory => 'Where copies are kept';
+
+  @override
+  String get settingsBackupDefaultDirectory => 'Default location';
+
+  @override
+  String get settingsBackupChoose => 'Choose';
 }

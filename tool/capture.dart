@@ -15,12 +15,15 @@ import 'dart:ui' as ui;
 import 'package:crow_pict_manege/app_info.dart';
 import 'package:crow_pict_manege/domain/settings.dart';
 import 'package:crow_pict_manege/l10n/l10n.dart';
+import 'package:crow_pict_manege/domain/edit.dart';
+import 'package:crow_pict_manege/state/edits.dart';
 import 'package:crow_pict_manege/state/navigation.dart';
 import 'package:crow_pict_manege/state/search.dart';
 import 'package:crow_pict_manege/state/selection.dart';
 import 'package:crow_pict_manege/state/settings.dart';
 import 'package:crow_pict_manege/ui/asset_preview.dart';
 import 'package:crow_pict_manege/ui/browse_page.dart';
+import 'package:crow_pict_manege/ui/side_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -147,22 +150,46 @@ Future<void> _script(
     await _settle();
   }
 
+  // 編集のパネル。操作を積んだ状態で、見通しまで出す。
+  container
+      .read(settingsProvider.notifier)
+      .update((current) => current.copyWith(viewMode: ViewMode.list));
+  container.read(selectionProvider.notifier).selectPaths([
+    for (final asset in container.read(displayedAssetsProvider).take(3))
+      asset.path,
+  ]);
+  container.read(sidePanelTabProvider.notifier).show(SidePanelTab.edit);
+  // 編集は縦に長い。見通しまで 1 枚に収まる高さで撮る。
+  size.value = const Size(1400, 1300);
+  await _settle(seconds: 2);
+  await shot('09-edit-empty');
+
+  final queue = container.read(editQueueProvider.notifier);
+  queue.add(const ShiftTime(Duration(hours: 1)));
+  queue.add(const SetLocation(latitude: 35.681236, longitude: 139.767125));
+  await _settle(seconds: 2);
+  await shot('10-edit-preview');
+  queue.clear();
+  container.read(sidePanelTabProvider.notifier).show(SidePanelTab.metadata);
+  size.value = const Size(1400, 900);
+  await _settle();
+
   // 狭い画面。
   size.value = const Size(420, 820);
   await _settle(seconds: 3);
-  await shot('09-narrow-grid');
+  await shot('11-narrow-grid');
 
   container
       .read(settingsProvider.notifier)
       .update((current) => current.copyWith(viewMode: ViewMode.list));
   await _settle(seconds: 2);
-  await shot('10-narrow-list');
+  await shot('12-narrow-list');
 
   container
       .read(settingsProvider.notifier)
       .update((current) => current.copyWith(viewMode: ViewMode.map));
   await _settle(seconds: 4);
-  await shot('11-narrow-map');
+  await shot('13-narrow-map');
 }
 
 /// 描き終わるのを待つ。動画や地図タイルは読み込みに間があるので長めに取る。
