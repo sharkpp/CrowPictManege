@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import '../domain/transfer.dart';
 
 /// 転送が立たなかった理由（SPEC FR-T、§10）。
@@ -28,4 +30,10 @@ abstract interface class TransferPort {
 
   /// ユーザ定義の転送先へ渡す（SPEC FR-T3）。
   Future<void> send(TransferTarget target, List<String> paths);
+
+  /// OS の共有機能へ渡す（SPEC FR-T5）。
+  ///
+  /// [origin] は共有シートを出す位置。画面の隅から生えたように見せないため、
+  /// 押したものの位置を渡す。
+  Future<void> share(List<String> paths, {Rect? origin});
 }

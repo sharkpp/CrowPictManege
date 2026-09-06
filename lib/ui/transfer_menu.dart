@@ -7,9 +7,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../adapters/desktop_transfer.dart';
 import '../l10n/l10n.dart';
 import '../ports/transfer_port.dart';
+import '../services/exporter.dart';
+import '../state/export.dart';
 import '../state/search.dart';
 import '../state/settings.dart';
 import '../state/selection.dart';
+import 'export_dialog.dart';
 import 'labels.dart';
 import 'transfer_targets_dialog.dart';
 
@@ -45,6 +48,24 @@ class TransferMenu extends ConsumerWidget {
           onTap: () => _openWith(context, ref),
           child: Text(l10n.transferOpenWith),
         ),
+        PopupMenuItem<void>(
+          onTap: () => _run(
+            context,
+            ref,
+            (paths) => port.share(paths, origin: _originOf(context)),
+          ),
+          child: Text(l10n.transferShare),
+        ),
+        const PopupMenuDivider(),
+        // フォルダへ出す（SPEC FR-T6）。
+        PopupMenuItem<void>(
+          onTap: () => _export(context, ref, ExportMode.copy),
+          child: Text(l10n.exportCopy),
+        ),
+        PopupMenuItem<void>(
+          onTap: () => _export(context, ref, ExportMode.move),
+          child: Text(l10n.exportMove),
+        ),
         if (targets.isNotEmpty) const PopupMenuDivider(),
         for (final target in targets)
           PopupMenuItem<void>(
@@ -59,6 +80,13 @@ class TransferMenu extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  /// 共有シートを出す位置。押したものの上に出す。
+  Rect? _originOf(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
   }
 
   /// 選んだ対象を、画面に出ている順で渡す。
@@ -93,6 +121,46 @@ class TransferMenu extends ConsumerWidget {
         ),
       );
     }
+  }
+
+  /// 選んだものをフォルダへ出す（SPEC FR-T6）。
+  ///
+  /// 移動は元の場所から消える操作なので、件数と行き先を見せてから走らせる
+  /// （SPEC §10）。
+  Future<void> _export(
+    BuildContext context,
+    WidgetRef ref,
+    ExportMode mode,
+  ) async {
+    final paths = _paths(ref);
+    if (paths.isEmpty) return;
+    final destination = await getDirectoryPath();
+    if (destination == null || !context.mounted) return;
+
+    final withEdits = await showExportDialog(
+      context,
+      count: paths.length,
+      destination: destination,
+      mode: mode,
+    );
+    if (withEdits == null || !context.mounted) return;
+
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final l10n = context.l10n;
+    await ref
+        .read(exportProvider.notifier)
+        .run(
+          paths: paths,
+          destination: destination,
+          mode: mode,
+          withEdits: withEdits,
+        );
+    final result = ref.read(exportProvider);
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(l10n.exportDone(result.written, result.failures.length)),
+      ),
+    );
   }
 
   /// 渡す先のアプリを選ぶ（SPEC FR-T2）。

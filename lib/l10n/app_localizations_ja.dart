@@ -437,6 +437,33 @@ class AppLocalizationsJa extends AppLocalizations {
   String get transferOpenWith => 'アプリを指定して開く…';
 
   @override
+  String get transferShare => 'OS の共有で渡す';
+
+  @override
+  String get exportCopy => 'フォルダへコピー…';
+
+  @override
+  String get exportMove => 'フォルダへ移動…';
+
+  @override
+  String exportConfirm(int count, String destination) {
+    return '$count 件を $destination へ出します。';
+  }
+
+  @override
+  String get exportCollisionHint => '同じ名前が既にあるときは、連番を足した別の名前で置きます。';
+
+  @override
+  String exportWithEdits(int count) {
+    return '積んである編集を当てて出す（$count 件）';
+  }
+
+  @override
+  String exportDone(int written, int failed) {
+    return '$written 件を出しました（失敗 $failed 件）';
+  }
+
+  @override
   String get transferTargets => '転送先';
 
   @override

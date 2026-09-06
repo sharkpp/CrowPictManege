@@ -316,6 +316,40 @@
   "transferUnsupported": "このプラットフォームでは渡せません",
   "transferOpenDefault": "既定のアプリで開く",
   "transferOpenWith": "アプリを指定して開く…",
+  "transferShare": "OS の共有で渡す",
+  "exportCopy": "フォルダへコピー…",
+  "exportMove": "フォルダへ移動…",
+  "exportConfirm": "{count} 件を {destination} へ出します。",
+  "@exportConfirm": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "destination": {
+        "type": "String"
+      }
+    }
+  },
+  "exportCollisionHint": "同じ名前が既にあるときは、連番を足した別の名前で置きます。",
+  "exportWithEdits": "積んである編集を当てて出す（{count} 件）",
+  "@exportWithEdits": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportDone": "{written} 件を出しました（失敗 {failed} 件）",
+  "@exportDone": {
+    "placeholders": {
+      "written": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
   "transferTargets": "転送先",
   "transferTargetsHint": "実行ファイルと引数のひな型で、よく使う渡し先を決めておけます。",
   "transferAddTarget": "転送先を足す",

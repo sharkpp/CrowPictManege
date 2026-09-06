@@ -24,6 +24,8 @@ class _FakeTransfer implements TransferPort {
   String? application;
   TransferTarget? sent;
   TransferFailure? failure;
+  List<String>? shared;
+  Rect? origin;
 
   @override
   Future<void> openDefault(List<String> paths) async {
@@ -41,6 +43,12 @@ class _FakeTransfer implements TransferPort {
   Future<void> send(TransferTarget target, List<String> paths) async {
     sent = target;
     opened = paths;
+  }
+
+  @override
+  Future<void> share(List<String> paths, {Rect? origin}) async {
+    shared = paths;
+    this.origin = origin;
   }
 }
 
@@ -88,6 +96,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(port.opened, [a.path, b.path], reason: '画面に出ている順で渡す');
+  });
+
+  testWidgets('OS の共有へも渡せる（SPEC FR-T5）', (tester) async {
+    final port = _FakeTransfer();
+    await pumpMenu(tester, port, selected: [a.path]);
+
+    await tester.tap(find.byTooltip('別のアプリへ渡す'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OS の共有で渡す'));
+    await tester.pumpAndSettle();
+
+    expect(port.shared, [a.path]);
+    expect(port.origin, isNotNull, reason: '共有シートは押したものの上に出す');
   });
 
   testWidgets('何も選んでいなければ押せない', (tester) async {

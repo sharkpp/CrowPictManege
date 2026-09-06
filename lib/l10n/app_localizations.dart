@@ -866,6 +866,48 @@ abstract class AppLocalizations {
   /// **'アプリを指定して開く…'**
   String get transferOpenWith;
 
+  /// No description provided for @transferShare.
+  ///
+  /// In ja, this message translates to:
+  /// **'OS の共有で渡す'**
+  String get transferShare;
+
+  /// No description provided for @exportCopy.
+  ///
+  /// In ja, this message translates to:
+  /// **'フォルダへコピー…'**
+  String get exportCopy;
+
+  /// No description provided for @exportMove.
+  ///
+  /// In ja, this message translates to:
+  /// **'フォルダへ移動…'**
+  String get exportMove;
+
+  /// No description provided for @exportConfirm.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件を {destination} へ出します。'**
+  String exportConfirm(int count, String destination);
+
+  /// No description provided for @exportCollisionHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'同じ名前が既にあるときは、連番を足した別の名前で置きます。'**
+  String get exportCollisionHint;
+
+  /// No description provided for @exportWithEdits.
+  ///
+  /// In ja, this message translates to:
+  /// **'積んである編集を当てて出す（{count} 件）'**
+  String exportWithEdits(int count);
+
+  /// No description provided for @exportDone.
+  ///
+  /// In ja, this message translates to:
+  /// **'{written} 件を出しました（失敗 {failed} 件）'**
+  String exportDone(int written, int failed);
+
   /// No description provided for @transferTargets.
   ///
   /// In ja, this message translates to:

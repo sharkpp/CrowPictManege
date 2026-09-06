@@ -45,6 +45,8 @@ dependencies:
   media_kit: ^1.2.6
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
+  # OS の共有機能への引き渡し（SPEC FR-T5）。各 OS の共有シートを 1 実装で賄う。
+  share_plus: ^13.3.0
 
 dev_dependencies:
   flutter_test:

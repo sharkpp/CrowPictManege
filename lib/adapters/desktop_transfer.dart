@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'dart:ui';
+
+import 'package:share_plus/share_plus.dart';
 
 import '../domain/transfer.dart';
 import '../ports/transfer_port.dart';
@@ -54,6 +57,24 @@ class DesktopTransfer implements TransferPort {
       return;
     }
     await _run(target.command, arguments);
+  }
+
+  @override
+  Future<void> share(List<String> paths, {Rect? origin}) async {
+    if (paths.isEmpty) return;
+    try {
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [for (final path in paths) XFile(path)],
+          sharePositionOrigin: origin,
+        ),
+      );
+    } on Exception catch (error) {
+      throw TransferFailure(
+        TransferFailureReason.launchFailed,
+        error.toString(),
+      );
+    }
   }
 
   Future<void> _run(String executable, List<String> arguments) async {

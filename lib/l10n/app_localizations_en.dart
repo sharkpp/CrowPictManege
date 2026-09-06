@@ -485,6 +485,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferOpenWith => 'Open with an app...';
 
   @override
+  String get transferShare => 'Share with the system sheet';
+
+  @override
+  String get exportCopy => 'Copy to a folder...';
+
+  @override
+  String get exportMove => 'Move to a folder...';
+
+  @override
+  String exportConfirm(int count, String destination) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '1 item',
+    );
+    return '$_temp0 will be written to $destination.';
+  }
+
+  @override
+  String get exportCollisionHint =>
+      'When a name is already taken, a serial number is added instead of overwriting.';
+
+  @override
+  String exportWithEdits(int count) {
+    return 'Apply the queued edits on the way out ($count)';
+  }
+
+  @override
+  String exportDone(int written, int failed) {
+    return 'Wrote $written ($failed failed)';
+  }
+
+  @override
   String get transferTargets => 'Send-to targets';
 
   @override
