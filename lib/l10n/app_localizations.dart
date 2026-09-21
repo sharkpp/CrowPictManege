@@ -2713,6 +2713,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'監視 {folders} · 自動仕分け {handled} 件'**
   String watchStatus(int folders, int handled);
+
+  /// 絞り込みが効いているときの件数（状態の帯）
+  ///
+  /// In ja, this message translates to:
+  /// **'{shown} / {total} 件'**
+  String itemCountFiltered(int shown, int total);
 }
 
 class _AppLocalizationsDelegate

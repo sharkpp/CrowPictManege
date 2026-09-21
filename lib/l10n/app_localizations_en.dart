@@ -1600,4 +1600,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String watchStatus(int folders, int handled) {
     return 'Watching $folders · sorted $handled';
   }
+
+  @override
+  String itemCountFiltered(int shown, int total) {
+    return '$shown of $total items';
+  }
 }

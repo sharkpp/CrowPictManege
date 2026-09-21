@@ -1125,5 +1125,17 @@
         "type": "int"
       }
     }
+  },
+  "itemCountFiltered": "{shown} / {total} 件",
+  "@itemCountFiltered": {
+    "description": "絞り込みが効いているときの件数（状態の帯）",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

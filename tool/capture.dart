@@ -13,10 +13,16 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:crow_pict_manege/app_info.dart';
+import 'package:crow_pict_manege/domain/grouping.dart';
+import 'package:crow_pict_manege/domain/filter.dart';
 import 'package:crow_pict_manege/domain/settings.dart';
+import 'package:crow_pict_manege/domain/sort_rule.dart';
 import 'package:crow_pict_manege/l10n/l10n.dart';
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/state/edits.dart';
+import 'package:crow_pict_manege/state/filters.dart';
+import 'package:crow_pict_manege/state/grouping.dart';
+import 'package:crow_pict_manege/state/sorting.dart';
 import 'package:crow_pict_manege/state/library.dart';
 import 'package:crow_pict_manege/state/navigation.dart';
 import 'package:crow_pict_manege/state/search.dart';
@@ -25,6 +31,7 @@ import 'package:crow_pict_manege/state/settings.dart';
 import 'package:crow_pict_manege/ui/asset_preview.dart';
 import 'package:crow_pict_manege/ui/browse_page.dart';
 import 'package:crow_pict_manege/ui/side_panel.dart';
+import 'package:crow_pict_manege/ui/sort_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -197,6 +204,71 @@ Future<void> _script(
       .update((current) => current.copyWith(viewMode: ViewMode.map));
   await _settle(seconds: 4);
   await shot('13-narrow-map');
+
+  // 段階 4。絞り込み・まとめ方・仕分け。
+  size.value = const Size(1400, 900);
+  container
+      .read(settingsProvider.notifier)
+      .update(
+        (current) => current.copyWith(
+          viewMode: ViewMode.grid,
+          folderMode: FolderMode.flat,
+        ),
+      );
+  container.read(selectionProvider.notifier).clear();
+  await _settle(seconds: 2);
+
+  // 自由入力と条件式を重ねて、帯に並ぶところを見る。
+  container.read(quickFilterProvider.notifier).set('sample');
+  container
+      .read(activeFilterProvider.notifier)
+      .set(
+        const FilterAll([
+          FilterCondition(FilterField.location, FilterOperator.isPresent),
+        ]),
+      );
+  await _settle(seconds: 2);
+  await shot('14-filters');
+  container.read(quickFilterProvider.notifier).clear();
+  container.read(activeFilterProvider.notifier).clear();
+  await _settle();
+
+  // 撮影セッションでまとめる。
+  container.read(groupOptionsProvider.notifier).setPrimary(GroupKey.session);
+  await _settle(seconds: 2);
+  await shot('15-grouped-grid');
+
+  // 2 段（撮影日 → 機材）をリストで見る。
+  container.read(groupOptionsProvider.notifier).setPrimary(GroupKey.day);
+  container.read(groupOptionsProvider.notifier).setSecondary(GroupKey.camera);
+  container
+      .read(settingsProvider.notifier)
+      .update((current) => current.copyWith(viewMode: ViewMode.list));
+  await _settle(seconds: 2);
+  await shot('16-grouped-list');
+  container.read(groupOptionsProvider.notifier).clear();
+  await _settle();
+
+  // 仕分けのドライラン。撮った後でルールは消す。
+  container
+      .read(sortRulesProvider.notifier)
+      .add(
+        SortRule(
+          name: '年月へ複製',
+          root: '${outputDir.path}/sorted',
+          template: '{YYYY}/{MM}/{model:unknown}/{basename}.{ext}',
+        ),
+      );
+  unawaited(showSortDialog(_navigator.currentContext!));
+  await _settle(seconds: 2);
+  await shot('17-sort-rules');
+  await container.read(sortProvider.notifier).dryRun();
+  await _settle(seconds: 2);
+  await shot('18-sort-dryrun');
+  _navigator.currentState!.pop();
+  container.read(sortProvider.notifier).dismiss();
+  container.read(sortRulesProvider.notifier).removeAt(0);
+  await _settle();
 }
 
 /// 描き終わるのを待つ。動画や地図タイルは読み込みに間があるので長めに取る。

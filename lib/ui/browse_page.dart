@@ -580,6 +580,7 @@ class _StatusBar extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final watch = ref.watch(watchProvider);
+    final shown = ref.watch(displayedAssetsProvider).length;
     return SizedBox(
       height: onOpenMetadata == null ? 28 : 36,
       child: Row(
@@ -594,7 +595,8 @@ class _StatusBar extends ConsumerWidget {
           if (state.scanning) const SizedBox(width: 8),
           Flexible(
             child: Text(
-              '${l10n.itemCount(state.total)}'
+              // 絞り込みが効いている間は、出している件数と全体の両方を出す。
+              '${shown == state.total ? l10n.itemCount(state.total) : l10n.itemCountFiltered(shown, state.total)}'
               '${state.scanning ? l10n.statusAnalyzed(state.analyzed) : ''}'
               '${selected > 0 ? l10n.statusSelected(selected) : ''}',
               maxLines: 1,

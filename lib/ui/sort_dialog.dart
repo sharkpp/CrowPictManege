@@ -449,13 +449,16 @@ class _PlanView extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                subtitle: Text(
-                  entry.destination.isEmpty
-                      ? l10n.sortDispositionLabel(entry.disposition)
-                      : '${l10n.sortDispositionLabel(entry.disposition)} · '
-                            '${_shorten(entry.destination)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                subtitle: Tooltip(
+                  message: entry.destination,
+                  child: Text(
+                    entry.destination.isEmpty
+                        ? l10n.sortDispositionLabel(entry.disposition)
+                        : '${l10n.sortDispositionLabel(entry.disposition)} · '
+                              '${_shorten(entry.destination)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               );
             },

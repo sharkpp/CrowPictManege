@@ -1480,4 +1480,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String watchStatus(int folders, int handled) {
     return '監視 $folders · 自動仕分け $handled 件';
   }
+
+  @override
+  String itemCountFiltered(int shown, int total) {
+    return '$shown / $total 件';
+  }
 }

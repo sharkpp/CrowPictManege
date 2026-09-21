@@ -435,5 +435,6 @@
   "watchAdd": "Add folder",
   "watchNone": "Not watching",
   "watchHint": "New files are sorted with the rules above.",
-  "watchStatus": "Watching {folders} · sorted {handled}"
+  "watchStatus": "Watching {folders} · sorted {handled}",
+  "itemCountFiltered": "{shown} of {total} items"
 }
