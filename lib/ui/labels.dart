@@ -4,6 +4,7 @@ import '../domain/columns.dart';
 import '../domain/duplicates.dart';
 import '../domain/edit.dart';
 import '../domain/filter.dart';
+import '../domain/grouping.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/search.dart';
@@ -365,4 +366,21 @@ extension AppLabels on AppLocalizations {
         BoundsArea() => mapRestrictToBounds,
         NoValue() => '',
       };
+
+  /// まとめ方の基準に出す言葉（SPEC FR-G2、NFR-7）。
+  String groupKeyLabel(GroupKey key) => switch (key) {
+    GroupKey.none => groupNone,
+    GroupKey.year => filterFieldYear,
+    GroupKey.month => filterFieldMonth,
+    GroupKey.day => filterFieldDay,
+    GroupKey.hour => filterFieldHour,
+    GroupKey.camera => columnCamera,
+    GroupKey.lens => columnLens,
+    GroupKey.extension => filterFieldExtension,
+    GroupKey.kind => columnKind,
+    GroupKey.keyword => filterFieldKeywords,
+    GroupKey.folder => columnFolder,
+    GroupKey.session => groupKeySession,
+    GroupKey.place => groupKeyPlace,
+  };
 }

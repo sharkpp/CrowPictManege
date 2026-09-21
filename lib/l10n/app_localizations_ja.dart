@@ -1296,4 +1296,50 @@ class AppLocalizationsJa extends AppLocalizations {
   String filterQuickChip(String query) {
     return '「$query」';
   }
+
+  @override
+  String get groupTitle => 'まとめ方';
+
+  @override
+  String get groupNone => 'まとめない';
+
+  @override
+  String get groupSecond => '2 段目';
+
+  @override
+  String get groupKeySession => '撮影セッション';
+
+  @override
+  String get groupKeyPlace => '撮影場所';
+
+  @override
+  String get groupUnset => '未設定';
+
+  @override
+  String groupSessionLabel(int ordinal) {
+    return 'セッション $ordinal';
+  }
+
+  @override
+  String groupPlaceLabel(int ordinal) {
+    return '場所 $ordinal';
+  }
+
+  @override
+  String get groupYearPattern => 'yyyy 年';
+
+  @override
+  String get groupMonthPattern => 'yyyy 年 M 月';
+
+  @override
+  String get groupHourPattern => 'H 時台';
+
+  @override
+  String get groupSelectAll => 'このまとまりを選ぶ';
+
+  @override
+  String get groupSessionGap => '区切りの時間（分）';
+
+  @override
+  String get groupPlaceRadius => 'まとめる半径（m）';
 }

@@ -306,3 +306,31 @@ class _Cluster {
     assets.add(asset);
   }
 }
+
+/// 見出し 1 つと、その直下に並べる対象（SPEC FR-G1）。
+class GroupSection {
+  const GroupSection(this.group, this.depth);
+
+  final AssetGroup group;
+
+  /// 何段目の見出しか（0 が 1 段目）。
+  final int depth;
+
+  /// この見出しの直下に並べる対象。子のまとまりを持つ場合は子が並べる。
+  List<MediaAsset> get assets =>
+      group.children.isEmpty ? group.assets : const [];
+}
+
+/// まとまりを画面に並ぶ順へ平らにする（SPEC FR-G1、FR-G5）。
+List<GroupSection> flattenGroups(List<AssetGroup> groups) => [
+  for (final group in groups) ...[
+    GroupSection(group, 0),
+    for (final child in group.children) GroupSection(child, 1),
+  ],
+];
+
+/// 見出し付きで並べたときの対象の順。範囲選択と送りはこの順に従う。
+List<String> orderedPaths(List<GroupSection> sections) => [
+  for (final section in sections)
+    for (final asset in section.assets) asset.path,
+];

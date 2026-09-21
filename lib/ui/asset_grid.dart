@@ -3,13 +3,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/folder_view.dart';
+import '../domain/grouping.dart';
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
+import '../state/grouping.dart';
 import '../state/selection.dart';
 import 'asset_preview.dart';
 import 'asset_thumbnail.dart';
 import 'folder_tile.dart';
 import 'format.dart';
+import 'group_header.dart';
 
 /// サムネイル表示（SPEC FR-B2、FR-B10）。
 ///
@@ -30,17 +33,25 @@ class AssetGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selection = ref.watch(selectionProvider);
+    // まとめ方の指定があれば見出し付きで並べる（SPEC FR-G1）。
+    final sections = ref.watch(groupSectionsProvider);
+    final ordered = sections.isEmpty
+        ? [for (final asset in assets) asset.path]
+        : orderedPaths(sections);
+
     // 上下の送りは 1 行分。何列で並んでいるかはここでしか分からない
     // （SPEC NFR-6）。
     return LayoutBuilder(
       builder: (context, constraints) => CallbackShortcuts(
         bindings: {
           SingleActivator(LogicalKeyboardKey.arrowDown): () =>
-              _stepRow(ref, _columns(constraints.maxWidth)),
+              _stepRow(ref, ordered, _columns(constraints.maxWidth)),
           SingleActivator(LogicalKeyboardKey.arrowUp): () =>
-              _stepRow(ref, -_columns(constraints.maxWidth)),
+              _stepRow(ref, ordered, -_columns(constraints.maxWidth)),
         },
-        child: _grid(ref, selection),
+        child: sections.isEmpty
+            ? _flat(ref, selection, ordered)
+            : _grouped(ref, selection, sections, ordered),
       ),
     );
   }
@@ -53,44 +64,102 @@ class AssetGrid extends ConsumerWidget {
   }
 
   /// 主対象を [delta] 件ぶん動かす。フォルダの分は数に入れない。
-  void _stepRow(WidgetRef ref, int delta) => ref
-      .read(selectionProvider.notifier)
-      .step([for (final asset in assets) asset.path], delta);
+  void _stepRow(WidgetRef ref, List<String> ordered, int delta) =>
+      ref.read(selectionProvider.notifier).step(ordered, delta);
 
-  Widget _grid(WidgetRef ref, Selection selection) {
+  /// まとめ方の指定が無いときの並び。
+  Widget _flat(WidgetRef ref, Selection selection, List<String> ordered) {
     return GridView.builder(
       padding: const EdgeInsets.all(8),
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: tileSize,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 0.82,
-      ),
+      gridDelegate: _delegate,
       itemCount: folders.length + assets.length,
       itemBuilder: (context, index) {
         if (index < folders.length) {
           return FolderTile(folder: folders[index], size: tileSize);
         }
-        final asset = assets[index - folders.length];
-        return _GridTile(
-          asset: asset,
-          size: tileSize,
-          selected: selection.contains(asset.path),
-          primary: selection.primary == asset.path,
-          onTap: () => ref.read(selectionProvider.notifier).tap(asset.path, [
-            for (final a in assets) a.path,
-          ], gestureFromKeyboard()),
-          // 二度押しで単体プレビューを開く（SPEC FR-B7）。
-          onOpen: () {
-            ref.read(selectionProvider.notifier).tap(asset.path, [
-              for (final a in assets) a.path,
-            ], SelectionGesture.replace);
-            showAssetPreview(context);
-          },
+        return _tile(
+          context,
+          ref,
+          selection,
+          assets[index - folders.length],
+          ordered,
         );
       },
     );
   }
+
+  /// 見出し付きの並び（SPEC FR-G1）。
+  ///
+  /// 見出しとまとまりを別の sliver にして、表示範囲だけを構築する形は保つ。
+  Widget _grouped(
+    WidgetRef ref,
+    Selection selection,
+    List<GroupSection> sections,
+    List<String> ordered,
+  ) {
+    return CustomScrollView(
+      slivers: [
+        if (folders.isNotEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.all(8),
+            sliver: SliverGrid.builder(
+              gridDelegate: _delegate,
+              itemCount: folders.length,
+              itemBuilder: (context, index) =>
+                  FolderTile(folder: folders[index], size: tileSize),
+            ),
+          ),
+        for (final section in sections) ...[
+          SliverToBoxAdapter(child: GroupHeader(section: section)),
+          if (section.assets.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.all(8),
+              sliver: SliverGrid.builder(
+                gridDelegate: _delegate,
+                itemCount: section.assets.length,
+                itemBuilder: (context, index) => _tile(
+                  context,
+                  ref,
+                  selection,
+                  section.assets[index],
+                  ordered,
+                ),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  SliverGridDelegate get _delegate => SliverGridDelegateWithMaxCrossAxisExtent(
+    maxCrossAxisExtent: tileSize,
+    mainAxisSpacing: 8,
+    crossAxisSpacing: 8,
+    childAspectRatio: 0.82,
+  );
+
+  Widget _tile(
+    BuildContext context,
+    WidgetRef ref,
+    Selection selection,
+    MediaAsset asset,
+    List<String> ordered,
+  ) => _GridTile(
+    asset: asset,
+    size: tileSize,
+    selected: selection.contains(asset.path),
+    primary: selection.primary == asset.path,
+    onTap: () => ref
+        .read(selectionProvider.notifier)
+        .tap(asset.path, ordered, gestureFromKeyboard()),
+    // 二度押しで単体プレビューを開く（SPEC FR-B7）。
+    onOpen: () {
+      ref
+          .read(selectionProvider.notifier)
+          .tap(asset.path, ordered, SelectionGesture.replace);
+      showAssetPreview(context);
+    },
+  );
 }
 
 class _GridTile extends StatelessWidget {

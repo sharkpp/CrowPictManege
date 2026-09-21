@@ -14,7 +14,7 @@ import 'asset_preview.dart';
 import 'column_display.dart';
 import 'column_filter_dialog.dart';
 import 'column_settings_dialog.dart';
-import 'folder_tile.dart';
+import 'group_header.dart';
 import 'labels.dart';
 
 /// リスト表示（SPEC FR-B3）。
@@ -58,32 +58,26 @@ class AssetList extends ConsumerWidget {
       children: [
         _Header(layouts: layouts),
         Expanded(
-          child: ListView.builder(
-            itemCount: folders.length + assets.length,
-            itemExtent: 32,
-            itemBuilder: (context, index) {
-              if (index < folders.length) {
-                return FolderRow(folder: folders[index]);
-              }
-              final asset = assets[index - folders.length];
-              return _Row(
-                asset: asset,
-                layouts: layouts,
-                selected: selection.contains(asset.path),
-                onTap: () => ref.read(selectionProvider.notifier).tap(
-                  asset.path,
-                  [for (final a in assets) a.path],
-                  gestureFromKeyboard(),
-                ),
-                // 二度押しで単体プレビューを開く（SPEC FR-B7）。
-                onOpen: () {
-                  ref.read(selectionProvider.notifier).tap(asset.path, [
-                    for (final a in assets) a.path,
-                  ], SelectionGesture.replace);
-                  showAssetPreview(context);
-                },
-              );
-            },
+          child: GroupedRows(
+            assets: assets,
+            folders: folders,
+            rowHeight: 32,
+            folderHeight: 32,
+            buildRow: (context, asset, ordered) => _Row(
+              asset: asset,
+              layouts: layouts,
+              selected: selection.contains(asset.path),
+              onTap: () => ref
+                  .read(selectionProvider.notifier)
+                  .tap(asset.path, ordered, gestureFromKeyboard()),
+              // 二度押しで単体プレビューを開く（SPEC FR-B7）。
+              onOpen: () {
+                ref
+                    .read(selectionProvider.notifier)
+                    .tap(asset.path, ordered, SelectionGesture.replace);
+                showAssetPreview(context);
+              },
+            ),
           ),
         ),
       ],
@@ -105,29 +99,24 @@ class _SummaryList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selection = ref.watch(selectionProvider);
 
-    return ListView.builder(
-      itemCount: folders.length + assets.length,
-      itemExtent: 52,
-      itemBuilder: (context, index) {
-        if (index < folders.length) {
-          return FolderRow(folder: folders[index]);
-        }
-        final asset = assets[index - folders.length];
-        final ordered = [for (final a in assets) a.path];
-        return _SummaryRow(
-          asset: asset,
-          selected: selection.contains(asset.path),
-          onTap: () => ref
+    return GroupedRows(
+      assets: assets,
+      folders: folders,
+      rowHeight: 52,
+      folderHeight: 52,
+      buildRow: (context, asset, ordered) => _SummaryRow(
+        asset: asset,
+        selected: selection.contains(asset.path),
+        onTap: () => ref
+            .read(selectionProvider.notifier)
+            .tap(asset.path, ordered, gestureFromKeyboard()),
+        onOpen: () {
+          ref
               .read(selectionProvider.notifier)
-              .tap(asset.path, ordered, gestureFromKeyboard()),
-          onOpen: () {
-            ref
-                .read(selectionProvider.notifier)
-                .tap(asset.path, ordered, SelectionGesture.replace);
-            showAssetPreview(context);
-          },
-        );
-      },
+              .tap(asset.path, ordered, SelectionGesture.replace);
+          showAssetPreview(context);
+        },
+      ),
     );
   }
 }

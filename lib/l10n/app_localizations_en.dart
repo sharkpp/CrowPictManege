@@ -1410,4 +1410,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String filterQuickChip(String query) {
     return '“$query”';
   }
+
+  @override
+  String get groupTitle => 'Grouping';
+
+  @override
+  String get groupNone => 'No grouping';
+
+  @override
+  String get groupSecond => 'Second level';
+
+  @override
+  String get groupKeySession => 'Shooting session';
+
+  @override
+  String get groupKeyPlace => 'Place';
+
+  @override
+  String get groupUnset => 'Not set';
+
+  @override
+  String groupSessionLabel(int ordinal) {
+    return 'Session $ordinal';
+  }
+
+  @override
+  String groupPlaceLabel(int ordinal) {
+    return 'Place $ordinal';
+  }
+
+  @override
+  String get groupYearPattern => 'yyyy';
+
+  @override
+  String get groupMonthPattern => 'MMMM yyyy';
+
+  @override
+  String get groupHourPattern => 'HH:00';
+
+  @override
+  String get groupSelectAll => 'Select this group';
+
+  @override
+  String get groupSessionGap => 'Gap (minutes)';
+
+  @override
+  String get groupPlaceRadius => 'Radius (m)';
 }

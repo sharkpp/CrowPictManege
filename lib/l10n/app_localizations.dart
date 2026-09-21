@@ -2377,6 +2377,90 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'「{query}」'**
   String filterQuickChip(String query);
+
+  /// No description provided for @groupTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'まとめ方'**
+  String get groupTitle;
+
+  /// No description provided for @groupNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'まとめない'**
+  String get groupNone;
+
+  /// No description provided for @groupSecond.
+  ///
+  /// In ja, this message translates to:
+  /// **'2 段目'**
+  String get groupSecond;
+
+  /// No description provided for @groupKeySession.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影セッション'**
+  String get groupKeySession;
+
+  /// No description provided for @groupKeyPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影場所'**
+  String get groupKeyPlace;
+
+  /// No description provided for @groupUnset.
+  ///
+  /// In ja, this message translates to:
+  /// **'未設定'**
+  String get groupUnset;
+
+  /// 時間クラスタの見出し（SPEC FR-G3）
+  ///
+  /// In ja, this message translates to:
+  /// **'セッション {ordinal}'**
+  String groupSessionLabel(int ordinal);
+
+  /// 位置クラスタの見出し（SPEC FR-G4）
+  ///
+  /// In ja, this message translates to:
+  /// **'場所 {ordinal}'**
+  String groupPlaceLabel(int ordinal);
+
+  /// 年の見出しの書式（intl の DateFormat のパターン）
+  ///
+  /// In ja, this message translates to:
+  /// **'yyyy 年'**
+  String get groupYearPattern;
+
+  /// 月の見出しの書式（intl の DateFormat のパターン）
+  ///
+  /// In ja, this message translates to:
+  /// **'yyyy 年 M 月'**
+  String get groupMonthPattern;
+
+  /// 時間帯の見出しの書式（intl の DateFormat のパターン）
+  ///
+  /// In ja, this message translates to:
+  /// **'H 時台'**
+  String get groupHourPattern;
+
+  /// No description provided for @groupSelectAll.
+  ///
+  /// In ja, this message translates to:
+  /// **'このまとまりを選ぶ'**
+  String get groupSelectAll;
+
+  /// No description provided for @groupSessionGap.
+  ///
+  /// In ja, this message translates to:
+  /// **'区切りの時間（分）'**
+  String get groupSessionGap;
+
+  /// No description provided for @groupPlaceRadius.
+  ///
+  /// In ja, this message translates to:
+  /// **'まとめる半径（m）'**
+  String get groupPlaceRadius;
 }
 
 class _AppLocalizationsDelegate

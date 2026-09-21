@@ -3,10 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/l10n.dart';
 import '../state/filters.dart';
+import '../state/grouping.dart';
 import '../state/library.dart';
 import '../state/map_view.dart';
 import 'column_filter_dialog.dart';
 import 'filter_editor_dialog.dart';
+import 'group_dialog.dart';
 import 'labels.dart';
 
 /// 絞り込みの帯（SPEC FR-F3、FR-F4、FR-F5）。
@@ -64,12 +66,33 @@ class _FilterBarState extends ConsumerState<FilterBar> {
                 onPressed: () => showFilterEditorDialog(context),
               ),
               const _SavedFiltersMenu(),
+              const _GroupButton(),
               const SizedBox(width: 4),
             ],
           ),
         ),
         const _ActiveFilters(),
       ],
+    );
+  }
+}
+
+/// まとめ方（SPEC FR-G1）。効いているかが見て分かるようにする。
+class _GroupButton extends ConsumerWidget {
+  const _GroupButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final options = ref.watch(groupOptionsProvider);
+    return IconButton(
+      tooltip: options.isActive
+          ? '${l10n.groupTitle}: ${l10n.groupKeyLabel(options.primary)}'
+          : l10n.groupTitle,
+      isSelected: options.isActive,
+      selectedIcon: const Icon(Icons.segment),
+      icon: const Icon(Icons.segment_outlined),
+      onPressed: () => showGroupDialog(context),
     );
   }
 }

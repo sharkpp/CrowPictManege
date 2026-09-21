@@ -379,5 +379,19 @@
   "filterSaveName": "Filter name",
   "filterSummary": "{count, plural, =1{1 condition} other{{count} conditions}}",
   "filterDistanceMeters": "Distance (m)",
-  "filterQuickChip": "“{query}”"
+  "filterQuickChip": "“{query}”",
+  "groupTitle": "Grouping",
+  "groupNone": "No grouping",
+  "groupSecond": "Second level",
+  "groupKeySession": "Shooting session",
+  "groupKeyPlace": "Place",
+  "groupUnset": "Not set",
+  "groupSessionLabel": "Session {ordinal}",
+  "groupPlaceLabel": "Place {ordinal}",
+  "groupYearPattern": "yyyy",
+  "groupMonthPattern": "MMMM yyyy",
+  "groupHourPattern": "HH:00",
+  "groupSelectAll": "Select this group",
+  "groupSessionGap": "Gap (minutes)",
+  "groupPlaceRadius": "Radius (m)"
 }

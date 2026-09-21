@@ -991,5 +991,44 @@
         "type": "String"
       }
     }
-  }
+  },
+  "groupTitle": "まとめ方",
+  "groupNone": "まとめない",
+  "groupSecond": "2 段目",
+  "groupKeySession": "撮影セッション",
+  "groupKeyPlace": "撮影場所",
+  "groupUnset": "未設定",
+  "groupSessionLabel": "セッション {ordinal}",
+  "@groupSessionLabel": {
+    "description": "時間クラスタの見出し（SPEC FR-G3）",
+    "placeholders": {
+      "ordinal": {
+        "type": "int"
+      }
+    }
+  },
+  "groupPlaceLabel": "場所 {ordinal}",
+  "@groupPlaceLabel": {
+    "description": "位置クラスタの見出し（SPEC FR-G4）",
+    "placeholders": {
+      "ordinal": {
+        "type": "int"
+      }
+    }
+  },
+  "groupYearPattern": "yyyy 年",
+  "@groupYearPattern": {
+    "description": "年の見出しの書式（intl の DateFormat のパターン）"
+  },
+  "groupMonthPattern": "yyyy 年 M 月",
+  "@groupMonthPattern": {
+    "description": "月の見出しの書式（intl の DateFormat のパターン）"
+  },
+  "groupHourPattern": "H 時台",
+  "@groupHourPattern": {
+    "description": "時間帯の見出しの書式（intl の DateFormat のパターン）"
+  },
+  "groupSelectAll": "このまとまりを選ぶ",
+  "groupSessionGap": "区切りの時間（分）",
+  "groupPlaceRadius": "まとめる半径（m）"
 }

@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 
+import '../domain/grouping.dart';
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
 import 'labels.dart';
@@ -75,4 +76,30 @@ extension AppFormats on AppLocalizations {
 
   /// 日付だけを出す（絞り込みの範囲など）。
   String formatDate(DateTime value) => _format(datePattern).format(value);
+
+  /// まとまりの見出しに出す言葉（SPEC FR-G1、NFR-7）。
+  ///
+  /// まとまりは識別子と代表値だけを持つ。言葉にするのはここだけにする。
+  String groupHeading(AssetGroup group) {
+    final time = group.time;
+    if (group.isUnset && group.key != GroupKey.session) return groupUnset;
+    return switch (group.key) {
+      GroupKey.year when time != null => _format(groupYearPattern).format(time),
+      GroupKey.month when time != null => _format(
+        groupMonthPattern,
+      ).format(time),
+      GroupKey.day when time != null => formatDate(time),
+      GroupKey.hour when time != null => _format(groupHourPattern).format(time),
+      GroupKey.session => [
+        groupSessionLabel(group.ordinal ?? 0),
+        if (time != null) formatDateTime(time),
+      ].join(' '),
+      GroupKey.place => [
+        groupPlaceLabel(group.ordinal ?? 0),
+        if (group.center != null) formatCoordinates(group.center!),
+      ].join(' '),
+      GroupKey.kind => assetKindNameLabel(group.id),
+      _ => group.id,
+    };
+  }
 }
