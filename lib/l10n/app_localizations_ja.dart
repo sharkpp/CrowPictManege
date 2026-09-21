@@ -1342,4 +1342,125 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get groupPlaceRadius => 'まとめる半径（m）';
+
+  @override
+  String get sortTitle => '仕分け';
+
+  @override
+  String get sortRules => 'ルール';
+
+  @override
+  String get sortAddRule => 'ルールを足す';
+
+  @override
+  String get sortDryRun => 'ドライラン';
+
+  @override
+  String get sortRun => 'この通りに実行する';
+
+  @override
+  String get sortBack => 'ルールへ戻る';
+
+  @override
+  String get sortRuleName => 'ルールの名前';
+
+  @override
+  String get sortRuleCondition => '対象条件';
+
+  @override
+  String get sortRuleConditionAll => 'すべての対象';
+
+  @override
+  String get sortRuleRoot => '置き場所';
+
+  @override
+  String get sortRuleRootCurrent => '現在のフォルダ';
+
+  @override
+  String get sortRuleTemplate => '出力先のひな型';
+
+  @override
+  String sortRuleTemplateHint(String names) {
+    return '使える置き換え: $names';
+  }
+
+  @override
+  String get sortRuleMode => '動作';
+
+  @override
+  String get sortRuleCollision => '名前がぶつかったとき';
+
+  @override
+  String get sortModeCopy => 'コピー';
+
+  @override
+  String get sortModeMove => '移動';
+
+  @override
+  String get sortCollisionSkip => '置かない';
+
+  @override
+  String get sortCollisionSerial => '連番を足す';
+
+  @override
+  String get sortCollisionOverwrite => '上書きする';
+
+  @override
+  String get sortDispositionWrite => '置く';
+
+  @override
+  String get sortDispositionSerial => '連番を足して置く';
+
+  @override
+  String get sortDispositionOverwrite => '上書きして置く';
+
+  @override
+  String get sortDispositionDuplicate => '同じ内容が既にある';
+
+  @override
+  String get sortDispositionCollision => '名前がぶつかる';
+
+  @override
+  String get sortDispositionUnmatched => 'どのルールにも当たらない';
+
+  @override
+  String get sortDispositionUnresolved => '出力先を決められない';
+
+  @override
+  String get sortDispositionInPlace => 'すでにその場所にある';
+
+  @override
+  String sortPlanSummary(int write, int skip) {
+    return '$write 件を置き、$skip 件は置かない';
+  }
+
+  @override
+  String sortPlanDirectories(int count) {
+    return '$count 個のフォルダを作る';
+  }
+
+  @override
+  String get sortPlanEmpty => '置くものがありません';
+
+  @override
+  String sortResult(int count, int failed) {
+    return '$count 件を仕分けました（失敗 $failed 件）';
+  }
+
+  @override
+  String sortUndone(int count) {
+    return '$count 件を元の場所へ戻しました';
+  }
+
+  @override
+  String get sortFailureSource => '元のファイルが読めない';
+
+  @override
+  String get sortFailureDestination => '置き先へ置けない';
+
+  @override
+  String get sortNoRules => 'まだルールがありません';
+
+  @override
+  String get sortRunning => '仕分けています…';
 }

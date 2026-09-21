@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../adapters/desktop_transfer.dart';
+import '../domain/transfer.dart';
 import '../l10n/l10n.dart';
 import '../ports/transfer_port.dart';
-import '../services/exporter.dart';
 import '../state/export.dart';
 import '../state/search.dart';
 import '../state/settings.dart';

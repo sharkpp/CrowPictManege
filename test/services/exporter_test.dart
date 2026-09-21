@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crow_pict_manege/domain/transfer.dart';
 import 'package:crow_pict_manege/services/exporter.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;

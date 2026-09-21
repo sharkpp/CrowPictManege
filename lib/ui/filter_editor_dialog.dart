@@ -14,9 +14,36 @@ import 'labels.dart';
 /// 条件は「すべて満たす」か「いずれか満たす」で束ね、1 件ずつ否定できる。
 /// 入れ子の組み合わせは作らない。評価器（[FilterNode]）は入れ子を扱えるが、
 /// 画面で組み立てられる形は平らなままにしておく。
-Future<void> showFilterEditorDialog(BuildContext context) => showDialog<void>(
+Future<void> showFilterEditorDialog(BuildContext context, WidgetRef ref) async {
+  final result = await showFilterEditor(
+    context,
+    initial: ref.read(activeFilterProvider),
+    allowSave: true,
+  );
+  if (result != null) {
+    ref.read(activeFilterProvider.notifier).set(result.filter);
+  }
+}
+
+/// 組み立てた条件式。取り消したときは [showFilterEditor] が null を返す。
+class FilterEdit {
+  const FilterEdit(this.filter);
+
+  /// 解除したときは null。
+  final FilterNode? filter;
+}
+
+/// 条件式を組み立てて返す。仕分けの対象条件（SPEC FR-S1）でも使う。
+///
+/// [allowSave] を立てると、名前を付けて残す道（SPEC FR-F4）も出す。
+Future<FilterEdit?> showFilterEditor(
+  BuildContext context, {
+  FilterNode? initial,
+  bool allowSave = false,
+}) => showDialog<FilterEdit>(
   context: context,
-  builder: (context) => const _FilterEditorDialog(),
+  builder: (context) =>
+      _FilterEditorDialog(initial: initial, allowSave: allowSave),
 );
 
 /// 組み立て中の 1 条件。値の入れ替えがあるので可変で持つ。
@@ -75,7 +102,10 @@ FilterValue emptyValueFor(FilterOperator operator) => switch (operator) {
 };
 
 class _FilterEditorDialog extends ConsumerStatefulWidget {
-  const _FilterEditorDialog();
+  const _FilterEditorDialog({this.initial, this.allowSave = false});
+
+  final FilterNode? initial;
+  final bool allowSave;
 
   @override
   ConsumerState<_FilterEditorDialog> createState() =>
@@ -89,7 +119,7 @@ class _FilterEditorDialogState extends ConsumerState<_FilterEditorDialog> {
   @override
   void initState() {
     super.initState();
-    _load(ref.read(activeFilterProvider));
+    _load(widget.initial);
   }
 
   /// いま効いている条件式を組み立て直す。
@@ -199,25 +229,20 @@ class _FilterEditorDialogState extends ConsumerState<_FilterEditorDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () {
-            ref.read(activeFilterProvider.notifier).clear();
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(const FilterEdit(null)),
           child: Text(l10n.actionClear),
         ),
-        TextButton(
-          onPressed: _clauses.isEmpty ? null : _save,
-          child: Text(l10n.actionSave),
-        ),
+        if (widget.allowSave)
+          TextButton(
+            onPressed: _clauses.isEmpty ? null : _save,
+            child: Text(l10n.actionSave),
+          ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(l10n.actionCancel),
         ),
         FilledButton(
-          onPressed: () {
-            ref.read(activeFilterProvider.notifier).set(_build());
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(FilterEdit(_build())),
           child: Text(l10n.actionApply),
         ),
       ],
@@ -234,8 +259,7 @@ class _FilterEditorDialogState extends ConsumerState<_FilterEditorDialog> {
     );
     if (name == null || !mounted) return;
     ref.read(savedFiltersProvider.notifier).save(name, filter);
-    ref.read(activeFilterProvider.notifier).set(filter);
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop(FilterEdit(filter));
   }
 }
 

@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-/// コピーか移動か（SPEC FR-T6）。
-enum ExportMode { copy, move }
+import '../domain/transfer.dart';
 
 /// 1 件の書き出しに失敗した理由。
 enum ExportFailure {

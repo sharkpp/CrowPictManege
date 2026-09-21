@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/l10n.dart';
-import '../services/exporter.dart';
+import '../domain/transfer.dart';
 import '../state/edits.dart';
 
 /// 書き出しの確かめ（SPEC FR-T6、§10）。

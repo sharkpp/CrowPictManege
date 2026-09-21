@@ -2461,6 +2461,228 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'まとめる半径（m）'**
   String get groupPlaceRadius;
+
+  /// No description provided for @sortTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'仕分け'**
+  String get sortTitle;
+
+  /// No description provided for @sortRules.
+  ///
+  /// In ja, this message translates to:
+  /// **'ルール'**
+  String get sortRules;
+
+  /// No description provided for @sortAddRule.
+  ///
+  /// In ja, this message translates to:
+  /// **'ルールを足す'**
+  String get sortAddRule;
+
+  /// No description provided for @sortDryRun.
+  ///
+  /// In ja, this message translates to:
+  /// **'ドライラン'**
+  String get sortDryRun;
+
+  /// No description provided for @sortRun.
+  ///
+  /// In ja, this message translates to:
+  /// **'この通りに実行する'**
+  String get sortRun;
+
+  /// No description provided for @sortBack.
+  ///
+  /// In ja, this message translates to:
+  /// **'ルールへ戻る'**
+  String get sortBack;
+
+  /// No description provided for @sortRuleName.
+  ///
+  /// In ja, this message translates to:
+  /// **'ルールの名前'**
+  String get sortRuleName;
+
+  /// No description provided for @sortRuleCondition.
+  ///
+  /// In ja, this message translates to:
+  /// **'対象条件'**
+  String get sortRuleCondition;
+
+  /// No description provided for @sortRuleConditionAll.
+  ///
+  /// In ja, this message translates to:
+  /// **'すべての対象'**
+  String get sortRuleConditionAll;
+
+  /// No description provided for @sortRuleRoot.
+  ///
+  /// In ja, this message translates to:
+  /// **'置き場所'**
+  String get sortRuleRoot;
+
+  /// No description provided for @sortRuleRootCurrent.
+  ///
+  /// In ja, this message translates to:
+  /// **'現在のフォルダ'**
+  String get sortRuleRootCurrent;
+
+  /// No description provided for @sortRuleTemplate.
+  ///
+  /// In ja, this message translates to:
+  /// **'出力先のひな型'**
+  String get sortRuleTemplate;
+
+  /// ひな型に書ける置き換えの一覧
+  ///
+  /// In ja, this message translates to:
+  /// **'使える置き換え: {names}'**
+  String sortRuleTemplateHint(String names);
+
+  /// No description provided for @sortRuleMode.
+  ///
+  /// In ja, this message translates to:
+  /// **'動作'**
+  String get sortRuleMode;
+
+  /// No description provided for @sortRuleCollision.
+  ///
+  /// In ja, this message translates to:
+  /// **'名前がぶつかったとき'**
+  String get sortRuleCollision;
+
+  /// No description provided for @sortModeCopy.
+  ///
+  /// In ja, this message translates to:
+  /// **'コピー'**
+  String get sortModeCopy;
+
+  /// No description provided for @sortModeMove.
+  ///
+  /// In ja, this message translates to:
+  /// **'移動'**
+  String get sortModeMove;
+
+  /// No description provided for @sortCollisionSkip.
+  ///
+  /// In ja, this message translates to:
+  /// **'置かない'**
+  String get sortCollisionSkip;
+
+  /// No description provided for @sortCollisionSerial.
+  ///
+  /// In ja, this message translates to:
+  /// **'連番を足す'**
+  String get sortCollisionSerial;
+
+  /// No description provided for @sortCollisionOverwrite.
+  ///
+  /// In ja, this message translates to:
+  /// **'上書きする'**
+  String get sortCollisionOverwrite;
+
+  /// No description provided for @sortDispositionWrite.
+  ///
+  /// In ja, this message translates to:
+  /// **'置く'**
+  String get sortDispositionWrite;
+
+  /// No description provided for @sortDispositionSerial.
+  ///
+  /// In ja, this message translates to:
+  /// **'連番を足して置く'**
+  String get sortDispositionSerial;
+
+  /// No description provided for @sortDispositionOverwrite.
+  ///
+  /// In ja, this message translates to:
+  /// **'上書きして置く'**
+  String get sortDispositionOverwrite;
+
+  /// No description provided for @sortDispositionDuplicate.
+  ///
+  /// In ja, this message translates to:
+  /// **'同じ内容が既にある'**
+  String get sortDispositionDuplicate;
+
+  /// No description provided for @sortDispositionCollision.
+  ///
+  /// In ja, this message translates to:
+  /// **'名前がぶつかる'**
+  String get sortDispositionCollision;
+
+  /// No description provided for @sortDispositionUnmatched.
+  ///
+  /// In ja, this message translates to:
+  /// **'どのルールにも当たらない'**
+  String get sortDispositionUnmatched;
+
+  /// No description provided for @sortDispositionUnresolved.
+  ///
+  /// In ja, this message translates to:
+  /// **'出力先を決められない'**
+  String get sortDispositionUnresolved;
+
+  /// No description provided for @sortDispositionInPlace.
+  ///
+  /// In ja, this message translates to:
+  /// **'すでにその場所にある'**
+  String get sortDispositionInPlace;
+
+  /// No description provided for @sortPlanSummary.
+  ///
+  /// In ja, this message translates to:
+  /// **'{write} 件を置き、{skip} 件は置かない'**
+  String sortPlanSummary(int write, int skip);
+
+  /// No description provided for @sortPlanDirectories.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 個のフォルダを作る'**
+  String sortPlanDirectories(int count);
+
+  /// No description provided for @sortPlanEmpty.
+  ///
+  /// In ja, this message translates to:
+  /// **'置くものがありません'**
+  String get sortPlanEmpty;
+
+  /// No description provided for @sortResult.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件を仕分けました（失敗 {failed} 件）'**
+  String sortResult(int count, int failed);
+
+  /// No description provided for @sortUndone.
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件を元の場所へ戻しました'**
+  String sortUndone(int count);
+
+  /// No description provided for @sortFailureSource.
+  ///
+  /// In ja, this message translates to:
+  /// **'元のファイルが読めない'**
+  String get sortFailureSource;
+
+  /// No description provided for @sortFailureDestination.
+  ///
+  /// In ja, this message translates to:
+  /// **'置き先へ置けない'**
+  String get sortFailureDestination;
+
+  /// No description provided for @sortNoRules.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだルールがありません'**
+  String get sortNoRules;
+
+  /// No description provided for @sortRunning.
+  ///
+  /// In ja, this message translates to:
+  /// **'仕分けています…'**
+  String get sortRunning;
 }
 
 class _AppLocalizationsDelegate

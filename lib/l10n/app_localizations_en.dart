@@ -1456,4 +1456,131 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get groupPlaceRadius => 'Radius (m)';
+
+  @override
+  String get sortTitle => 'Sorting';
+
+  @override
+  String get sortRules => 'Rules';
+
+  @override
+  String get sortAddRule => 'Add rule';
+
+  @override
+  String get sortDryRun => 'Dry run';
+
+  @override
+  String get sortRun => 'Run as planned';
+
+  @override
+  String get sortBack => 'Back to rules';
+
+  @override
+  String get sortRuleName => 'Rule name';
+
+  @override
+  String get sortRuleCondition => 'Condition';
+
+  @override
+  String get sortRuleConditionAll => 'All items';
+
+  @override
+  String get sortRuleRoot => 'Destination';
+
+  @override
+  String get sortRuleRootCurrent => 'Current folder';
+
+  @override
+  String get sortRuleTemplate => 'Path template';
+
+  @override
+  String sortRuleTemplateHint(String names) {
+    return 'Placeholders: $names';
+  }
+
+  @override
+  String get sortRuleMode => 'Action';
+
+  @override
+  String get sortRuleCollision => 'On name collision';
+
+  @override
+  String get sortModeCopy => 'Copy';
+
+  @override
+  String get sortModeMove => 'Move';
+
+  @override
+  String get sortCollisionSkip => 'Skip';
+
+  @override
+  String get sortCollisionSerial => 'Add a serial number';
+
+  @override
+  String get sortCollisionOverwrite => 'Overwrite';
+
+  @override
+  String get sortDispositionWrite => 'Place';
+
+  @override
+  String get sortDispositionSerial => 'Place with a serial number';
+
+  @override
+  String get sortDispositionOverwrite => 'Overwrite';
+
+  @override
+  String get sortDispositionDuplicate => 'Same content already there';
+
+  @override
+  String get sortDispositionCollision => 'Name collides';
+
+  @override
+  String get sortDispositionUnmatched => 'No rule matches';
+
+  @override
+  String get sortDispositionUnresolved => 'Destination cannot be resolved';
+
+  @override
+  String get sortDispositionInPlace => 'Already in place';
+
+  @override
+  String sortPlanSummary(int write, int skip) {
+    return 'Place $write, skip $skip';
+  }
+
+  @override
+  String sortPlanDirectories(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count folders will be created',
+      one: '1 folder will be created',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get sortPlanEmpty => 'Nothing to place';
+
+  @override
+  String sortResult(int count, int failed) {
+    return 'Sorted $count items ($failed failed)';
+  }
+
+  @override
+  String sortUndone(int count) {
+    return 'Moved $count items back';
+  }
+
+  @override
+  String get sortFailureSource => 'Source cannot be read';
+
+  @override
+  String get sortFailureDestination => 'Cannot write to the destination';
+
+  @override
+  String get sortNoRules => 'No rules yet';
+
+  @override
+  String get sortRunning => 'Sorting…';
 }

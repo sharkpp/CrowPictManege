@@ -63,7 +63,7 @@ class _FilterBarState extends ConsumerState<FilterBar> {
               IconButton(
                 tooltip: l10n.filterEditConditions,
                 icon: const Icon(Icons.tune),
-                onPressed: () => showFilterEditorDialog(context),
+                onPressed: () => showFilterEditorDialog(context, ref),
               ),
               const _SavedFiltersMenu(),
               const _GroupButton(),
@@ -178,7 +178,7 @@ class _ActiveFilters extends ConsumerWidget {
                   if (filter != null)
                     _Chip(
                       label: l10n.describeFilterNode(filter),
-                      onPressed: () => showFilterEditorDialog(context),
+                      onPressed: () => showFilterEditorDialog(context, ref),
                       onDeleted: ref.read(activeFilterProvider.notifier).clear,
                     ),
                   if (restricting)

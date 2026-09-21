@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:path/path.dart' as p;
 
+/// コピーか移動か（SPEC FR-T6、FR-S1）。
+enum ExportMode { copy, move }
+
 /// ユーザ定義の転送先（SPEC FR-T3）。
 ///
 /// 「実行ファイル＋引数のひな型」で表す。ひな型を選んだ対象で埋めて渡す。

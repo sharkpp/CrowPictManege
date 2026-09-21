@@ -29,6 +29,7 @@ import 'metadata_sheet.dart';
 import 'place_bar.dart';
 import 'search_row.dart';
 import 'settings_dialog.dart';
+import 'sort_dialog.dart';
 import 'side_panel.dart';
 import 'start_view.dart';
 import 'transfer_menu.dart';
@@ -381,6 +382,12 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           enabled: rootPath != null,
           onTap: ref.read(searchProvider.notifier).startDuplicates,
           child: Text(context.l10n.findDuplicates),
+        ),
+        // 仕分け（SPEC §5.8）。いま開いているフォルダの対象に効く。
+        PopupMenuItem(
+          enabled: rootPath != null,
+          onTap: () => showSortDialog(context),
+          child: Text(context.l10n.sortTitle),
         ),
         PopupMenuItem(
           onTap: () => showSettingsDialog(context),

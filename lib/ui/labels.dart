@@ -5,6 +5,9 @@ import '../domain/duplicates.dart';
 import '../domain/edit.dart';
 import '../domain/filter.dart';
 import '../domain/grouping.dart';
+import '../domain/sort_rule.dart';
+import '../domain/transfer.dart';
+import '../services/sorter.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/search.dart';
@@ -382,5 +385,35 @@ extension AppLabels on AppLocalizations {
     GroupKey.folder => columnFolder,
     GroupKey.session => groupKeySession,
     GroupKey.place => groupKeyPlace,
+  };
+
+  /// 仕分けの動作に出す言葉（SPEC FR-S1）。
+  String exportModeLabel(ExportMode mode) =>
+      mode == ExportMode.copy ? sortModeCopy : sortModeMove;
+
+  /// 名前がぶつかったときの扱いに出す言葉（SPEC FR-S4）。
+  String collisionPolicyLabel(CollisionPolicy policy) => switch (policy) {
+    CollisionPolicy.skip => sortCollisionSkip,
+    CollisionPolicy.serial => sortCollisionSerial,
+    CollisionPolicy.overwrite => sortCollisionOverwrite,
+  };
+
+  /// ドライランの 1 行に出す言葉（SPEC FR-S3）。
+  String sortDispositionLabel(SortDisposition disposition) =>
+      switch (disposition) {
+        SortDisposition.write => sortDispositionWrite,
+        SortDisposition.serial => sortDispositionSerial,
+        SortDisposition.overwrite => sortDispositionOverwrite,
+        SortDisposition.duplicate => sortDispositionDuplicate,
+        SortDisposition.collision => sortDispositionCollision,
+        SortDisposition.unmatched => sortDispositionUnmatched,
+        SortDisposition.unresolved => sortDispositionUnresolved,
+        SortDisposition.inPlace => sortDispositionInPlace,
+      };
+
+  /// 仕分けに失敗した理由に出す言葉（SPEC FR-S5、NFR-3）。
+  String sortFailureLabel(SortFailure failure) => switch (failure) {
+    SortFailure.sourceUnreadable => sortFailureSource,
+    SortFailure.destinationUnwritable => sortFailureDestination,
   };
 }

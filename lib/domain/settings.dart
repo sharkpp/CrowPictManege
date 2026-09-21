@@ -1,6 +1,7 @@
 import 'columns.dart';
 import 'filter_codec.dart';
 import 'pinned_fields.dart';
+import 'sort_rule.dart';
 import 'transfer.dart';
 
 /// 一覧の表示モード（SPEC FR-B10）。
@@ -35,6 +36,7 @@ class AppSettings {
     this.backupGenerations = 3,
     this.transferTargets = const [],
     this.savedFilters = const [],
+    this.sortRules = const [],
     this.tileUrl = defaultTileUrl,
     this.geocodingEnabled = false,
     this.geocodingEndpoint = defaultGeocodingEndpoint,
@@ -74,6 +76,9 @@ class AppSettings {
   /// 名前を付けて残した絞り込み（SPEC FR-F4）。
   final List<SavedFilter> savedFilters;
 
+  /// 仕分けのルール（SPEC FR-S6）。並びが実行の順になる。
+  final List<SortRule> sortRules;
+
   /// 地図タイルの取得先（SPEC FR-M7）。
   final String tileUrl;
 
@@ -107,6 +112,7 @@ class AppSettings {
     int? backupGenerations,
     List<TransferTarget>? transferTargets,
     List<SavedFilter>? savedFilters,
+    List<SortRule>? sortRules,
     String? tileUrl,
     bool? geocodingEnabled,
     String? geocodingEndpoint,
@@ -125,6 +131,7 @@ class AppSettings {
     backupGenerations: backupGenerations ?? this.backupGenerations,
     transferTargets: transferTargets ?? this.transferTargets,
     savedFilters: savedFilters ?? this.savedFilters,
+    sortRules: sortRules ?? this.sortRules,
     tileUrl: tileUrl ?? this.tileUrl,
     geocodingEnabled: geocodingEnabled ?? this.geocodingEnabled,
     geocodingEndpoint: geocodingEndpoint ?? this.geocodingEndpoint,
@@ -143,6 +150,7 @@ class AppSettings {
     'backupGenerations': '$backupGenerations',
     'transferTargets': encodeTransferTargets(transferTargets),
     'savedFilters': encodeSavedFilters(savedFilters),
+    'sortRules': encodeSortRules(sortRules),
     'tileUrl': tileUrl,
     'geocodingEnabled': '$geocodingEnabled',
     'geocodingEndpoint': geocodingEndpoint,
@@ -180,6 +188,7 @@ class AppSettings {
               .clamp(1, maxBackupGenerations),
       transferTargets: decodeTransferTargets(map['transferTargets']),
       savedFilters: decodeSavedFilters(map['savedFilters']),
+      sortRules: decodeSortRules(map['sortRules']),
       tileUrl: (map['tileUrl'] ?? '').isEmpty
           ? defaults.tileUrl
           : map['tileUrl']!,

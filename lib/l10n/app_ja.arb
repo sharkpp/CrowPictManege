@@ -1030,5 +1030,84 @@
   },
   "groupSelectAll": "このまとまりを選ぶ",
   "groupSessionGap": "区切りの時間（分）",
-  "groupPlaceRadius": "まとめる半径（m）"
+  "groupPlaceRadius": "まとめる半径（m）",
+  "sortTitle": "仕分け",
+  "sortRules": "ルール",
+  "sortAddRule": "ルールを足す",
+  "sortDryRun": "ドライラン",
+  "sortRun": "この通りに実行する",
+  "sortBack": "ルールへ戻る",
+  "sortRuleName": "ルールの名前",
+  "sortRuleCondition": "対象条件",
+  "sortRuleConditionAll": "すべての対象",
+  "sortRuleRoot": "置き場所",
+  "sortRuleRootCurrent": "現在のフォルダ",
+  "sortRuleTemplate": "出力先のひな型",
+  "sortRuleTemplateHint": "使える置き換え: {names}",
+  "@sortRuleTemplateHint": {
+    "description": "ひな型に書ける置き換えの一覧",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "sortRuleMode": "動作",
+  "sortRuleCollision": "名前がぶつかったとき",
+  "sortModeCopy": "コピー",
+  "sortModeMove": "移動",
+  "sortCollisionSkip": "置かない",
+  "sortCollisionSerial": "連番を足す",
+  "sortCollisionOverwrite": "上書きする",
+  "sortDispositionWrite": "置く",
+  "sortDispositionSerial": "連番を足して置く",
+  "sortDispositionOverwrite": "上書きして置く",
+  "sortDispositionDuplicate": "同じ内容が既にある",
+  "sortDispositionCollision": "名前がぶつかる",
+  "sortDispositionUnmatched": "どのルールにも当たらない",
+  "sortDispositionUnresolved": "出力先を決められない",
+  "sortDispositionInPlace": "すでにその場所にある",
+  "sortPlanSummary": "{write} 件を置き、{skip} 件は置かない",
+  "@sortPlanSummary": {
+    "placeholders": {
+      "write": {
+        "type": "int"
+      },
+      "skip": {
+        "type": "int"
+      }
+    }
+  },
+  "sortPlanDirectories": "{count} 個のフォルダを作る",
+  "@sortPlanDirectories": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sortPlanEmpty": "置くものがありません",
+  "sortResult": "{count} 件を仕分けました（失敗 {failed} 件）",
+  "@sortResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      }
+    }
+  },
+  "sortUndone": "{count} 件を元の場所へ戻しました",
+  "@sortUndone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sortFailureSource": "元のファイルが読めない",
+  "sortFailureDestination": "置き先へ置けない",
+  "sortNoRules": "まだルールがありません",
+  "sortRunning": "仕分けています…"
 }

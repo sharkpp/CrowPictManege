@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
-import 'package:crow_pict_manege/services/exporter.dart';
+import 'package:crow_pict_manege/domain/transfer.dart';
 import 'package:crow_pict_manege/state/edits.dart';
 import 'package:crow_pict_manege/state/export.dart';
 import 'package:crow_pict_manege/state/search.dart';

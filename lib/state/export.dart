@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../adapters/crowexif_writer.dart';
 import '../domain/edit_plan.dart';
+import '../domain/transfer.dart';
 import '../ports/metadata_write_port.dart';
 import '../services/exporter.dart';
 import '../services/parallel.dart';
