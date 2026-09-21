@@ -9,6 +9,7 @@ import '../domain/transfer.dart';
 import '../l10n/l10n.dart';
 import '../services/sorter.dart';
 import '../state/sorting.dart';
+import '../state/watching.dart';
 import 'filter_editor_dialog.dart';
 import 'labels.dart';
 
@@ -97,52 +98,121 @@ class _RuleList extends ConsumerWidget {
     final rules = ref.watch(sortRulesProvider);
     final notifier = ref.read(sortRulesProvider.notifier);
     if (rules.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Text(l10n.sortNoRules),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            child: Text(l10n.sortNoRules),
+          ),
+          const Divider(),
+          const _WatchedFolders(),
+        ],
       );
     }
 
-    return SizedBox(
-      height: 320,
-      child: ListView.builder(
-        itemCount: rules.length,
-        itemBuilder: (context, index) {
-          final rule = rules[index];
-          return ListTile(
-            dense: true,
-            title: Text(rule.name),
-            subtitle: Text(
-              '${l10n.exportModeLabel(rule.mode)} · '
-              '${rule.root.isEmpty ? l10n.sortRuleRootCurrent : rule.root}'
-              '/${rule.template}',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: 260,
+          child: ListView.builder(
+            itemCount: rules.length,
+            itemBuilder: (context, index) {
+              final rule = rules[index];
+              return ListTile(
+                dense: true,
+                title: Text(rule.name),
+                subtitle: Text(
+                  '${l10n.exportModeLabel(rule.mode)} · '
+                  '${rule.root.isEmpty ? l10n.sortRuleRootCurrent : rule.root}'
+                  '/${rule.template}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                onTap: () => _editRule(context, ref, index: index, rule: rule),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_upward, size: 18),
+                      onPressed: index == 0
+                          ? null
+                          : () => notifier.move(index, -1),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_downward, size: 18),
+                      onPressed: index == rules.length - 1
+                          ? null
+                          : () => notifier.move(index, 1),
+                    ),
+                    IconButton(
+                      tooltip: l10n.actionDelete,
+                      icon: const Icon(Icons.close, size: 18),
+                      onPressed: () => notifier.removeAt(index),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        const Divider(),
+        const _WatchedFolders(),
+      ],
+    );
+  }
+}
+
+/// 監視フォルダ（SPEC FR-S8）。新しく現れたファイルにルールを当てる。
+class _WatchedFolders extends ConsumerWidget {
+  const _WatchedFolders();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final folders = ref.watch(watchedFoldersProvider);
+    final notifier = ref.read(watchedFoldersProvider.notifier);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              l10n.watchTitle,
+              style: Theme.of(context).textTheme.titleSmall,
             ),
-            onTap: () => _editRule(context, ref, index: index, rule: rule),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_upward, size: 18),
-                  onPressed: index == 0 ? null : () => notifier.move(index, -1),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_downward, size: 18),
-                  onPressed: index == rules.length - 1
-                      ? null
-                      : () => notifier.move(index, 1),
-                ),
-                IconButton(
-                  tooltip: l10n.actionDelete,
-                  icon: const Icon(Icons.close, size: 18),
-                  onPressed: () => notifier.removeAt(index),
-                ),
-              ],
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () async {
+                final path = await getDirectoryPath(
+                  confirmButtonText: l10n.actionOpen,
+                );
+                if (path != null) notifier.add(path);
+              },
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(l10n.watchAdd),
             ),
-          );
-        },
-      ),
+          ],
+        ),
+        if (folders.isEmpty)
+          Text(l10n.watchNone, style: Theme.of(context).textTheme.bodySmall)
+        else
+          Wrap(
+            spacing: 6,
+            children: [
+              for (final folder in folders)
+                InputChip(
+                  label: Text(p.basename(folder)),
+                  tooltip: folder,
+                  onDeleted: () => notifier.remove(folder),
+                ),
+            ],
+          ),
+        const SizedBox(height: 4),
+        Text(l10n.watchHint, style: Theme.of(context).textTheme.bodySmall),
+      ],
     );
   }
 }

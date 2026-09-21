@@ -1583,4 +1583,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sortRunning => 'Sorting…';
+
+  @override
+  String get watchTitle => 'Watched folders';
+
+  @override
+  String get watchAdd => 'Add folder';
+
+  @override
+  String get watchNone => 'Not watching';
+
+  @override
+  String get watchHint => 'New files are sorted with the rules above.';
+
+  @override
+  String watchStatus(int folders, int handled) {
+    return 'Watching $folders · sorted $handled';
+  }
 }

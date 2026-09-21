@@ -1463,4 +1463,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get sortRunning => '仕分けています…';
+
+  @override
+  String get watchTitle => '監視フォルダ';
+
+  @override
+  String get watchAdd => 'フォルダを足す';
+
+  @override
+  String get watchNone => '監視していません';
+
+  @override
+  String get watchHint => '新しく現れたファイルに、上のルールをそのまま当てます。';
+
+  @override
+  String watchStatus(int folders, int handled) {
+    return '監視 $folders · 自動仕分け $handled 件';
+  }
 }

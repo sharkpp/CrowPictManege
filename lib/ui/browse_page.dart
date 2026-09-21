@@ -17,6 +17,7 @@ import '../state/navigation.dart';
 import '../state/search.dart';
 import '../state/selection.dart';
 import '../state/settings.dart';
+import '../state/watching.dart';
 import 'asset_gallery.dart';
 import 'asset_preview.dart';
 import 'asset_map.dart';
@@ -71,6 +72,8 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
   @override
   Widget build(BuildContext context) {
     final library = ref.watch(libraryProvider);
+    // 監視フォルダの自動仕分けは画面を開いている間ずっと働く（SPEC FR-S8）。
+    ref.watch(watchProvider);
     final searching = ref.watch(searchProvider).active;
     // 検索中はフォルダを並べず、結果だけを出す（SPEC §5.9）。
     final folders = searching
@@ -576,6 +579,7 @@ class _StatusBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    final watch = ref.watch(watchProvider);
     return SizedBox(
       height: onOpenMetadata == null ? 28 : 36,
       child: Row(
@@ -599,6 +603,18 @@ class _StatusBar extends ConsumerWidget {
             ),
           ),
           const Spacer(),
+          // 監視フォルダの様子（SPEC FR-S8）。
+          if (watch.isWatching) ...[
+            Icon(Icons.visibility, size: 14, color: theme.colorScheme.outline),
+            const SizedBox(width: 4),
+            Text(
+              l10n.watchStatus(watch.folders.length, watch.handled),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
           if (state.errorCount > 0)
             Text(
               l10n.statusErrors(state.errorCount),

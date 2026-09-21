@@ -2683,6 +2683,36 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'仕分けています…'**
   String get sortRunning;
+
+  /// No description provided for @watchTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'監視フォルダ'**
+  String get watchTitle;
+
+  /// No description provided for @watchAdd.
+  ///
+  /// In ja, this message translates to:
+  /// **'フォルダを足す'**
+  String get watchAdd;
+
+  /// No description provided for @watchNone.
+  ///
+  /// In ja, this message translates to:
+  /// **'監視していません'**
+  String get watchNone;
+
+  /// No description provided for @watchHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'新しく現れたファイルに、上のルールをそのまま当てます。'**
+  String get watchHint;
+
+  /// 監視フォルダの様子（状態の帯）
+  ///
+  /// In ja, this message translates to:
+  /// **'監視 {folders} · 自動仕分け {handled} 件'**
+  String watchStatus(int folders, int handled);
 }
 
 class _AppLocalizationsDelegate

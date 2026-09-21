@@ -1109,5 +1109,21 @@
   "sortFailureSource": "元のファイルが読めない",
   "sortFailureDestination": "置き先へ置けない",
   "sortNoRules": "まだルールがありません",
-  "sortRunning": "仕分けています…"
+  "sortRunning": "仕分けています…",
+  "watchTitle": "監視フォルダ",
+  "watchAdd": "フォルダを足す",
+  "watchNone": "監視していません",
+  "watchHint": "新しく現れたファイルに、上のルールをそのまま当てます。",
+  "watchStatus": "監視 {folders} · 自動仕分け {handled} 件",
+  "@watchStatus": {
+    "description": "監視フォルダの様子（状態の帯）",
+    "placeholders": {
+      "folders": {
+        "type": "int"
+      },
+      "handled": {
+        "type": "int"
+      }
+    }
+  }
 }

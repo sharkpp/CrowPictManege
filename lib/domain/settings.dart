@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'columns.dart';
 import 'filter_codec.dart';
 import 'pinned_fields.dart';
@@ -37,6 +39,7 @@ class AppSettings {
     this.transferTargets = const [],
     this.savedFilters = const [],
     this.sortRules = const [],
+    this.watchedFolders = const [],
     this.tileUrl = defaultTileUrl,
     this.geocodingEnabled = false,
     this.geocodingEndpoint = defaultGeocodingEndpoint,
@@ -79,6 +82,10 @@ class AppSettings {
   /// 仕分けのルール（SPEC FR-S6）。並びが実行の順になる。
   final List<SortRule> sortRules;
 
+  /// 監視するフォルダ（SPEC FR-S8）。新しく現れたファイルにルールを当てる。
+  /// 空なら監視しない。デスクトップだけで使う（SPEC §8）。
+  final List<String> watchedFolders;
+
   /// 地図タイルの取得先（SPEC FR-M7）。
   final String tileUrl;
 
@@ -113,6 +120,7 @@ class AppSettings {
     List<TransferTarget>? transferTargets,
     List<SavedFilter>? savedFilters,
     List<SortRule>? sortRules,
+    List<String>? watchedFolders,
     String? tileUrl,
     bool? geocodingEnabled,
     String? geocodingEndpoint,
@@ -132,6 +140,7 @@ class AppSettings {
     transferTargets: transferTargets ?? this.transferTargets,
     savedFilters: savedFilters ?? this.savedFilters,
     sortRules: sortRules ?? this.sortRules,
+    watchedFolders: watchedFolders ?? this.watchedFolders,
     tileUrl: tileUrl ?? this.tileUrl,
     geocodingEnabled: geocodingEnabled ?? this.geocodingEnabled,
     geocodingEndpoint: geocodingEndpoint ?? this.geocodingEndpoint,
@@ -151,6 +160,7 @@ class AppSettings {
     'transferTargets': encodeTransferTargets(transferTargets),
     'savedFilters': encodeSavedFilters(savedFilters),
     'sortRules': encodeSortRules(sortRules),
+    'watchedFolders': jsonEncode(watchedFolders),
     'tileUrl': tileUrl,
     'geocodingEnabled': '$geocodingEnabled',
     'geocodingEndpoint': geocodingEndpoint,
@@ -189,6 +199,7 @@ class AppSettings {
       transferTargets: decodeTransferTargets(map['transferTargets']),
       savedFilters: decodeSavedFilters(map['savedFilters']),
       sortRules: decodeSortRules(map['sortRules']),
+      watchedFolders: _decodeStrings(map['watchedFolders']),
       tileUrl: (map['tileUrl'] ?? '').isEmpty
           ? defaults.tileUrl
           : map['tileUrl']!,
@@ -198,6 +209,22 @@ class AppSettings {
           : map['geocodingEndpoint']!,
     );
   }
+}
+
+/// 文字列の一覧を読む。読めない値は捨てる。
+List<String> _decodeStrings(String? encoded) {
+  if (encoded == null || encoded.isEmpty) return const [];
+  final Object? decoded;
+  try {
+    decoded = jsonDecode(encoded);
+  } on FormatException {
+    return const [];
+  }
+  if (decoded is! List) return const [];
+  return [
+    for (final entry in decoded)
+      if (entry is String) entry,
+  ];
 }
 
 T? _enumOf<T extends Enum>(List<T> values, String? name) {

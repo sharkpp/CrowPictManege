@@ -430,5 +430,10 @@
   "sortFailureSource": "Source cannot be read",
   "sortFailureDestination": "Cannot write to the destination",
   "sortNoRules": "No rules yet",
-  "sortRunning": "Sorting…"
+  "sortRunning": "Sorting…",
+  "watchTitle": "Watched folders",
+  "watchAdd": "Add folder",
+  "watchNone": "Not watching",
+  "watchHint": "New files are sorted with the rules above.",
+  "watchStatus": "Watching {folders} · sorted {handled}"
 }
