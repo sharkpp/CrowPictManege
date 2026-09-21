@@ -38,16 +38,26 @@ class WriteReceipt {
   const WriteReceipt({
     required this.path,
     required this.appliedAt,
+    String? writtenPath,
     this.backupPath,
-  });
+    this.created = false,
+  }) : writtenPath = writtenPath ?? path;
 
+  /// 対象の実体。一覧を作り直すのに使う。
   final String path;
+
+  /// 実際に書き換えたファイル。サイドカーへ書いた場合は `.xmp` の側（SPEC §13）。
+  final String writtenPath;
+
   final DateTime appliedAt;
 
   /// 原本の控えの置き場所。控えを取らなかった場合は null。
   final String? backupPath;
 
-  bool get canUndo => backupPath != null;
+  /// 無かったファイルを作った（サイドカー）。戻すときは消せばよい。
+  final bool created;
+
+  bool get canUndo => backupPath != null || created;
 }
 
 /// メタ情報の書き込み口（SPEC §5.3、§7.1）。

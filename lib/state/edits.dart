@@ -18,12 +18,19 @@ import 'settings.dart';
 /// 適用するまでファイルには触らない、積んである操作（SPEC §4.3、FR-E5）。
 @immutable
 class EditQueue {
-  const EditQueue({this.edits = const [], this.timeTargets = allTimeTargets});
+  const EditQueue({
+    this.edits = const [],
+    this.timeTargets = allTimeTargets,
+    this.destination = WriteDestination.originalFile,
+  });
 
   final List<AssetEdit> edits;
 
   /// 時刻を書き込む先（SPEC FR-E3-7）。
   final Set<TimeTarget> timeTargets;
+
+  /// どこへ書くか（SPEC §13）。サイドカーなら元のファイルには触らない。
+  final WriteDestination destination;
 
   bool get isEmpty => edits.isEmpty;
   bool get isNotEmpty => edits.isNotEmpty;
@@ -44,18 +51,30 @@ class EditQueueNotifier extends Notifier<EditQueue> {
           existing,
       edit,
     ];
-    state = EditQueue(edits: edits, timeTargets: state.timeTargets);
+    state = _with(edits: edits);
   }
 
-  void removeAt(int index) {
-    final edits = List.of(state.edits)..removeAt(index);
-    state = EditQueue(edits: edits, timeTargets: state.timeTargets);
-  }
+  void removeAt(int index) =>
+      state = _with(edits: List.of(state.edits)..removeAt(index));
 
   void setTimeTargets(Set<TimeTarget> targets) =>
-      state = EditQueue(edits: state.edits, timeTargets: targets);
+      state = _with(timeTargets: targets);
 
-  void clear() => state = EditQueue(timeTargets: state.timeTargets);
+  /// 書き込み先を切り替える（SPEC §13）。積んだ操作はそのまま持ち越す。
+  void setDestination(WriteDestination destination) =>
+      state = _with(destination: destination);
+
+  void clear() => state = _with(edits: const []);
+
+  EditQueue _with({
+    List<AssetEdit>? edits,
+    Set<TimeTarget>? timeTargets,
+    WriteDestination? destination,
+  }) => EditQueue(
+    edits: edits ?? state.edits,
+    timeTargets: timeTargets ?? state.timeTargets,
+    destination: destination ?? state.destination,
+  );
 }
 
 final editQueueProvider = NotifierProvider<EditQueueNotifier, EditQueue>(
@@ -111,9 +130,11 @@ final editPreviewProvider = Provider<EditPreview>((ref) {
   final unwritable = <MediaAsset>[];
   // 並びは画面に出ている順。連番配分はこの順に割り当てる（SPEC FR-E3-5）。
   var index = 0;
+  // サイドカーは元のファイルに触らないので、書けない形式でも残せる（SPEC §13）。
+  final sidecar = queue.destination == WriteDestination.sidecar;
   for (final asset in ref.watch(displayedAssetsProvider)) {
     if (!selection.contains(asset.path)) continue;
-    if (!canWriteMetadata(asset.path)) {
+    if (!sidecar && !canWriteMetadata(asset.path)) {
       unwritable.add(asset);
       continue;
     }
@@ -128,6 +149,7 @@ final editPreviewProvider = Provider<EditPreview>((ref) {
         index: index++,
       ),
       timeTargets: queue.timeTargets,
+      destination: queue.destination,
     );
     if (plan.isEmpty) continue;
     planned.add(PlannedEdit(asset, plan));

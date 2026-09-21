@@ -416,4 +416,16 @@ extension AppLabels on AppLocalizations {
     SortFailure.sourceUnreadable => sortFailureSource,
     SortFailure.destinationUnwritable => sortFailureDestination,
   };
+
+  /// 書き込み先に出す言葉（SPEC §13）。
+  String writeDestinationLabel(WriteDestination destination) =>
+      destination == WriteDestination.originalFile
+      ? writeDestinationOriginal
+      : writeDestinationSidecar;
+
+  /// 書き込み先が何をするかの説明。
+  String writeDestinationHint(WriteDestination destination) =>
+      destination == WriteDestination.originalFile
+      ? writeDestinationHintOriginal
+      : writeDestinationHintSidecar;
 }

@@ -322,4 +322,143 @@ void main() {
     );
     expect(File(path).readAsBytesSync(), before);
   });
+
+  group('サイドカー（SPEC §13）', () {
+    /// 元のファイルには触らず、隣の `.xmp` へ書く。
+    EditPlan sidecarPlan(List<AssetEdit> edits) => planEdits(
+      edits,
+      EditTarget(
+        path: path,
+        fileName: 'photo.jpg',
+        fileModifiedAt: DateTime(2024, 6, 1),
+      ),
+      destination: WriteDestination.sidecar,
+    );
+
+    test('元のファイルは 1 バイトも変わらない', () {
+      final before = File(path).readAsBytesSync();
+      final receipt = applyPlanSync(
+        path,
+        sidecarPlan([
+          SetTime(
+            DateTime(2024, 1, 15, 12, 34, 56),
+            offset: const Duration(hours: 9),
+          ),
+        ]),
+        backupDirectory: backups,
+      );
+
+      expect(File(path).readAsBytesSync(), before);
+      expect(receipt.writtenPath, '${temporary.path}/photo.xmp');
+      expect(File(receipt.writtenPath).existsSync(), isTrue);
+    });
+
+    test('書いたサイドカーは読み直せる（時刻と位置）', () {
+      final receipt = applyPlanSync(
+        path,
+        sidecarPlan([
+          SetTime(
+            DateTime(2024, 1, 15, 12, 34, 56),
+            offset: const Duration(hours: 9),
+          ),
+          const SetLocation(latitude: 35.681236, longitude: 139.767125),
+        ]),
+        backupDirectory: backups,
+      );
+
+      final summary = readSummarySync(receipt.writtenPath);
+      expect(summary.capturedAt!.wallClock, DateTime(2024, 1, 15, 12, 34, 56));
+      expect(summary.capturedAt!.offset, const Duration(hours: 9));
+      expect(summary.location!.latitude, closeTo(35.681236, 1e-6));
+      expect(summary.location!.longitude, closeTo(139.767125, 1e-6));
+    });
+
+    test('新しく作ったサイドカーは、取り消すと消える', () {
+      final receipt = applyPlanSync(
+        path,
+        sidecarPlan([const ShiftTime(Duration(hours: 1))]),
+        backupDirectory: backups,
+      );
+      expect(receipt.created, isTrue);
+      expect(receipt.canUndo, isTrue);
+
+      undoSync(receipt);
+      expect(File(receipt.writtenPath).existsSync(), isFalse);
+    });
+
+    test('既にあるサイドカーは控えから戻せる', () {
+      final first = applyPlanSync(
+        path,
+        sidecarPlan([
+          SetTime(
+            DateTime(2024, 1, 15, 12, 0, 0),
+            offset: const Duration(hours: 9),
+          ),
+        ]),
+        backupDirectory: backups,
+      );
+      final second = applyPlanSync(
+        path,
+        sidecarPlan([
+          SetTime(
+            DateTime(2020, 5, 5, 8, 0, 0),
+            offset: const Duration(hours: 9),
+          ),
+        ]),
+        backupDirectory: backups,
+      );
+      expect(second.created, isFalse);
+      expect(second.backupPath, isNotNull);
+
+      undoSync(second);
+      final summary = readSummarySync(first.writtenPath);
+      expect(summary.capturedAt!.wallClock, DateTime(2024, 1, 15, 12, 0, 0));
+    });
+
+    test('書けない形式でもサイドカーには残せる', () {
+      final movie = '${temporary.path}/clip.avi';
+      File(movie).writeAsBytesSync([0, 1, 2, 3]);
+      final receipt = applyPlanSync(
+        movie,
+        planEdits(
+          [
+            SetTime(
+              DateTime(2024, 1, 15, 12, 34, 56),
+              offset: const Duration(hours: 9),
+            ),
+          ],
+          EditTarget(
+            path: movie,
+            fileName: 'clip.avi',
+            fileModifiedAt: DateTime(2024, 6, 1),
+          ),
+          destination: WriteDestination.sidecar,
+        ),
+        backupDirectory: backups,
+      );
+
+      expect(File(receipt.writtenPath).existsSync(), isTrue);
+      expect(receipt.writtenPath, '${temporary.path}/clip.xmp');
+    });
+
+    test('パケットに置き場所の無いタグは理由付きで落ちる', () {
+      expect(
+        () => applyPlanSync(
+          path,
+          sidecarPlan([
+            const SetTag(group: 'EXIF', name: 'Artist', value: 'sharkpp'),
+          ]),
+          backupDirectory: backups,
+        ),
+        throwsA(
+          isA<MetadataWriteFailure>().having(
+            (failure) => failure.reason,
+            'reason',
+            WriteFailure.unsupportedTag,
+          ),
+        ),
+      );
+      expect(File('${temporary.path}/photo.xmp').existsSync(), isFalse);
+    });
+  });
 }

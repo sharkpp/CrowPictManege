@@ -1,3 +1,4 @@
+import 'coordinates.dart';
 import 'models.dart';
 import 'tag_values.dart';
 
@@ -223,6 +224,7 @@ DateTime? dateTimeFromFileName(String fileName) {
 /// タグ群から位置を正規化する。
 ///
 /// Composite の符号付き値を優先し、無い場合のみ Exif の絶対値と Ref から組み立てる。
+/// Exif が無ければ XMP の GPS を読む（サイドカーはこちらしか持てない、SPEC §13）。
 /// 画像の GPS が無ければ、動画の QuickTime 座標（ISO 6709）を読む（SPEC §3.3）。
 GeoPoint? normalizeLocation(TagValues tags) {
   final latitude =
@@ -231,14 +233,16 @@ GeoPoint? normalizeLocation(TagValues tags) {
         tags.number('EXIF:GPSLatitude'),
         tags.string('GPSLatitudeRef'),
         'S',
-      );
+      ) ??
+      parseCoordinate(tags.string('XMP:GPSLatitude') ?? '');
   final longitude =
       tags.number('Composite:GPSLongitude') ??
       _signed(
         tags.number('EXIF:GPSLongitude'),
         tags.string('GPSLongitudeRef'),
         'W',
-      );
+      ) ??
+      parseCoordinate(tags.string('XMP:GPSLongitude') ?? '');
   if (latitude == null || longitude == null) {
     return parseIso6709(tags.string('GPSCoordinates'));
   }
@@ -248,7 +252,8 @@ GeoPoint? normalizeLocation(TagValues tags) {
 
   var altitude = tags.number('Composite:GPSAltitude');
   if (altitude == null) {
-    final raw = tags.number('EXIF:GPSAltitude');
+    final raw =
+        tags.number('EXIF:GPSAltitude') ?? tags.number('XMP:GPSAltitude');
     if (raw != null) {
       final belowSeaLevel = tags.number('GPSAltitudeRef') == 1;
       altitude = belowSeaLevel ? -raw : raw;

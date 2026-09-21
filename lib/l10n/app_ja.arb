@@ -1137,5 +1137,10 @@
         "type": "int"
       }
     }
-  }
+  },
+  "writeDestinationOriginal": "元のファイル",
+  "writeDestinationSidecar": "サイドカー（.xmp）",
+  "writeDestinationHintOriginal": "元のファイルのメタ情報を書き換えます。",
+  "writeDestinationHintSidecar": "元のファイルには触れず、隣の .xmp に書きます。一覧の表示は変わりません。",
+  "writeDestinationXmpOnly": "サイドカーには XMP しか置けません"
 }

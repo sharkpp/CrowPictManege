@@ -2719,6 +2719,36 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'{shown} / {total} 件'**
   String itemCountFiltered(int shown, int total);
+
+  /// No description provided for @writeDestinationOriginal.
+  ///
+  /// In ja, this message translates to:
+  /// **'元のファイル'**
+  String get writeDestinationOriginal;
+
+  /// No description provided for @writeDestinationSidecar.
+  ///
+  /// In ja, this message translates to:
+  /// **'サイドカー（.xmp）'**
+  String get writeDestinationSidecar;
+
+  /// No description provided for @writeDestinationHintOriginal.
+  ///
+  /// In ja, this message translates to:
+  /// **'元のファイルのメタ情報を書き換えます。'**
+  String get writeDestinationHintOriginal;
+
+  /// No description provided for @writeDestinationHintSidecar.
+  ///
+  /// In ja, this message translates to:
+  /// **'元のファイルには触れず、隣の .xmp に書きます。一覧の表示は変わりません。'**
+  String get writeDestinationHintSidecar;
+
+  /// No description provided for @writeDestinationXmpOnly.
+  ///
+  /// In ja, this message translates to:
+  /// **'サイドカーには XMP しか置けません'**
+  String get writeDestinationXmpOnly;
 }
 
 class _AppLocalizationsDelegate

@@ -110,7 +110,7 @@ class _EditPanelState extends ConsumerState<EditPanel> {
               ),
               _Section(
                 title: l10n.editSectionTargets,
-                children: [_targetsRow()],
+                children: [_destinationRow(), _targetsRow()],
               ),
               const _QueueSection(),
               const _PreviewSection(),
@@ -664,10 +664,45 @@ class _EditPanelState extends ConsumerState<EditPanel> {
         );
   }
 
+  /// どこへ書くか（SPEC §13）。元のファイルか、隣のサイドカーか。
+  Widget _destinationRow() {
+    final l10n = context.l10n;
+    final destination = ref.watch(editQueueProvider).destination;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<WriteDestination>(
+          segments: [
+            for (final value in WriteDestination.values)
+              ButtonSegment(
+                value: value,
+                label: Text(l10n.writeDestinationLabel(value)),
+              ),
+          ],
+          selected: {destination},
+          showSelectedIcon: false,
+          onSelectionChanged: (value) =>
+              ref.read(editQueueProvider.notifier).setDestination(value.first),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          l10n.writeDestinationHint(destination),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
   /// 時刻の書き込み先（SPEC FR-E3-7）。
+  ///
+  /// サイドカーへ書くときは XMP しか置き場所が無い。理由を添えて選べなくする
+  /// （SPEC §8 の「できない機能は隠さず、理由を添えて無効表示する」）。
   Widget _targetsRow() {
     final l10n = context.l10n;
-    final targets = ref.watch(editQueueProvider).timeTargets;
+    final queue = ref.watch(editQueueProvider);
+    final sidecar = queue.destination == WriteDestination.sidecar;
+    final targets = sidecar ? const {TimeTarget.xmp} : queue.timeTargets;
     return Wrap(
       spacing: 8,
       children: [
@@ -675,15 +710,18 @@ class _EditPanelState extends ConsumerState<EditPanel> {
           FilterChip(
             label: Text(l10n.timeTargetLabel(target)),
             selected: targets.contains(target),
-            onSelected: (selected) {
-              final next = Set.of(targets);
-              if (selected) {
-                next.add(target);
-              } else {
-                next.remove(target);
-              }
-              ref.read(editQueueProvider.notifier).setTimeTargets(next);
-            },
+            tooltip: sidecar ? l10n.writeDestinationXmpOnly : null,
+            onSelected: sidecar
+                ? null
+                : (selected) {
+                    final next = Set.of(targets);
+                    if (selected) {
+                      next.add(target);
+                    } else {
+                      next.remove(target);
+                    }
+                    ref.read(editQueueProvider.notifier).setTimeTargets(next);
+                  },
           ),
       ],
     );

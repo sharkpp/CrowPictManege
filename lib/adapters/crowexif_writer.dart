@@ -5,6 +5,7 @@ import 'package:crowexif/crowexif.dart';
 import 'package:crowexif/crowexif_io.dart';
 import 'package:crypto/crypto.dart';
 
+import '../domain/edit.dart';
 import '../domain/edit_plan.dart';
 import '../domain/models.dart';
 import '../domain/supported_formats.dart';
@@ -57,59 +58,88 @@ WriteReceipt applyPlanSync(
   if (!file.existsSync()) {
     throw const MetadataWriteFailure(WriteFailure.notPermitted);
   }
+  final sidecar = plan.destination == WriteDestination.sidecar;
   // 形式ごと書けないのか、そのタグの置き場所が無いのかを分けるため、
-  // 形式は書き込みへ入る前に見る（SPEC §8）。
-  if (!canWriteMetadata(path)) {
+  // 形式は書き込みへ入る前に見る（SPEC §8）。サイドカーは元のファイルに
+  // 触らないので、書けない形式でも残せる（SPEC §13）。
+  if (!sidecar && !canWriteMetadata(path)) {
     throw const MetadataWriteFailure(WriteFailure.unsupportedFormat);
   }
 
-  final backupPath = backupDirectory == null
+  final target = sidecar ? sidecarPathFor(path) : path;
+  final existing = File(target);
+  final created = !existing.existsSync();
+  // 控えを取れるのは、既にあるものだけ。新しく作る分は消せば元へ戻る。
+  final backupPath = backupDirectory == null || created
       ? null
-      : _makeBackup(file, backupDirectory, backupGenerations);
+      : _makeBackup(existing, backupDirectory, backupGenerations);
 
   try {
     if (plan.writes.isNotEmpty) {
-      writeFile(path, [for (final write in plan.writes) _toTagEdit(write)]);
+      final edits = [for (final write in plan.writes) _toTagEdit(write)];
+      if (sidecar) {
+        writeSidecarFile(target, edits);
+      } else {
+        writeFile(target, edits);
+      }
     }
     final stamp = plan.fileModifiedAt;
-    if (stamp != null) File(path).setLastModifiedSync(stamp);
-    _verify(path, plan);
+    if (stamp != null) File(target).setLastModifiedSync(stamp);
+    _verify(target, plan);
   } on MetadataWriteFailure {
-    _restore(backupPath, path);
+    _restore(backupPath, target, created: created);
     rethrow;
   } on MetadataWriteError catch (error) {
-    _restore(backupPath, path);
+    _restore(backupPath, target, created: created);
     throw MetadataWriteFailure(
       WriteFailure.unsupportedTag,
       detail: error.message,
     );
   } on FileSystemException catch (error) {
-    _restore(backupPath, path);
+    _restore(backupPath, target, created: created);
     throw MetadataWriteFailure(
       WriteFailure.notPermitted,
       detail: error.osError?.message ?? error.message,
     );
   } catch (error) {
-    _restore(backupPath, path);
+    _restore(backupPath, target, created: created);
     throw MetadataWriteFailure(WriteFailure.unknown, detail: '$error');
   }
 
   return WriteReceipt(
     path: path,
+    writtenPath: target,
     appliedAt: DateTime.now(),
     backupPath: backupPath,
+    created: created,
   );
+}
+
+/// 対象に対するサイドカーの置き場所（SPEC §13）。
+///
+/// 拡張子を `.xmp` に差し替えた、隣に並ぶ名前にする。読み手が探す形である。
+String sidecarPathFor(String path) {
+  final dot = path.lastIndexOf('.');
+  final separator = path.lastIndexOf(RegExp(r'[/\\]'));
+  if (dot <= separator) return '$path.xmp';
+  return '${path.substring(0, dot)}.xmp';
 }
 
 /// [CrowexifWriter.undo] の同期版。Isolate の中から呼ぶ。
 void undoSync(WriteReceipt receipt) {
   final backupPath = receipt.backupPath;
-  if (backupPath == null) return;
+  if (backupPath == null) {
+    // 無かったサイドカーを作った場合は、消せば元の姿に戻る。
+    if (!receipt.created) return;
+    final written = File(receipt.writtenPath);
+    if (written.existsSync()) written.deleteSync();
+    return;
+  }
   final backup = File(backupPath);
   if (!backup.existsSync()) {
     throw const MetadataWriteFailure(WriteFailure.unknown);
   }
-  backup.copySync(receipt.path);
+  backup.copySync(receipt.writtenPath);
 }
 
 /// 中立の書き込み指示を crowexif の操作へ変える（SPEC §7.1）。
@@ -246,9 +276,16 @@ String _makeBackup(File file, String directory, int generations) {
   return backupPath;
 }
 
-/// 検証に落ちた書き込みを控えから戻す（SPEC §10）。
-void _restore(String? backupPath, String path) {
-  if (backupPath == null) return;
+/// 検証に落ちた書き込みを元の姿へ戻す（SPEC §10）。
+///
+/// 控えがあれば戻し、無かったものを作った場合は消す。
+void _restore(String? backupPath, String path, {bool created = false}) {
+  if (backupPath == null) {
+    if (!created) return;
+    final written = File(path);
+    if (written.existsSync()) written.deleteSync();
+    return;
+  }
   final backup = File(backupPath);
   if (backup.existsSync()) backup.copySync(path);
 }

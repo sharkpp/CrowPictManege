@@ -63,12 +63,16 @@ class EditTarget {
 class EditPlan {
   const EditPlan({
     required this.writes,
+    this.destination = WriteDestination.originalFile,
     this.capturedAt,
     this.location,
     this.capturedChanged = false,
     this.locationChanged = false,
     this.fileModifiedAt,
   });
+
+  /// どこへ書くか（SPEC §13）。サイドカーなら元のファイルには触らない。
+  final WriteDestination destination;
 
   /// 書き込み先のタグと値。順に適用する。
   final List<TagWrite> writes;
@@ -97,6 +101,7 @@ EditPlan planEdits(
   List<AssetEdit> edits,
   EditTarget target, {
   Set<TimeTarget> timeTargets = allTimeTargets,
+  WriteDestination destination = WriteDestination.originalFile,
 }) {
   var captured = target.capturedAt;
   var place = target.location;
@@ -189,30 +194,66 @@ EditPlan planEdits(
     }
   }
 
+  // サイドカーは XMP パケットしか持てない。置き場所はそこに限られる（SPEC §13）。
+  final sidecar = destination == WriteDestination.sidecar;
   // 動画はタグの置き場所が画像と違う。書き込み先はここで分ける（SPEC §3.3）。
-  final isMovie = kindForExtension(target.path) == AssetKind.video;
+  final isMovie = !sidecar && kindForExtension(target.path) == AssetKind.video;
+  final targets = sidecar ? const {TimeTarget.xmp} : timeTargets;
 
   final writes = <TagWrite>[
     if (capturedChanged && captured != null)
-      ..._timeWrites(captured, timeTargets, isMovie: isMovie),
-    if (locationChanged) ..._locationWrites(place, isMovie: isMovie),
+      ..._timeWrites(captured, targets, isMovie: isMovie),
+    if (locationChanged)
+      ...(sidecar
+          ? _sidecarLocationWrites(place)
+          : _locationWrites(place, isMovie: isMovie)),
     // 直接指定は最後に置き、導いた値より後から効くようにする。
     ...direct,
   ];
 
   return EditPlan(
     writes: writes,
+    destination: destination,
     capturedAt: captured,
     location: place,
     capturedChanged: capturedChanged,
     locationChanged: locationChanged,
+    // サイドカーへ書くときは元のファイルに触らない。更新日時も変えない。
     fileModifiedAt:
-        capturedChanged &&
+        !sidecar &&
+            capturedChanged &&
             captured != null &&
             timeTargets.contains(TimeTarget.fileSystem)
         ? (captured.utcInstant?.toLocal() ?? captured.wallClock)
         : null,
   );
+}
+
+/// 位置を XMP の GPS タグへ落とす（サイドカー、SPEC §13）。
+///
+/// サイドカーには Exif の置き場所が無い。同じ値を XMP の側へ書く。
+List<TagWrite> _sidecarLocationWrites(GeoPoint? point) {
+  if (point == null) {
+    return const [
+      TagWrite.clear('XMP-exif', 'GPSLatitude'),
+      TagWrite.clear('XMP-exif', 'GPSLongitude'),
+      TagWrite.clear('XMP-exif', 'GPSAltitude'),
+      TagWrite.clear('XMP-exif', 'GPSAltitudeRef'),
+    ];
+  }
+  final altitude = point.altitude;
+  return [
+    TagWrite('XMP-exif', 'GPSLatitude', coordinateText(point.latitude, true)),
+    TagWrite(
+      'XMP-exif',
+      'GPSLongitude',
+      coordinateText(point.longitude, false),
+    ),
+    if (altitude != null) ...[
+      TagWrite('XMP-exif', 'GPSAltitude', altitude.abs().toStringAsFixed(3)),
+      TagWrite('XMP-exif', 'GPSAltitudeRef', altitude < 0 ? '1' : '0'),
+    ],
+  ];
 }
 
 /// オフセットの分からない壁時計時刻を、この端末の時刻として UTC に直す。

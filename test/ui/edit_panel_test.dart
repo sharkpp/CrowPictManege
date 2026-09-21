@@ -48,7 +48,8 @@ void main() {
     List<MediaAsset> assets = const [],
     List<String> selected = const [],
   }) async {
-    tester.view.physicalSize = const Size(500, 1400);
+    // 書き込み先の切り替えが増えた分、縦を伸ばして全体を組み立てさせる。
+    tester.view.physicalSize = const Size(500, 1500);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
@@ -72,7 +73,7 @@ void main() {
         container: container,
         child: localizedApp(
           home: const Scaffold(
-            body: SizedBox(width: 460, height: 1360, child: EditPanel()),
+            body: SizedBox(width: 460, height: 1460, child: EditPanel()),
           ),
         ),
       ),
@@ -334,5 +335,31 @@ void main() {
 
     expect(find.text('書き込みの確認'), findsNothing);
     expect(container.read(editQueueProvider).isNotEmpty, isTrue);
+  });
+
+  testWidgets('サイドカーを選ぶと、時刻の書き込み先は XMP に決まる', (tester) async {
+    final container = await pumpPanel(
+      tester,
+      assets: [_asset],
+      selected: [_asset.path],
+    );
+
+    await tester.tap(find.text('サイドカー（.xmp）'));
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(editQueueProvider).destination,
+      WriteDestination.sidecar,
+    );
+    // 置き場所は XMP しか無いので、他は選べない（SPEC §8、§13）。
+    final exif = tester.widget<FilterChip>(
+      find.widgetWithText(FilterChip, 'Exif'),
+    );
+    expect(exif.onSelected, isNull);
+    expect(exif.selected, isFalse);
+    final xmp = tester.widget<FilterChip>(
+      find.widgetWithText(FilterChip, 'XMP'),
+    );
+    expect(xmp.selected, isTrue);
   });
 }

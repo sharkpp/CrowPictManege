@@ -1605,4 +1605,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String itemCountFiltered(int shown, int total) {
     return '$shown of $total items';
   }
+
+  @override
+  String get writeDestinationOriginal => 'Original file';
+
+  @override
+  String get writeDestinationSidecar => 'Sidecar (.xmp)';
+
+  @override
+  String get writeDestinationHintOriginal =>
+      'Rewrites the metadata in the original file.';
+
+  @override
+  String get writeDestinationHintSidecar =>
+      'Leaves the original file untouched and writes the .xmp next to it. The list keeps showing the file\'s own values.';
+
+  @override
+  String get writeDestinationXmpOnly => 'A sidecar can only hold XMP';
 }

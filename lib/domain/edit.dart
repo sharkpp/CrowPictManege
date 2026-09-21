@@ -26,6 +26,17 @@ const allTimeTargets = {
   TimeTarget.fileSystem,
 };
 
+/// どこへ書くか（SPEC §13、FR-E6）。
+enum WriteDestination {
+  /// 元のファイルのメタ情報を書き換える。
+  originalFile,
+
+  /// 元のファイルには触らず、隣の XMP サイドカー（`.xmp`）へ書く。
+  ///
+  /// 書ける形式でなくてもメタ情報を残せる代わりに、置ける場所は XMP に限られる。
+  sidecar,
+}
+
 /// タイムゾーンを変えるときの解釈（SPEC §4.3 SetTimeZone）。
 enum TimeZoneMode {
   /// 壁時計時刻を保ち、UTC 瞬間を変える。カメラのタイムゾーン設定漏れの補正。
