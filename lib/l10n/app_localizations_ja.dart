@@ -1148,4 +1148,152 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get editConfirmNoBackup => '原本の控えを取らない設定なので、取り消せない。';
+
+  @override
+  String get actionSave => '保存';
+
+  @override
+  String get filterFieldExtension => '拡張子';
+
+  @override
+  String get filterFieldMake => 'メーカー';
+
+  @override
+  String get filterFieldModel => '機種';
+
+  @override
+  String get filterFieldKeywords => 'キーワード';
+
+  @override
+  String get filterFieldWeekday => '撮影曜日';
+
+  @override
+  String get filterFieldWidth => '幅';
+
+  @override
+  String get filterFieldHeight => '高さ';
+
+  @override
+  String get filterFieldAspectRatio => 'アスペクト比';
+
+  @override
+  String get filterFieldRating => '評価';
+
+  @override
+  String get filterFieldYear => '撮影年';
+
+  @override
+  String get filterFieldMonth => '撮影月';
+
+  @override
+  String get filterFieldDay => '撮影日';
+
+  @override
+  String get filterFieldHour => '撮影時刻帯';
+
+  @override
+  String get filterFieldPendingEdit => '未適用の編集';
+
+  @override
+  String get filterFieldError => '読み取りの失敗';
+
+  @override
+  String get filterOpContains => '含む';
+
+  @override
+  String get filterOpNotContains => '含まない';
+
+  @override
+  String get filterOpRegex => '正規表現に当たる';
+
+  @override
+  String get filterOpAnyOf => 'いずれか';
+
+  @override
+  String get filterOpNoneOf => 'いずれでもない';
+
+  @override
+  String get filterOpInRange => '範囲内';
+
+  @override
+  String get filterOpOutOfRange => '範囲外';
+
+  @override
+  String get filterOpWithin => 'この距離以内';
+
+  @override
+  String get filterOpBeyond => 'この距離より遠い';
+
+  @override
+  String get filterOpInside => '地図範囲の内側';
+
+  @override
+  String get filterOpOutside => '地図範囲の外側';
+
+  @override
+  String get weekdayMon => '月';
+
+  @override
+  String get weekdayTue => '火';
+
+  @override
+  String get weekdayWed => '水';
+
+  @override
+  String get weekdayThu => '木';
+
+  @override
+  String get weekdayFri => '金';
+
+  @override
+  String get weekdaySat => '土';
+
+  @override
+  String get weekdaySun => '日';
+
+  @override
+  String get filterConditions => '条件で絞り込む';
+
+  @override
+  String get filterMatchAll => 'すべて満たす';
+
+  @override
+  String get filterMatchAny => 'いずれか満たす';
+
+  @override
+  String get filterNegate => '否定';
+
+  @override
+  String get filterAddCondition => '条件を足す';
+
+  @override
+  String get filterNoConditions => 'まだ条件がありません';
+
+  @override
+  String get filterQuickHint => '名前・キーワード・機材で絞る';
+
+  @override
+  String get filterEditConditions => '条件を編集';
+
+  @override
+  String get filterSavedTitle => '保存した絞り込み';
+
+  @override
+  String get filterSaveCurrent => 'いまの条件を保存';
+
+  @override
+  String get filterSaveName => '絞り込みの名前';
+
+  @override
+  String filterSummary(int count) {
+    return '$count 件の条件';
+  }
+
+  @override
+  String get filterDistanceMeters => '距離（m）';
+
+  @override
+  String filterQuickChip(String query) {
+    return '「$query」';
+  }
 }

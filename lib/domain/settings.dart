@@ -1,4 +1,5 @@
 import 'columns.dart';
+import 'filter_codec.dart';
 import 'pinned_fields.dart';
 import 'transfer.dart';
 
@@ -33,6 +34,7 @@ class AppSettings {
     this.backupDirectory,
     this.backupGenerations = 3,
     this.transferTargets = const [],
+    this.savedFilters = const [],
     this.tileUrl = defaultTileUrl,
     this.geocodingEnabled = false,
     this.geocodingEndpoint = defaultGeocodingEndpoint,
@@ -69,6 +71,9 @@ class AppSettings {
   /// よく使う転送先（SPEC FR-T3）。デスクトップだけで使う。
   final List<TransferTarget> transferTargets;
 
+  /// 名前を付けて残した絞り込み（SPEC FR-F4）。
+  final List<SavedFilter> savedFilters;
+
   /// 地図タイルの取得先（SPEC FR-M7）。
   final String tileUrl;
 
@@ -101,6 +106,7 @@ class AppSettings {
     bool clearBackupDirectory = false,
     int? backupGenerations,
     List<TransferTarget>? transferTargets,
+    List<SavedFilter>? savedFilters,
     String? tileUrl,
     bool? geocodingEnabled,
     String? geocodingEndpoint,
@@ -118,6 +124,7 @@ class AppSettings {
         : (backupDirectory ?? this.backupDirectory),
     backupGenerations: backupGenerations ?? this.backupGenerations,
     transferTargets: transferTargets ?? this.transferTargets,
+    savedFilters: savedFilters ?? this.savedFilters,
     tileUrl: tileUrl ?? this.tileUrl,
     geocodingEnabled: geocodingEnabled ?? this.geocodingEnabled,
     geocodingEndpoint: geocodingEndpoint ?? this.geocodingEndpoint,
@@ -135,6 +142,7 @@ class AppSettings {
     'backupDirectory': backupDirectory ?? '',
     'backupGenerations': '$backupGenerations',
     'transferTargets': encodeTransferTargets(transferTargets),
+    'savedFilters': encodeSavedFilters(savedFilters),
     'tileUrl': tileUrl,
     'geocodingEnabled': '$geocodingEnabled',
     'geocodingEndpoint': geocodingEndpoint,
@@ -171,6 +179,7 @@ class AppSettings {
                   defaults.backupGenerations)
               .clamp(1, maxBackupGenerations),
       transferTargets: decodeTransferTargets(map['transferTargets']),
+      savedFilters: decodeSavedFilters(map['savedFilters']),
       tileUrl: (map['tileUrl'] ?? '').isEmpty
           ? defaults.tileUrl
           : map['tileUrl']!,

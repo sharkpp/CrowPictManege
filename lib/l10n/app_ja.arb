@@ -924,5 +924,72 @@
     }
   },
   "editConfirmBackup": "原本の控えを取るので、直後なら取り消せる。",
-  "editConfirmNoBackup": "原本の控えを取らない設定なので、取り消せない。"
+  "editConfirmNoBackup": "原本の控えを取らない設定なので、取り消せない。",
+  "actionSave": "保存",
+  "filterFieldExtension": "拡張子",
+  "filterFieldMake": "メーカー",
+  "filterFieldModel": "機種",
+  "filterFieldKeywords": "キーワード",
+  "filterFieldWeekday": "撮影曜日",
+  "filterFieldWidth": "幅",
+  "filterFieldHeight": "高さ",
+  "filterFieldAspectRatio": "アスペクト比",
+  "filterFieldRating": "評価",
+  "filterFieldYear": "撮影年",
+  "filterFieldMonth": "撮影月",
+  "filterFieldDay": "撮影日",
+  "filterFieldHour": "撮影時刻帯",
+  "@filterFieldHour": {
+    "description": "撮影時刻の「時」で絞る（時刻帯）"
+  },
+  "filterFieldPendingEdit": "未適用の編集",
+  "filterFieldError": "読み取りの失敗",
+  "filterOpContains": "含む",
+  "filterOpNotContains": "含まない",
+  "filterOpRegex": "正規表現に当たる",
+  "filterOpAnyOf": "いずれか",
+  "filterOpNoneOf": "いずれでもない",
+  "filterOpInRange": "範囲内",
+  "filterOpOutOfRange": "範囲外",
+  "filterOpWithin": "この距離以内",
+  "filterOpBeyond": "この距離より遠い",
+  "filterOpInside": "地図範囲の内側",
+  "filterOpOutside": "地図範囲の外側",
+  "weekdayMon": "月",
+  "weekdayTue": "火",
+  "weekdayWed": "水",
+  "weekdayThu": "木",
+  "weekdayFri": "金",
+  "weekdaySat": "土",
+  "weekdaySun": "日",
+  "filterConditions": "条件で絞り込む",
+  "filterMatchAll": "すべて満たす",
+  "filterMatchAny": "いずれか満たす",
+  "filterNegate": "否定",
+  "filterAddCondition": "条件を足す",
+  "filterNoConditions": "まだ条件がありません",
+  "filterQuickHint": "名前・キーワード・機材で絞る",
+  "filterEditConditions": "条件を編集",
+  "filterSavedTitle": "保存した絞り込み",
+  "filterSaveCurrent": "いまの条件を保存",
+  "filterSaveName": "絞り込みの名前",
+  "filterSummary": "{count} 件の条件",
+  "@filterSummary": {
+    "description": "条件式を 1 行で表す（適用中の絞り込みの表示）",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filterDistanceMeters": "距離（m）",
+  "filterQuickChip": "「{query}」",
+  "@filterQuickChip": {
+    "description": "自由入力による簡易絞り込みを 1 行で表す",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  }
 }

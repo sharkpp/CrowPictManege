@@ -2089,6 +2089,294 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'原本の控えを取らない設定なので、取り消せない。'**
   String get editConfirmNoBackup;
+
+  /// No description provided for @actionSave.
+  ///
+  /// In ja, this message translates to:
+  /// **'保存'**
+  String get actionSave;
+
+  /// No description provided for @filterFieldExtension.
+  ///
+  /// In ja, this message translates to:
+  /// **'拡張子'**
+  String get filterFieldExtension;
+
+  /// No description provided for @filterFieldMake.
+  ///
+  /// In ja, this message translates to:
+  /// **'メーカー'**
+  String get filterFieldMake;
+
+  /// No description provided for @filterFieldModel.
+  ///
+  /// In ja, this message translates to:
+  /// **'機種'**
+  String get filterFieldModel;
+
+  /// No description provided for @filterFieldKeywords.
+  ///
+  /// In ja, this message translates to:
+  /// **'キーワード'**
+  String get filterFieldKeywords;
+
+  /// No description provided for @filterFieldWeekday.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影曜日'**
+  String get filterFieldWeekday;
+
+  /// No description provided for @filterFieldWidth.
+  ///
+  /// In ja, this message translates to:
+  /// **'幅'**
+  String get filterFieldWidth;
+
+  /// No description provided for @filterFieldHeight.
+  ///
+  /// In ja, this message translates to:
+  /// **'高さ'**
+  String get filterFieldHeight;
+
+  /// No description provided for @filterFieldAspectRatio.
+  ///
+  /// In ja, this message translates to:
+  /// **'アスペクト比'**
+  String get filterFieldAspectRatio;
+
+  /// No description provided for @filterFieldRating.
+  ///
+  /// In ja, this message translates to:
+  /// **'評価'**
+  String get filterFieldRating;
+
+  /// No description provided for @filterFieldYear.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影年'**
+  String get filterFieldYear;
+
+  /// No description provided for @filterFieldMonth.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影月'**
+  String get filterFieldMonth;
+
+  /// No description provided for @filterFieldDay.
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影日'**
+  String get filterFieldDay;
+
+  /// 撮影時刻の「時」で絞る（時刻帯）
+  ///
+  /// In ja, this message translates to:
+  /// **'撮影時刻帯'**
+  String get filterFieldHour;
+
+  /// No description provided for @filterFieldPendingEdit.
+  ///
+  /// In ja, this message translates to:
+  /// **'未適用の編集'**
+  String get filterFieldPendingEdit;
+
+  /// No description provided for @filterFieldError.
+  ///
+  /// In ja, this message translates to:
+  /// **'読み取りの失敗'**
+  String get filterFieldError;
+
+  /// No description provided for @filterOpContains.
+  ///
+  /// In ja, this message translates to:
+  /// **'含む'**
+  String get filterOpContains;
+
+  /// No description provided for @filterOpNotContains.
+  ///
+  /// In ja, this message translates to:
+  /// **'含まない'**
+  String get filterOpNotContains;
+
+  /// No description provided for @filterOpRegex.
+  ///
+  /// In ja, this message translates to:
+  /// **'正規表現に当たる'**
+  String get filterOpRegex;
+
+  /// No description provided for @filterOpAnyOf.
+  ///
+  /// In ja, this message translates to:
+  /// **'いずれか'**
+  String get filterOpAnyOf;
+
+  /// No description provided for @filterOpNoneOf.
+  ///
+  /// In ja, this message translates to:
+  /// **'いずれでもない'**
+  String get filterOpNoneOf;
+
+  /// No description provided for @filterOpInRange.
+  ///
+  /// In ja, this message translates to:
+  /// **'範囲内'**
+  String get filterOpInRange;
+
+  /// No description provided for @filterOpOutOfRange.
+  ///
+  /// In ja, this message translates to:
+  /// **'範囲外'**
+  String get filterOpOutOfRange;
+
+  /// No description provided for @filterOpWithin.
+  ///
+  /// In ja, this message translates to:
+  /// **'この距離以内'**
+  String get filterOpWithin;
+
+  /// No description provided for @filterOpBeyond.
+  ///
+  /// In ja, this message translates to:
+  /// **'この距離より遠い'**
+  String get filterOpBeyond;
+
+  /// No description provided for @filterOpInside.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図範囲の内側'**
+  String get filterOpInside;
+
+  /// No description provided for @filterOpOutside.
+  ///
+  /// In ja, this message translates to:
+  /// **'地図範囲の外側'**
+  String get filterOpOutside;
+
+  /// No description provided for @weekdayMon.
+  ///
+  /// In ja, this message translates to:
+  /// **'月'**
+  String get weekdayMon;
+
+  /// No description provided for @weekdayTue.
+  ///
+  /// In ja, this message translates to:
+  /// **'火'**
+  String get weekdayTue;
+
+  /// No description provided for @weekdayWed.
+  ///
+  /// In ja, this message translates to:
+  /// **'水'**
+  String get weekdayWed;
+
+  /// No description provided for @weekdayThu.
+  ///
+  /// In ja, this message translates to:
+  /// **'木'**
+  String get weekdayThu;
+
+  /// No description provided for @weekdayFri.
+  ///
+  /// In ja, this message translates to:
+  /// **'金'**
+  String get weekdayFri;
+
+  /// No description provided for @weekdaySat.
+  ///
+  /// In ja, this message translates to:
+  /// **'土'**
+  String get weekdaySat;
+
+  /// No description provided for @weekdaySun.
+  ///
+  /// In ja, this message translates to:
+  /// **'日'**
+  String get weekdaySun;
+
+  /// No description provided for @filterConditions.
+  ///
+  /// In ja, this message translates to:
+  /// **'条件で絞り込む'**
+  String get filterConditions;
+
+  /// No description provided for @filterMatchAll.
+  ///
+  /// In ja, this message translates to:
+  /// **'すべて満たす'**
+  String get filterMatchAll;
+
+  /// No description provided for @filterMatchAny.
+  ///
+  /// In ja, this message translates to:
+  /// **'いずれか満たす'**
+  String get filterMatchAny;
+
+  /// No description provided for @filterNegate.
+  ///
+  /// In ja, this message translates to:
+  /// **'否定'**
+  String get filterNegate;
+
+  /// No description provided for @filterAddCondition.
+  ///
+  /// In ja, this message translates to:
+  /// **'条件を足す'**
+  String get filterAddCondition;
+
+  /// No description provided for @filterNoConditions.
+  ///
+  /// In ja, this message translates to:
+  /// **'まだ条件がありません'**
+  String get filterNoConditions;
+
+  /// No description provided for @filterQuickHint.
+  ///
+  /// In ja, this message translates to:
+  /// **'名前・キーワード・機材で絞る'**
+  String get filterQuickHint;
+
+  /// No description provided for @filterEditConditions.
+  ///
+  /// In ja, this message translates to:
+  /// **'条件を編集'**
+  String get filterEditConditions;
+
+  /// No description provided for @filterSavedTitle.
+  ///
+  /// In ja, this message translates to:
+  /// **'保存した絞り込み'**
+  String get filterSavedTitle;
+
+  /// No description provided for @filterSaveCurrent.
+  ///
+  /// In ja, this message translates to:
+  /// **'いまの条件を保存'**
+  String get filterSaveCurrent;
+
+  /// No description provided for @filterSaveName.
+  ///
+  /// In ja, this message translates to:
+  /// **'絞り込みの名前'**
+  String get filterSaveName;
+
+  /// 条件式を 1 行で表す（適用中の絞り込みの表示）
+  ///
+  /// In ja, this message translates to:
+  /// **'{count} 件の条件'**
+  String filterSummary(int count);
+
+  /// No description provided for @filterDistanceMeters.
+  ///
+  /// In ja, this message translates to:
+  /// **'距離（m）'**
+  String get filterDistanceMeters;
+
+  /// 自由入力による簡易絞り込みを 1 行で表す
+  ///
+  /// In ja, this message translates to:
+  /// **'「{query}」'**
+  String filterQuickChip(String query);
 }
 
 class _AppLocalizationsDelegate

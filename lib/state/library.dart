@@ -8,6 +8,7 @@ import '../adapters/file_system_source.dart';
 import '../domain/cached_asset.dart';
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
+import '../domain/filter.dart';
 import '../domain/asset_error.dart';
 import '../domain/folder_view.dart';
 import '../domain/merge.dart';
@@ -18,6 +19,7 @@ import '../services/parallel.dart';
 import '../services/summary_loader.dart';
 import '../services/thumbnail_cache.dart';
 import '../services/video_frame.dart';
+import 'filters.dart';
 import 'map_view.dart';
 import 'places.dart';
 import 'selection.dart';
@@ -390,28 +392,42 @@ class ColumnFiltersNotifier extends Notifier<Map<AssetColumn, ColumnFilter>> {
   void clearAll() => state = const {};
 }
 
-/// 列フィルタと地図の表示範囲を通した一覧（SPEC FR-B19、FR-M3）。
+/// 絞り込みを通した一覧（SPEC FR-F1、FR-B19、FR-M3）。
 ///
-/// 表示範囲での絞り込みが入っている間は、位置を持たない対象も外れる。
-/// 範囲の中に無いものは見えていないからである。
+/// 列フィルタ・条件式・自由入力・地図の表示範囲は、どれも同じ評価器へ
+/// 落として 1 度で通す。表示範囲での絞り込みが入っている間は、位置を
+/// 持たない対象も外れる。範囲の中に無いからである。
 final filteredAssetsProvider = Provider<List<MediaAsset>>((ref) {
-  final filters = ref.watch(columnFiltersProvider);
   final map = ref.watch(mapViewProvider);
-  final assets = ref.watch(sortedAssetsProvider);
   final bounds = map.isRestricting ? map.bounds : null;
-  if (filters.isEmpty && bounds == null) return assets;
+  final quick = ref.watch(quickFilterProvider);
+  final filter = FilterAll([
+    columnFilterNode(ref.watch(columnFiltersProvider)),
+    ?ref.watch(activeFilterProvider),
+    if (quick.trim().isNotEmpty) quickFilterNode(quick),
+    if (bounds != null)
+      FilterCondition(
+        FilterField.location,
+        FilterOperator.inside,
+        BoundsArea(bounds),
+      ),
+  ]);
+
+  final assets = ref.watch(sortedAssetsProvider);
+  if (!filter.isActive) return assets;
+  // 未適用の編集を見る条件があるときだけ、その一覧を引く。選択を変えるたびに
+  // 絞り直していては 10 万件の一覧が付いてこられない。
+  final pending = filterUsesField(filter, FilterField.pendingEdit)
+      ? ref.watch(pendingEditPathsProvider)
+      : const <String>{};
   return [
     for (final asset in assets)
-      if (matchesColumnFilters(filters, asset) &&
-          (bounds == null || _inBounds(bounds, asset)))
+      if (filter.matches(
+        FilterInput(asset, pendingEdit: pending.contains(asset.path)),
+      ))
         asset,
   ];
 });
-
-bool _inBounds(GeoBounds bounds, MediaAsset asset) {
-  final location = asset.summary?.location;
-  return location != null && bounds.contains(location);
-}
 
 /// いま画面に出す中身（SPEC FR-B11）。
 ///

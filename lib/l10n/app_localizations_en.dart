@@ -1256,4 +1256,158 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editConfirmNoBackup =>
       'No copy of the originals is kept, so this cannot be undone.';
+
+  @override
+  String get actionSave => 'Save';
+
+  @override
+  String get filterFieldExtension => 'Extension';
+
+  @override
+  String get filterFieldMake => 'Make';
+
+  @override
+  String get filterFieldModel => 'Model';
+
+  @override
+  String get filterFieldKeywords => 'Keywords';
+
+  @override
+  String get filterFieldWeekday => 'Weekday';
+
+  @override
+  String get filterFieldWidth => 'Width';
+
+  @override
+  String get filterFieldHeight => 'Height';
+
+  @override
+  String get filterFieldAspectRatio => 'Aspect ratio';
+
+  @override
+  String get filterFieldRating => 'Rating';
+
+  @override
+  String get filterFieldYear => 'Year';
+
+  @override
+  String get filterFieldMonth => 'Month';
+
+  @override
+  String get filterFieldDay => 'Day';
+
+  @override
+  String get filterFieldHour => 'Hour';
+
+  @override
+  String get filterFieldPendingEdit => 'Pending edits';
+
+  @override
+  String get filterFieldError => 'Read error';
+
+  @override
+  String get filterOpContains => 'contains';
+
+  @override
+  String get filterOpNotContains => 'does not contain';
+
+  @override
+  String get filterOpRegex => 'matches regex';
+
+  @override
+  String get filterOpAnyOf => 'is any of';
+
+  @override
+  String get filterOpNoneOf => 'is none of';
+
+  @override
+  String get filterOpInRange => 'in range';
+
+  @override
+  String get filterOpOutOfRange => 'out of range';
+
+  @override
+  String get filterOpWithin => 'within distance';
+
+  @override
+  String get filterOpBeyond => 'beyond distance';
+
+  @override
+  String get filterOpInside => 'inside map area';
+
+  @override
+  String get filterOpOutside => 'outside map area';
+
+  @override
+  String get weekdayMon => 'Mon';
+
+  @override
+  String get weekdayTue => 'Tue';
+
+  @override
+  String get weekdayWed => 'Wed';
+
+  @override
+  String get weekdayThu => 'Thu';
+
+  @override
+  String get weekdayFri => 'Fri';
+
+  @override
+  String get weekdaySat => 'Sat';
+
+  @override
+  String get weekdaySun => 'Sun';
+
+  @override
+  String get filterConditions => 'Filter by conditions';
+
+  @override
+  String get filterMatchAll => 'Match all';
+
+  @override
+  String get filterMatchAny => 'Match any';
+
+  @override
+  String get filterNegate => 'Not';
+
+  @override
+  String get filterAddCondition => 'Add condition';
+
+  @override
+  String get filterNoConditions => 'No conditions yet';
+
+  @override
+  String get filterQuickHint => 'Filter by name, keyword or camera';
+
+  @override
+  String get filterEditConditions => 'Edit conditions';
+
+  @override
+  String get filterSavedTitle => 'Saved filters';
+
+  @override
+  String get filterSaveCurrent => 'Save current filter';
+
+  @override
+  String get filterSaveName => 'Filter name';
+
+  @override
+  String filterSummary(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conditions',
+      one: '1 condition',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get filterDistanceMeters => 'Distance (m)';
+
+  @override
+  String filterQuickChip(String query) {
+    return '“$query”';
+  }
 }

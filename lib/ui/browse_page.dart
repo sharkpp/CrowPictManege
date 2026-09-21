@@ -242,8 +242,9 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
             const Divider(height: 1),
             const SearchRow(),
             const Divider(height: 1),
+            const FilterBar(),
+            const Divider(height: 1),
           ],
-          const FilterBar(),
           Expanded(
             child: Stack(
               children: [

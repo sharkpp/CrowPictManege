@@ -5,7 +5,7 @@ import '../domain/column_filter.dart';
 import '../domain/columns.dart';
 import '../l10n/l10n.dart';
 import '../state/library.dart';
-import 'format.dart';
+import 'date_row.dart';
 import 'labels.dart';
 
 /// 1 つの列のフィルタを編集する（SPEC FR-B19）。
@@ -168,14 +168,14 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _DateRow(
+            DateRow(
               label: context.l10n.filterFromDate,
               value: from,
               onChanged: (value) => setState(
                 () => _filter = DateRangeFilter(from: value, to: to),
               ),
             ),
-            _DateRow(
+            DateRow(
               label: context.l10n.filterToDate,
               value: to,
               // 指定日を含めるため、その日の終わりまでを範囲にする。
@@ -242,49 +242,5 @@ class _ColumnFilterDialogState extends ConsumerState<_ColumnFilterDialog> {
           ),
         );
     }
-  }
-}
-
-class _DateRow extends StatelessWidget {
-  const _DateRow({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String label;
-  final DateTime? value;
-  final ValueChanged<DateTime?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(width: 96, child: Text(label)),
-        Expanded(
-          child: Text(
-            value == null
-                ? context.l10n.filterNotSet
-                : context.l10n.formatDate(value!),
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.event, size: 20),
-          onPressed: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: value ?? DateTime.now(),
-              firstDate: DateTime(1900),
-              lastDate: DateTime(2100),
-            );
-            if (picked != null) onChanged(picked);
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.clear, size: 20),
-          onPressed: value == null ? null : () => onChanged(null),
-        ),
-      ],
-    );
   }
 }

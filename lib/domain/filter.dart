@@ -462,3 +462,14 @@ bool fieldPresent(FilterField field, FilterInput input) => switch (field) {
 /// 条件を 1 件へ当てる。条件が無い（または効かない）なら残す。
 bool matchesFilter(FilterNode? filter, FilterInput input) =>
     filter == null || !filter.isActive || filter.matches(input);
+
+/// 条件式が [field] を見ているか。
+///
+/// 見ていないなら、そのフィールドの値を用意する手間を省ける。
+bool filterUsesField(FilterNode node, FilterField field) => switch (node) {
+  FilterAll(:final children) || FilterAny(:final children) => children.any(
+    (child) => filterUsesField(child, field),
+  ),
+  FilterNot(:final child) => filterUsesField(child, field),
+  FilterCondition(field: final used) => used == field,
+};
