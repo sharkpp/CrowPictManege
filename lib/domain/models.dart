@@ -153,6 +153,8 @@ class AssetSummary {
     this.duration,
     this.rotation,
     this.orientation,
+    this.rating,
+    this.keywords = const [],
     this.embeddedThumbnail,
     this.warnings = const [],
   });
@@ -170,6 +172,12 @@ class AssetSummary {
 
   /// Exif の Orientation（1〜8）。埋め込みサムネイルを出す向きに使う。
   final int? orientation;
+
+  /// 評価（XMP:Rating、0〜5）。絞り込みとまとめ方で使う（SPEC FR-F2、FR-G2）。
+  final int? rating;
+
+  /// キーワード（IPTC:Keywords / XMP:Subject）。
+  final List<String> keywords;
 
   /// Exif サムネイルや RAW プレビューなど、ファイルに入っていた表示用画像。
   final Uint8List? embeddedThumbnail;

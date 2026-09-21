@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'models.dart';
 
 /// 保存した要約の形。増やしたら上げる。古い形のキャッシュは読み直させる。
-const summaryCodecVersion = 2;
+const summaryCodecVersion = 3;
 
 /// メタ情報の要約を JSON へ／から変換する（キャッシュのため、SPEC FR-B17）。
 ///
@@ -23,6 +23,8 @@ String encodeSummary(AssetSummary summary) => jsonEncode({
   'durationMs': summary.duration?.inMilliseconds,
   'rotation': summary.rotation,
   'orientation': summary.orientation,
+  'rating': summary.rating,
+  'keywords': summary.keywords,
   'warnings': summary.warnings,
 });
 
@@ -59,6 +61,11 @@ AssetSummary? decodeSummary(String encoded) {
     duration: duration is num ? Duration(milliseconds: duration.toInt()) : null,
     rotation: (parsed['rotation'] as num?)?.toInt(),
     orientation: (parsed['orientation'] as num?)?.toInt(),
+    rating: (parsed['rating'] as num?)?.toInt(),
+    keywords: [
+      for (final keyword in (parsed['keywords'] as List? ?? const []))
+        '$keyword',
+    ],
     warnings: [
       for (final warning in (parsed['warnings'] as List? ?? const []))
         '$warning',

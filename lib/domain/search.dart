@@ -1,5 +1,5 @@
-import 'column_values.dart';
 import 'columns.dart';
+import 'filter.dart';
 import 'models.dart';
 
 /// 検索の対象（SPEC FR-Q1、FR-Q2）。
@@ -100,8 +100,9 @@ bool matchesSummary(MediaAsset asset, TagQuery query) {
     AssetColumn.folder,
     AssetColumn.kind,
   ];
+  final input = FilterInput(asset);
   for (final column in columns) {
-    if (columnText(column, asset).toLowerCase().contains(query.value)) {
+    if (fieldText(column.field, input).toLowerCase().contains(query.value)) {
       return true;
     }
   }

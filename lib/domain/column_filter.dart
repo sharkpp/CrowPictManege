@@ -1,18 +1,22 @@
-import 'column_values.dart';
 import 'columns.dart';
+import 'filter.dart';
 import 'models.dart';
 
 /// 列ごとのフィルタ（SPEC FR-B19）。
 ///
-/// 型に応じて絞り方が変わる。評価は対象 1 件に対する述語で、
-/// §5.6 の条件式フィルタもこの述語を組み合わせて作る。
+/// 列の型に応じた入力の形を持ち、評価は §5.6 の条件式（[FilterNode]）へ
+/// 落とす。一覧の絞り込みと仕分けの対象条件を同じ評価器で動かすためである。
 sealed class ColumnFilter {
   const ColumnFilter();
 
-  /// 絞り込みとして意味を持つか。空なら適用しない。
+  /// 値が入っているか。適用中として見せるかの判断に使う。
   bool get isActive;
 
-  bool matches(AssetColumn column, MediaAsset asset);
+  /// この列に対する条件式。
+  FilterNode nodeFor(AssetColumn column);
+
+  bool matches(AssetColumn column, MediaAsset asset) =>
+      nodeFor(column).matches(FilterInput(asset));
 }
 
 /// 部分一致（大小を区別しない）。正規表現も受ける。
@@ -26,26 +30,14 @@ class TextFilter extends ColumnFilter {
   bool get isActive => query.trim().isNotEmpty;
 
   @override
-  bool matches(AssetColumn column, MediaAsset asset) {
-    final value = columnText(column, asset);
-    if (!regex) {
-      return value.toLowerCase().contains(query.trim().toLowerCase());
-    }
-    // 書きかけの正規表現で一覧が消えないよう、壊れた式は絞り込まない扱いにする。
-    final pattern = RegExp(query, caseSensitive: false);
-    return pattern.hasMatch(value);
-  }
+  FilterNode nodeFor(AssetColumn column) => FilterCondition(
+    column.field,
+    regex ? FilterOperator.matchesRegex : FilterOperator.contains,
+    TextTerm(query),
+  );
 
   /// 正規表現として使えるか。使えない間は絞り込みを止める。
-  bool get isUsable {
-    if (!regex) return true;
-    try {
-      RegExp(query);
-      return true;
-    } on FormatException {
-      return false;
-    }
-  }
+  bool get isUsable => !regex || nodeFor(AssetColumn.name).isActive;
 }
 
 /// 数値の範囲。上限・下限は片側だけでもよい。
@@ -59,13 +51,11 @@ class RangeFilter extends ColumnFilter {
   bool get isActive => min != null || max != null;
 
   @override
-  bool matches(AssetColumn column, MediaAsset asset) {
-    final value = columnNumber(column, asset);
-    if (value == null) return false;
-    if (min != null && value < min!) return false;
-    if (max != null && value > max!) return false;
-    return true;
-  }
+  FilterNode nodeFor(AssetColumn column) => FilterCondition(
+    column.field,
+    FilterOperator.inRange,
+    NumberRange(min: min, max: max),
+  );
 }
 
 /// 日時の範囲。[to] はその日の終わりまでを含める側で調整して渡す。
@@ -79,13 +69,11 @@ class DateRangeFilter extends ColumnFilter {
   bool get isActive => from != null || to != null;
 
   @override
-  bool matches(AssetColumn column, MediaAsset asset) {
-    final value = columnDate(column, asset);
-    if (value == null) return false;
-    if (from != null && value.isBefore(from!)) return false;
-    if (to != null && value.isAfter(to!)) return false;
-    return true;
-  }
+  FilterNode nodeFor(AssetColumn column) => FilterCondition(
+    column.field,
+    FilterOperator.inRange,
+    DateRange(from: from, to: to),
+  );
 }
 
 /// 決まった値から選ぶ。
@@ -98,8 +86,8 @@ class ChoiceFilter extends ColumnFilter {
   bool get isActive => allowed.isNotEmpty;
 
   @override
-  bool matches(AssetColumn column, MediaAsset asset) =>
-      allowed.contains(columnText(column, asset));
+  FilterNode nodeFor(AssetColumn column) =>
+      FilterCondition(column.field, FilterOperator.isAnyOf, ChoiceSet(allowed));
 }
 
 /// 有無で絞る。
@@ -113,23 +101,30 @@ class FlagFilter extends ColumnFilter {
   bool get isActive => present != null;
 
   @override
-  bool matches(AssetColumn column, MediaAsset asset) =>
-      columnFlag(column, asset) == present;
+  FilterNode nodeFor(AssetColumn column) => FilterCondition(
+    column.field,
+    present == false ? FilterOperator.isAbsent : FilterOperator.isPresent,
+  );
 }
 
 /// 列ごとのフィルタをすべて満たすか（AND）。
 bool matchesColumnFilters(
   Map<AssetColumn, ColumnFilter> filters,
-  MediaAsset asset,
-) {
-  for (final entry in filters.entries) {
-    final filter = entry.value;
-    if (!filter.isActive) continue;
-    if (filter is TextFilter && !filter.isUsable) continue;
-    if (!filter.matches(entry.key, asset)) return false;
-  }
-  return true;
-}
+  MediaAsset asset, {
+  bool pendingEdit = false,
+}) => columnFilterNode(
+  filters,
+).matches(FilterInput(asset, pendingEdit: pendingEdit));
+
+/// 列ごとのフィルタを 1 つの条件式にまとめる。
+///
+/// 値の入っていない列は条件にしない。有無のフィルタは「未指定」と
+/// 「値が有るもの」を値の側で分けるので、ここで落としておく必要がある。
+FilterNode columnFilterNode(Map<AssetColumn, ColumnFilter> filters) =>
+    FilterAll([
+      for (final entry in filters.entries)
+        if (entry.value.isActive) entry.value.nodeFor(entry.key),
+    ]);
 
 /// 型に合った空のフィルタ。
 ColumnFilter emptyFilterFor(ColumnValueType kind) => switch (kind) {

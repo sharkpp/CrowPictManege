@@ -1,5 +1,5 @@
-import '../domain/column_values.dart';
 import '../domain/columns.dart';
+import '../domain/filter.dart';
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
 import 'format.dart';
@@ -22,9 +22,13 @@ extension AppColumnDisplay on AppLocalizations {
         AssetColumn.location =>
           asset.summary?.location == null ? '—' : valuePresent,
         // 素の値は識別子。画面には言葉で出す（SPEC NFR-7）。
-        AssetColumn.kind => assetKindNameLabel(columnText(column, asset)),
-        _ => _orDash(columnText(column, asset)),
+        AssetColumn.kind => assetKindNameLabel(_text(column, asset)),
+        _ => _orDash(_text(column, asset)),
       };
 }
+
+/// 列の素の値。絞り込みが見るものと同じ値を出す（SPEC FR-F2）。
+String _text(AssetColumn column, MediaAsset asset) =>
+    fieldText(column.field, FilterInput(asset));
 
 String _orDash(String value) => value.isEmpty ? '—' : value;

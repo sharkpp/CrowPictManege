@@ -1,3 +1,5 @@
+import 'filter.dart';
+
 /// 列の値の型。フィルタの入力方法を決める（SPEC FR-B19）。
 enum ColumnValueType {
   /// 部分一致で絞る。
@@ -51,11 +53,28 @@ enum AssetColumn {
     _ => true,
   };
 
+  /// この列が見る絞り込みのフィールド（SPEC FR-F2）。
+  ///
+  /// 列の値の取り出しと、列フィルタの評価はどちらもこれを通す。
+  FilterField get field => switch (this) {
+    AssetColumn.capturedAt => FilterField.capturedAt,
+    AssetColumn.name => FilterField.name,
+    AssetColumn.kind => FilterField.kind,
+    AssetColumn.dimensions => FilterField.dimensions,
+    AssetColumn.duration => FilterField.duration,
+    AssetColumn.location => FilterField.location,
+    AssetColumn.camera => FilterField.camera,
+    AssetColumn.lens => FilterField.lens,
+    AssetColumn.fileType => FilterField.fileType,
+    AssetColumn.size => FilterField.size,
+    AssetColumn.fileModifiedAt => FilterField.fileModifiedAt,
+    AssetColumn.folder => FilterField.folder,
+  };
+
   /// 選択肢（[ColumnValueType.choice] の列だけ）。
   ///
   /// 値は識別子。画面に出す言葉は表示側が決める（SPEC NFR-7）。
-  List<String> get choices =>
-      this == AssetColumn.kind ? const ['image', 'video'] : const [];
+  List<String> get choices => field.choices;
 }
 
 /// 1 つの列の見え方（SPEC FR-B18）。

@@ -33,7 +33,14 @@ class CrowexifMetadata implements MetadataPort {
 
 /// 一覧表示に要るタグだけを読むための絞り込み。
 /// 全タグ解析（MakerNotes を含む）を避けることで走査を速くする。
-const _summaryGroups = {'EXIF', 'XMP', 'QuickTime', 'File', 'Composite'};
+const _summaryGroups = {
+  'EXIF',
+  'XMP',
+  'IPTC',
+  'QuickTime',
+  'File',
+  'Composite',
+};
 
 /// 表示に使える埋め込み画像の名前。小さいものから順に試す。
 const _thumbnailNames = ['ThumbnailImage', 'PreviewImage', 'JpgFromRaw'];
@@ -69,6 +76,8 @@ AssetSummary readSummarySync(String path, {Duration? defaultOffset}) {
     height: tags.integer('ImageHeight') ?? tags.integer('ExifImageHeight'),
     duration: _duration(tags),
     rotation: tags.integer('Rotation'),
+    rating: _rating(tags),
+    keywords: _keywords(metadata),
     orientation:
         tags.integer('IFD0:Orientation') ?? tags.integer('Orientation'),
     embeddedThumbnail: _embeddedThumbnail(metadata),
@@ -149,6 +158,34 @@ Duration? _duration(TagValues tags) {
       tags.number('Duration');
   if (seconds == null || seconds <= 0) return null;
   return Duration(milliseconds: (seconds * 1000).round());
+}
+
+/// 評価（SPEC FR-F2）。XMP を先に見る。Exif の Rating を持つ機種もある。
+int? _rating(TagValues tags) {
+  final value = tags.integer('XMP:Rating') ?? tags.integer('Rating');
+  if (value == null) return null;
+  return value.clamp(0, 5);
+}
+
+/// キーワードを読む名前。IPTC と XMP で同じものを別の名前で持つ。
+const _keywordNames = {'Keywords', 'Subject'};
+
+/// キーワード（SPEC FR-F2、FR-G2）。
+///
+/// 1 つのタグが複数の値を持つので、[TagValues] は通さない（あちらは
+/// 先頭の 1 つへ畳む）。同じ語が IPTC と XMP の両方にあることは多いので、
+/// 重複は落として並び順だけを保つ。
+List<String> _keywords(Metadata metadata) {
+  final keywords = <String>{};
+  for (final entry in metadata.uniqueEntries) {
+    if (!_keywordNames.contains(entry.name) || entry.isBinary) continue;
+    final value = entry.value ?? entry.printValue;
+    for (final item in value is List ? value : [value]) {
+      final text = formatValueForText(item).trim();
+      if (text.isNotEmpty) keywords.add(text);
+    }
+  }
+  return keywords.toList();
 }
 
 /// ファイルに入っていた表示用画像を取り出す（SPEC FR-B5）。
