@@ -10,6 +10,7 @@ import '../l10n/l10n.dart';
 import '../state/library.dart';
 import '../state/selection.dart';
 import '../state/settings.dart';
+import 'asset_drag.dart';
 import 'asset_preview.dart';
 import 'column_display.dart';
 import 'column_filter_dialog.dart';
@@ -63,20 +64,23 @@ class AssetList extends ConsumerWidget {
             folders: folders,
             rowHeight: 32,
             folderHeight: 32,
-            buildRow: (context, asset, ordered) => _Row(
+            buildRow: (context, asset, ordered) => AssetDrag(
               asset: asset,
-              layouts: layouts,
-              selected: selection.contains(asset.path),
-              onTap: () => ref
-                  .read(selectionProvider.notifier)
-                  .tap(asset.path, ordered, gestureFromKeyboard()),
-              // 二度押しで単体プレビューを開く（SPEC FR-B7）。
-              onOpen: () {
-                ref
+              child: _Row(
+                asset: asset,
+                layouts: layouts,
+                selected: selection.contains(asset.path),
+                onTap: () => ref
                     .read(selectionProvider.notifier)
-                    .tap(asset.path, ordered, SelectionGesture.replace);
-                showAssetPreview(context);
-              },
+                    .tap(asset.path, ordered, gestureFromKeyboard()),
+                // 二度押しで単体プレビューを開く（SPEC FR-B7）。
+                onOpen: () {
+                  ref
+                      .read(selectionProvider.notifier)
+                      .tap(asset.path, ordered, SelectionGesture.replace);
+                  showAssetPreview(context);
+                },
+              ),
             ),
           ),
         ),
@@ -104,18 +108,21 @@ class _SummaryList extends ConsumerWidget {
       folders: folders,
       rowHeight: 52,
       folderHeight: 52,
-      buildRow: (context, asset, ordered) => _SummaryRow(
+      buildRow: (context, asset, ordered) => AssetDrag(
         asset: asset,
-        selected: selection.contains(asset.path),
-        onTap: () => ref
-            .read(selectionProvider.notifier)
-            .tap(asset.path, ordered, gestureFromKeyboard()),
-        onOpen: () {
-          ref
+        child: _SummaryRow(
+          asset: asset,
+          selected: selection.contains(asset.path),
+          onTap: () => ref
               .read(selectionProvider.notifier)
-              .tap(asset.path, ordered, SelectionGesture.replace);
-          showAssetPreview(context);
-        },
+              .tap(asset.path, ordered, gestureFromKeyboard()),
+          onOpen: () {
+            ref
+                .read(selectionProvider.notifier)
+                .tap(asset.path, ordered, SelectionGesture.replace);
+            showAssetPreview(context);
+          },
+        ),
       ),
     );
   }

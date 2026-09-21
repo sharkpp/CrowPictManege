@@ -74,6 +74,8 @@ Future<void> _script(
 ) async {
   Future<void> shot(String name) => _capture(outputDir, name);
 
+  // 設定の読み込みは遅れて届く。先に触ると上書きされるので、落ち着かせてから。
+  await _settle(seconds: 1);
   // 前回の設定が残っていても同じ画面から始める。
   container
       .read(settingsProvider.notifier)

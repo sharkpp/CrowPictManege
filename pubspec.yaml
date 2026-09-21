@@ -29,6 +29,8 @@ dependencies:
   path_provider: ^2.1.6
   # ウィンドウへのフォルダのドロップを受け取る（FR-B16）。
   desktop_drop: ^0.8.2
+  # アプリの外へのドラッグ（FR-T4）。
+  super_drag_and_drop: ^0.10.0-dev.2
   # 知覚ハッシュのための縮小・グレースケール化（FR-Q4）。pure Dart なので Isolate で回せる。
   image: ^4.9.2
   # 内容ハッシュ（SPEC §4.1、FR-B9）。pure Dart。
