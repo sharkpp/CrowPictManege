@@ -10,6 +10,7 @@ import '../domain/models.dart';
 import '../domain/normalize.dart';
 import '../domain/track.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../state/edits.dart';
 import '../state/search.dart';
 import '../state/settings.dart';
@@ -568,7 +569,11 @@ class _EditPanelState extends ConsumerState<EditPanel> {
     if (file == null) return;
     setState(() => _loadingTrack = true);
     try {
-      final track = await CrowexifTrackLog.load(file.path);
+      // XFile はブラウザでも中身を読める。パスは使わない。
+      final track = CrowexifTrackLog.parse(
+        await file.readAsString(),
+        name: file.name,
+      );
       if (!mounted) return;
       setState(() => _track = track);
     } catch (_) {
@@ -980,16 +985,23 @@ class _ApplyBar extends ConsumerWidget {
       );
     }
 
+    // 書けないプラットフォームでは、隠さず理由を添えて押せなくする（SPEC §8）。
+    final canWrite = platformCapabilities.writeMetadata;
     return Padding(
       padding: const EdgeInsets.all(12),
-      child: FilledButton.icon(
-        icon: const Icon(Icons.save_outlined, size: 18),
-        label: Text(
-          preview.isEmpty ? l10n.editApply : l10n.editApplyCount(preview.count),
+      child: Tooltip(
+        message: canWrite ? '' : l10n.capabilityUnavailable,
+        child: FilledButton.icon(
+          icon: const Icon(Icons.save_outlined, size: 18),
+          label: Text(
+            preview.isEmpty
+                ? l10n.editApply
+                : l10n.editApplyCount(preview.count),
+          ),
+          onPressed: preview.isEmpty || !canWrite
+              ? null
+              : () => _confirmAndApply(context, ref, preview),
         ),
-        onPressed: preview.isEmpty
-            ? null
-            : () => _confirmAndApply(context, ref, preview),
       ),
     );
   }

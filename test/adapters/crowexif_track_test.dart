@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:crow_pict_manege/adapters/crowexif_track.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 /// トラックログの読み取りと引き当て（SPEC FR-E4-4）。
 ///
@@ -32,7 +33,10 @@ void main() {
 
   test('GPX を読み、間の時刻は補間する', () async {
     final file = await write('walk.gpx', gpx);
-    final track = await CrowexifTrackLog.load(file.path);
+    final track = CrowexifTrackLog.parse(
+      file.readAsStringSync(),
+      name: p.basename(file.path),
+    );
 
     expect(track.name, 'walk.gpx');
     expect(track.pointCount, 2);
@@ -50,7 +54,10 @@ void main() {
 
   test('許容差を超えて離れた時刻には位置を返さない', () async {
     final file = await write('walk.gpx', gpx);
-    final track = await CrowexifTrackLog.load(file.path);
+    final track = CrowexifTrackLog.parse(
+      file.readAsStringSync(),
+      name: p.basename(file.path),
+    );
 
     expect(
       track.at(
@@ -71,7 +78,10 @@ void main() {
 
   test('位置の記録が無い文書は 0 点として扱う', () async {
     final file = await write('empty.gpx', '<gpx></gpx>');
-    final track = await CrowexifTrackLog.load(file.path);
+    final track = CrowexifTrackLog.parse(
+      file.readAsStringSync(),
+      name: p.basename(file.path),
+    );
 
     expect(track.pointCount, 0);
     expect(track.start, isNull);
@@ -89,7 +99,10 @@ void main() {
         r'$GPRMC,030100.00,A,3506.0000,N,13906.0000,E,0.0,0.0,150124,,,A*00',
       ].join('\n'),
     );
-    final track = await CrowexifTrackLog.load(file.path);
+    final track = CrowexifTrackLog.parse(
+      file.readAsStringSync(),
+      name: p.basename(file.path),
+    );
 
     expect(track.pointCount, 2);
     final fix = track.at(

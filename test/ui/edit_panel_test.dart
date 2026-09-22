@@ -1,4 +1,3 @@
-import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
@@ -10,6 +9,8 @@ import 'package:crow_pict_manege/ui/edit_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/memory_catalog.dart';
 
 import 'localized_app.dart';
 
@@ -57,7 +58,7 @@ void main() {
       overrides: [
         displayedAssetsProvider.overrideWithValue(assets),
         catalogProvider.overrideWith((ref) {
-          final catalog = DriftCatalog(CatalogDatabase.memory());
+          final catalog = DriftCatalog(memoryCatalog());
           ref.onDispose(catalog.close);
           return catalog;
         }),

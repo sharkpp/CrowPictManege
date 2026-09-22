@@ -4,6 +4,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 
 import '../domain/models.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 
 /// 単体プレビューの動画に対する操作。プレビューの操作列から呼ぶ。
 class VideoStageHandle {
@@ -58,15 +59,9 @@ class _VideoStageState extends State<VideoStage> {
     super.dispose();
   }
 
-  /// 1 コマ進める／戻す。libmpv の frame-step / frame-back-step に載せる。
-  ///
-  /// 逆送りは映像の作りによっては効かないことがある。効かなければ何も起きない。
-  Future<void> _stepFrame(bool forward) async {
-    final platform = _player.platform;
-    if (platform is! NativePlayer) return;
-    await _player.pause();
-    await platform.command([forward ? 'frame-step' : 'frame-back-step']);
-  }
+  /// 1 コマ進める／戻す（SPEC FR-B7）。送り方はプラットフォームが持つ。
+  Future<void> _stepFrame(bool forward) =>
+      stepVideoFrame(_player, forward: forward);
 
   @override
   Widget build(BuildContext context) {

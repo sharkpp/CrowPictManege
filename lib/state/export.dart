@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../adapters/crowexif_writer.dart';
 import '../domain/edit_plan.dart';
 import '../domain/transfer.dart';
 import '../ports/metadata_write_port.dart';
+import '../platform/platform.dart';
 import '../services/exporter.dart';
 import '../services/parallel.dart';
 import 'edits.dart';
@@ -49,6 +49,9 @@ class ExportNotifier extends Notifier<ExportState> {
     bool withEdits = false,
   }) async {
     if (state.running || paths.isEmpty) return;
+    // 置ける場所を持たないプラットフォームでは、この操作は出していない（SPEC §8）。
+    final files = createFileOps();
+    if (files == null) return;
     state = ExportState(running: true, total: paths.length);
 
     // 当てる計画は、いまの見通しから拾う（SPEC FR-E5）。
@@ -58,7 +61,9 @@ class ExportNotifier extends Notifier<ExportState> {
           planned.asset.path: planned.plan,
     };
     // 出した先に控えは要らない。原本はそのまま残っている。
-    const writer = CrowexifWriter(backupDirectory: null);
+    // 書けないプラットフォームでは「編集を当てて出す」を選べない（SPEC §8）。
+    final writer = createMetadataWriter(backupDirectory: null);
+    if (writer == null && plans.isNotEmpty) return;
 
     final failures = <String, ExportFailure>{};
     var done = 0;
@@ -68,12 +73,12 @@ class ExportNotifier extends Notifier<ExportState> {
       path,
     ) async {
       try {
-        final target = await exportFile(path, destination, mode);
+        final target = await exportFile(files, path, destination, mode);
         written++;
         final plan = plans[path];
         if (plan != null && !plan.isEmpty) {
           try {
-            await writer.apply(target, plan);
+            await writer!.apply(target, plan);
           } on MetadataWriteFailure {
             failures[path] = ExportFailure.metadataFailed;
           }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crow_pict_manege/adapters/desktop_file_ops.dart';
 import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/domain/filter.dart';
 import 'package:crow_pict_manege/domain/models.dart';
@@ -66,6 +67,7 @@ void main() {
       rules: [rule()],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
 
     expect(plan.writes, hasLength(1));
@@ -95,6 +97,7 @@ void main() {
       ],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
 
     expect(plan.writes, hasLength(1));
@@ -115,6 +118,7 @@ void main() {
       ],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(plan.writes.single.destination, endsWith('first/a.jpg'));
   });
@@ -130,6 +134,7 @@ void main() {
       rules: [rule()],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(plan.entries.single.disposition, SortDisposition.duplicate);
     expect(plan.writes, isEmpty);
@@ -148,6 +153,7 @@ void main() {
       rules: [rule()],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(skipped.entries.single.disposition, SortDisposition.collision);
 
@@ -156,6 +162,7 @@ void main() {
       rules: [rule(collision: CollisionPolicy.serial)],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(serial.writes.single.destination, endsWith('a (2).jpg'));
 
@@ -164,6 +171,7 @@ void main() {
       rules: [rule(collision: CollisionPolicy.overwrite)],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(overwrite.writes.single.destination, existing.path);
   });
@@ -179,6 +187,7 @@ void main() {
       rules: [rule(collision: CollisionPolicy.serial)],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(plan.writes, hasLength(2));
     expect(plan.writes.first.destination, endsWith('03/a.jpg'));
@@ -192,6 +201,7 @@ void main() {
       rules: [rule(destination: root.path)],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(plan.entries.single.disposition, SortDisposition.inPlace);
   });
@@ -203,8 +213,9 @@ void main() {
       rules: [rule()],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
-    final result = await runSort(plan);
+    final result = await runSort(plan, files: const DesktopFileOps());
 
     expect(result.failures, isEmpty);
     expect(File(assets.single.path).existsSync(), isTrue);
@@ -219,13 +230,14 @@ void main() {
       rules: [rule(mode: ExportMode.move)],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
-    final result = await runSort(plan);
+    final result = await runSort(plan, files: const DesktopFileOps());
 
     expect(File(assets.single.path).existsSync(), isFalse);
     expect(File(plan.writes.single.destination).existsSync(), isTrue);
 
-    expect(await undoSort(result), 1);
+    expect(await undoSort(result, files: const DesktopFileOps()), 1);
     expect(File(assets.single.path).existsSync(), isTrue);
     expect(File(plan.writes.single.destination).existsSync(), isFalse);
   });
@@ -237,10 +249,11 @@ void main() {
       rules: [rule()],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     File(assets.single.path).deleteSync();
 
-    final result = await runSort(plan);
+    final result = await runSort(plan, files: const DesktopFileOps());
     expect(result.failures[assets.single.path], SortFailure.sourceUnreadable);
     expect(result.operations, isEmpty);
   });
@@ -256,6 +269,7 @@ void main() {
       rules: [rule(template: '{session}/{basename}.{ext}')],
       fallbackRoot: root.path,
       source: const FileSystemSource(),
+      files: const DesktopFileOps(),
     );
     expect(plan.writes.first.destination, endsWith('1/a.jpg'));
     expect(plan.writes.last.destination, endsWith('2/b.jpg'));

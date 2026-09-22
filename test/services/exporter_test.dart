@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crow_pict_manege/adapters/desktop_file_ops.dart';
 import 'package:crow_pict_manege/domain/transfer.dart';
 import 'package:crow_pict_manege/services/exporter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,7 +23,12 @@ void main() {
 
   test('コピーでは元のファイルが残る', () async {
     final file = source('a.jpg');
-    final target = await exportFile(file.path, out.path, ExportMode.copy);
+    final target = await exportFile(
+      const DesktopFileOps(),
+      file.path,
+      out.path,
+      ExportMode.copy,
+    );
 
     expect(p.basename(target), 'a.jpg');
     expect(File(target).readAsStringSync(), 'photo');
@@ -31,7 +37,12 @@ void main() {
 
   test('移動では元のファイルが消える', () async {
     final file = source('a.jpg');
-    final target = await exportFile(file.path, out.path, ExportMode.move);
+    final target = await exportFile(
+      const DesktopFileOps(),
+      file.path,
+      out.path,
+      ExportMode.move,
+    );
 
     expect(File(target).existsSync(), isTrue);
     expect(file.existsSync(), isFalse);
@@ -40,6 +51,7 @@ void main() {
   test('同じ名前があれば連番を足し、上書きしない', () async {
     File(p.join(out.path, 'a.jpg')).writeAsStringSync('先客');
     final target = await exportFile(
+      const DesktopFileOps(),
       source('a.jpg').path,
       out.path,
       ExportMode.copy,
@@ -49,11 +61,17 @@ void main() {
     expect(File(p.join(out.path, 'a.jpg')).readAsStringSync(), '先客');
   });
 
-  test('連番は空いているところまで進む', () {
+  test('連番は空いているところまで進む', () async {
     File(p.join(out.path, 'a.jpg')).writeAsStringSync('1');
     File(p.join(out.path, 'a (2).jpg')).writeAsStringSync('2');
 
-    expect(p.basename(uniquePathIn(out.path, 'a.jpg')), 'a (3).jpg');
-    expect(p.basename(uniquePathIn(out.path, 'b.jpg')), 'b.jpg');
+    expect(
+      p.basename(await uniquePathIn(const DesktopFileOps(), out.path, 'a.jpg')),
+      'a (3).jpg',
+    );
+    expect(
+      p.basename(await uniquePathIn(const DesktopFileOps(), out.path, 'b.jpg')),
+      'b.jpg',
+    );
   });
 }

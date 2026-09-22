@@ -1,12 +1,9 @@
-import 'dart:io';
-
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../adapters/desktop_transfer.dart';
 import '../domain/transfer.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../ports/transfer_port.dart';
 import '../state/export.dart';
 import '../state/search.dart';
@@ -21,27 +18,29 @@ import 'transfer_targets_dialog.dart';
 /// 選択集合を渡す。渡せない場面（何も選んでいない、対応しないプラット
 /// フォーム）は隠さず、押せない状態で出す（SPEC §8）。
 class TransferMenu extends ConsumerWidget {
-  const TransferMenu({super.key, this.port = const DesktopTransfer()});
+  TransferMenu({super.key, TransferPort? port})
+    : port = port ?? createTransferPort();
 
-  /// 転送の実体。テストでは差し替える。
-  final TransferPort port;
+  /// 転送の実体。渡せないプラットフォームでは null（SPEC §8）。
+  /// テストでは差し替える。
+  final TransferPort? port;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final selection = ref.watch(selectionProvider);
     final targets = ref.watch(settingsProvider).transferTargets;
-    final enabled = selection.isNotEmpty && DesktopTransfer.isSupported;
+    final transfer = port;
+    final enabled = selection.isNotEmpty && transfer != null;
 
     return PopupMenuButton<void>(
       icon: const Icon(Icons.ios_share),
-      tooltip: DesktopTransfer.isSupported
-          ? l10n.transferMenu
-          : l10n.transferUnsupported,
+      tooltip: transfer == null ? l10n.transferUnsupported : l10n.transferMenu,
       enabled: enabled,
       itemBuilder: (context) => [
         PopupMenuItem<void>(
-          onTap: () => _run(context, ref, (paths) => port.openDefault(paths)),
+          onTap: () =>
+              _run(context, ref, (paths) => transfer!.openDefault(paths)),
           child: Text(l10n.transferOpenDefault),
         ),
         PopupMenuItem<void>(
@@ -52,7 +51,7 @@ class TransferMenu extends ConsumerWidget {
           onTap: () => _run(
             context,
             ref,
-            (paths) => port.share(paths, origin: _originOf(context)),
+            (paths) => transfer!.share(paths, origin: _originOf(context)),
           ),
           child: Text(l10n.transferShare),
         ),
@@ -70,7 +69,7 @@ class TransferMenu extends ConsumerWidget {
         for (final target in targets)
           PopupMenuItem<void>(
             onTap: () =>
-                _run(context, ref, (paths) => port.send(target, paths)),
+                _run(context, ref, (paths) => transfer!.send(target, paths)),
             child: Text(target.name),
           ),
         const PopupMenuDivider(),
@@ -134,7 +133,7 @@ class TransferMenu extends ConsumerWidget {
   ) async {
     final paths = _paths(ref);
     if (paths.isEmpty) return;
-    final destination = await getDirectoryPath();
+    final destination = await pickDirectory();
     if (destination == null || !context.mounted) return;
 
     final withEdits = await showExportDialog(
@@ -167,22 +166,11 @@ class TransferMenu extends ConsumerWidget {
   ///
   /// macOS のアプリはフォルダなので、選ばせ方が Windows と違う。
   Future<void> _openWith(BuildContext context, WidgetRef ref) async {
-    final String? application;
-    if (Platform.isMacOS) {
-      application = await getDirectoryPath(
-        initialDirectory: '/Applications',
-        confirmButtonText: context.l10n.transferOpenWith,
-      );
-    } else {
-      final file = await openFile(
-        acceptedTypeGroups: const [
-          XTypeGroup(label: 'application', extensions: ['exe']),
-        ],
-      );
-      application = file?.path;
-    }
+    final application = await pickApplication(
+      confirmText: context.l10n.transferOpenWith,
+    );
     if (application == null) return;
     if (!context.mounted) return;
-    await _run(context, ref, (paths) => port.openWith(application!, paths));
+    await _run(context, ref, (paths) => port!.openWith(application, paths));
   }
 }

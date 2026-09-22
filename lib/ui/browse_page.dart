@@ -1,7 +1,3 @@
-import 'dart:io';
-
-import 'package:desktop_drop/desktop_drop.dart';
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +8,7 @@ import '../domain/folder_view.dart';
 import '../domain/models.dart';
 import '../domain/settings.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../state/library.dart';
 import '../state/navigation.dart';
 import '../state/search.dart';
@@ -25,6 +22,7 @@ import 'asset_grid.dart';
 import 'asset_list.dart';
 import 'edit_sheet.dart';
 import 'filter_bar.dart';
+import 'folder_drop.dart';
 import 'layout.dart';
 import 'metadata_sheet.dart';
 import 'place_bar.dart';
@@ -49,24 +47,15 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
   bool _dropping = false;
 
   Future<void> _chooseFolder() async {
-    final path = await getDirectoryPath(
-      confirmButtonText: context.l10n.actionOpen,
-    );
+    final path = await pickDirectory(confirmText: context.l10n.actionOpen);
     if (path == null) return;
     await ref.read(navigationProvider.notifier).open(path);
   }
 
-  /// ドロップされたフォルダを開く。ファイルなら親フォルダを開いて選択する（SPEC FR-B16）。
-  Future<void> _openDropped(List<DropItem> items) async {
+  /// 落とされたフォルダを開く（SPEC FR-B16）。
+  Future<void> _openDropped(String folder, String? select) async {
     setState(() => _dropping = false);
-    if (items.isEmpty) return;
-    final path = items.first.path;
-    final notifier = ref.read(navigationProvider.notifier);
-    if (Directory(path).existsSync()) {
-      await notifier.open(path);
-    } else if (File(path).existsSync()) {
-      await notifier.open(p.dirname(path), select: path);
-    }
+    await ref.read(navigationProvider.notifier).open(folder, select: select);
   }
 
   @override
@@ -156,10 +145,9 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       },
       child: Focus(
         autofocus: true,
-        child: DropTarget(
-          onDragEntered: (_) => setState(() => _dropping = true),
-          onDragExited: (_) => setState(() => _dropping = false),
-          onDragDone: (detail) => _openDropped(detail.files),
+        child: FolderDropTarget(
+          onHover: (hovering) => setState(() => _dropping = hovering),
+          onDropped: _openDropped,
           child: _scaffold(library, listing, layout),
         ),
       ),
@@ -324,7 +312,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
       ],
       const SizedBox(width: 8),
       // 選んだものを別のアプリへ渡す（SPEC §5.5）。
-      const TransferMenu(),
+      TransferMenu(),
       FilledButton.icon(
         onPressed: _chooseFolder,
         icon: const Icon(Icons.folder_open),
@@ -352,7 +340,7 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
               ),
           ],
         ),
-      const TransferMenu(),
+      TransferMenu(),
       IconButton(
         icon: const Icon(Icons.folder_open),
         tooltip: context.l10n.openFolder,
@@ -387,8 +375,9 @@ class _BrowsePageState extends ConsumerState<BrowsePage> {
           child: Text(context.l10n.findDuplicates),
         ),
         // 仕分け（SPEC §5.8）。いま開いているフォルダの対象に効く。
+        // 置ける場所を持たないプラットフォームでは押せない（SPEC §8）。
         PopupMenuItem(
-          enabled: rootPath != null,
+          enabled: rootPath != null && platformCapabilities.exportFiles,
           onTap: () => showSortDialog(context),
           child: Text(context.l10n.sortTitle),
         ),

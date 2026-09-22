@@ -2749,6 +2749,12 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'サイドカーには XMP しか置けません'**
   String get writeDestinationXmpOnly;
+
+  /// No description provided for @capabilityUnavailable.
+  ///
+  /// In ja, this message translates to:
+  /// **'この環境では使えません'**
+  String get capabilityUnavailable;
 }
 
 class _AppLocalizationsDelegate

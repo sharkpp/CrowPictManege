@@ -1622,4 +1622,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get writeDestinationXmpOnly => 'A sidecar can only hold XMP';
+
+  @override
+  String get capabilityUnavailable => 'Not available on this platform';
 }

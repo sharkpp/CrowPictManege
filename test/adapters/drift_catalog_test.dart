@@ -1,13 +1,14 @@
-import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/domain/places.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/memory_catalog.dart';
 
 /// 設定・ブックマーク・履歴の永続化（SPEC §4.4、FR-B14、FR-B15、FR-P1）。
 void main() {
   late DriftCatalog catalog;
 
-  setUp(() => catalog = DriftCatalog(CatalogDatabase.memory()));
+  setUp(() => catalog = DriftCatalog(memoryCatalog()));
   tearDown(() => catalog.close());
 
   test('設定は同じキーで上書きされる', () async {

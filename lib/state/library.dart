@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../adapters/crowexif_metadata.dart';
-import '../adapters/file_system_source.dart';
 import '../domain/cached_asset.dart';
 import '../domain/column_filter.dart';
 import '../domain/columns.dart';
@@ -13,6 +11,7 @@ import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/settings.dart';
 import '../ports/asset_source_port.dart';
+import '../platform/platform.dart';
 import '../ports/metadata_port.dart';
 import '../services/parallel.dart';
 import '../services/summary_loader.dart';
@@ -25,12 +24,14 @@ import 'selection.dart';
 import 'settings.dart';
 
 final metadataPortProvider = Provider<MetadataPort>(
-  (ref) => const CrowexifMetadata(),
+  (ref) => createMetadataPort(),
 );
 
 /// 対象の取得元（SPEC §7.1）。プラットフォームごとに実装が変わる。
+///
+/// Web の実装は開いたフォルダのハンドルを持つので、プロセスで 1 つに保つ。
 final assetSourceProvider = Provider<AssetSourcePort>(
-  (ref) => const FileSystemSource(),
+  (ref) => createAssetSource(),
 );
 
 final thumbnailCacheProvider = Provider<ThumbnailCache>(

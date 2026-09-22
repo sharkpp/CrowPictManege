@@ -51,6 +51,8 @@ dependencies:
   share_plus: ^13.3.0
   # 地名の検索と逆引き（SPEC FR-M5、FR-M8）。既定では使わない。
   http: ^1.6.0
+  # ブラウザの API（File System Access、SPEC §4.5）。Web だけで使う。
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:

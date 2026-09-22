@@ -1501,4 +1501,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get writeDestinationXmpOnly => 'サイドカーには XMP しか置けません';
+
+  @override
+  String get capabilityUnavailable => 'この環境では使えません';
 }

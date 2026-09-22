@@ -1,11 +1,9 @@
-import 'dart:io';
-
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/transfer.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../state/settings.dart';
 
 /// よく使う転送先の管理（SPEC FR-T3）。
@@ -204,21 +202,11 @@ class _TargetEditorState extends State<_TargetEditor> {
     );
   }
 
-  /// 実行ファイルを選ぶ。macOS のアプリはフォルダなので選ばせ方が違う。
+  /// 実行ファイルを選ぶ。選ばせ方はプラットフォームで違う。
   Future<void> _chooseCommand() async {
-    final String? chosen;
-    if (Platform.isMacOS) {
-      chosen = await getDirectoryPath(initialDirectory: '/Applications');
-    } else {
-      final file = await openFile(
-        acceptedTypeGroups: const [
-          XTypeGroup(label: 'application', extensions: ['exe']),
-        ],
-      );
-      chosen = file?.path;
-    }
+    final chosen = await pickApplication();
     if (chosen == null) return;
-    setState(() => _command.text = chosen!);
+    setState(() => _command.text = chosen);
   }
 
   void _save() {

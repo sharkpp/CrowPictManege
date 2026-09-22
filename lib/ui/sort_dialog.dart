@@ -1,4 +1,3 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -7,6 +6,7 @@ import '../domain/path_template.dart';
 import '../domain/sort_rule.dart';
 import '../domain/transfer.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../services/sorter.dart';
 import '../state/sorting.dart';
 import '../state/watching.dart';
@@ -186,9 +186,7 @@ class _WatchedFolders extends ConsumerWidget {
             const Spacer(),
             TextButton.icon(
               onPressed: () async {
-                final path = await getDirectoryPath(
-                  confirmButtonText: l10n.actionOpen,
-                );
+                final path = await pickDirectory(confirmText: l10n.actionOpen);
                 if (path != null) notifier.add(path);
               },
               icon: const Icon(Icons.add, size: 18),
@@ -388,9 +386,7 @@ class _RuleDialogState extends ConsumerState<_RuleDialog> {
   }
 
   Future<void> _chooseRoot() async {
-    final path = await getDirectoryPath(
-      confirmButtonText: context.l10n.actionOpen,
-    );
+    final path = await pickDirectory(confirmText: context.l10n.actionOpen);
     if (path == null) return;
     setState(() => _rule = _rule.copyWith(root: path));
   }

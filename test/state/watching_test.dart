@@ -13,6 +13,8 @@ import 'package:crow_pict_manege/state/sorting.dart';
 import 'package:crow_pict_manege/state/watching.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/memory_catalog.dart';
 import 'package:path/path.dart' as p;
 
 /// 現れたファイルを知らせるだけの監視。実際のフォルダは見ない。
@@ -54,7 +56,7 @@ void main() {
   }
 
   setUp(() {
-    database = CatalogDatabase.memory();
+    database = memoryCatalog();
     watcher = _FakeWatcher();
     root = Directory.systemTemp.createTempSync('crow_watch_test');
   });

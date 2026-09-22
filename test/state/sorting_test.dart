@@ -11,6 +11,8 @@ import 'package:crow_pict_manege/state/places.dart';
 import 'package:crow_pict_manege/state/sorting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/memory_catalog.dart';
 import 'package:path/path.dart' as p;
 
 /// 仕分けの積み方と実行（SPEC FR-S3、FR-S5、FR-S6）。
@@ -33,7 +35,7 @@ void main() {
   }
 
   setUp(() {
-    database = CatalogDatabase.memory();
+    database = memoryCatalog();
     root = Directory.systemTemp.createTempSync('crow_sorting_test');
     final source = File('test/fixtures/base.jpg').readAsBytesSync();
     File(p.join(root.path, 'a.jpg')).writeAsBytesSync(source);

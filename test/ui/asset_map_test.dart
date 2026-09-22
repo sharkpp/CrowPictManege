@@ -1,7 +1,6 @@
 import 'package:crow_pict_manege/domain/edit.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/state/edits.dart';
-import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/state/map_view.dart';
 import 'package:crow_pict_manege/state/places.dart';
@@ -14,6 +13,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/memory_catalog.dart';
 
 import 'localized_app.dart';
 
@@ -57,7 +58,7 @@ void main() {
           displayedAssetsProvider.overrideWithValue(displayed),
         // 設定はプロセス内に閉じたカタログへ書く（アプリ領域を触らない）。
         catalogProvider.overrideWith((ref) {
-          final catalog = DriftCatalog(CatalogDatabase.memory());
+          final catalog = DriftCatalog(memoryCatalog());
           ref.onDispose(catalog.close);
           return catalog;
         }),

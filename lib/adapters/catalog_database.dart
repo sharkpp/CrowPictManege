@@ -1,9 +1,4 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
-import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 part 'catalog_database.g.dart';
 
@@ -62,13 +57,9 @@ class CachedAssetEntries extends Table {
   tables: [SettingEntries, BookmarkEntries, VisitEntries, CachedAssetEntries],
 )
 class CatalogDatabase extends _$CatalogDatabase {
+  /// 置き場所はプラットフォーム側が決める（`lib/platform/`）。
+  /// ここは表の形と移行だけを持ち、`dart:io` には触らない。
   CatalogDatabase(super.e);
-
-  /// アプリ領域のファイルを開く。パスの解決は最初のクエリまで遅らせる。
-  CatalogDatabase.appSupport() : super(_lazyAppSupport());
-
-  /// テスト用。プロセス内に閉じたデータベース。
-  CatalogDatabase.memory() : super(NativeDatabase.memory());
 
   @override
   int get schemaVersion => 3;
@@ -91,9 +82,3 @@ class CatalogDatabase extends _$CatalogDatabase {
   DriftDatabaseOptions get options =>
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
-
-QueryExecutor _lazyAppSupport() => LazyDatabase(() async {
-  final directory = await getApplicationSupportDirectory();
-  final file = File(p.join(directory.path, 'catalog.sqlite'));
-  return NativeDatabase.createInBackground(file);
-});

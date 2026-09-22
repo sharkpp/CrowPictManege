@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:crowexif/crowexif.dart';
-import 'package:path/path.dart' as p;
 
 import '../domain/models.dart';
 import '../domain/track.dart';
@@ -13,12 +10,10 @@ import '../domain/track.dart';
 class CrowexifTrackLog implements TrackLog {
   CrowexifTrackLog(this._track, {required this.name});
 
-  /// ファイルから読む。読めない・位置が 1 点も無い場合も、そのまま返して
-  /// 件数 0 として扱う。理由は呼ぶ側が画面に出す。
-  static Future<CrowexifTrackLog> load(String path) async {
-    final text = await File(path).readAsString();
-    return CrowexifTrackLog(GpsTrack.parse(text), name: p.basename(path));
-  }
+  /// 読んだ中身から作る。位置が 1 点も無い場合もそのまま返し、件数 0 として
+  /// 扱う。理由は呼ぶ側が画面に出す。どこから読むかは呼ぶ側が決める。
+  factory CrowexifTrackLog.parse(String text, {required String name}) =>
+      CrowexifTrackLog(GpsTrack.parse(text), name: name);
 
   final GpsTrack _track;
 

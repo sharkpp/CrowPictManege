@@ -13,6 +13,8 @@ import 'package:crowexif/crowexif_io.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/memory_catalog.dart';
+
 /// 走査からメタ情報の読み取りまでを、実ファイルに対して通しで確かめる。
 void main() {
   late Directory root;
@@ -34,7 +36,7 @@ void main() {
   }
 
   setUp(() {
-    database = CatalogDatabase.memory();
+    database = memoryCatalog();
     root = Directory.systemTemp.createTempSync('crow_pict_manege_test');
     final source = File('test/fixtures/base.jpg').readAsBytesSync();
 

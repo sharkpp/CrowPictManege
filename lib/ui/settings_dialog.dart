@@ -1,9 +1,9 @@
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/settings.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../state/places.dart';
 import '../state/settings.dart';
 import 'labels.dart';
@@ -319,7 +319,7 @@ class _BackupSection extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () async {
-                final chosen = await getDirectoryPath();
+                final chosen = await pickDirectory();
                 if (chosen == null) return;
                 notifier.update(
                   (current) => current.copyWith(backupDirectory: chosen),

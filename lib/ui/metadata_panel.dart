@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -15,6 +12,7 @@ import '../domain/supported_formats.dart';
 import '../domain/tag_edit.dart';
 import '../domain/tag_export.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../state/edits.dart';
 import '../state/library.dart';
 import '../state/search.dart';
@@ -538,10 +536,14 @@ class _ExportButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 書き出せないプラットフォームでは、隠さず理由を添えて押せなくする（SPEC §8）。
+    final canSave = platformCapabilities.saveToFile;
     return PopupMenuButton<_ExportFormat>(
       icon: const Icon(Icons.save_alt, size: 20),
-      tooltip: context.l10n.exportToFile,
-      enabled: tags.isNotEmpty,
+      tooltip: canSave
+          ? context.l10n.exportToFile
+          : context.l10n.capabilityUnavailable,
+      enabled: tags.isNotEmpty && canSave,
       onSelected: (format) => _export(context, format),
       itemBuilder: (context) => [
         for (final format in _ExportFormat.values)
@@ -556,14 +558,13 @@ class _ExportButton extends StatelessWidget {
   Future<void> _export(BuildContext context, _ExportFormat format) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.maybeOf(context);
-    final location = await getSaveLocation(
-      suggestedName: '${_baseName(l10n)}.${format.extension}',
-      confirmButtonText: l10n.actionExport,
-    );
-    if (location == null) return;
-
     try {
-      await File(location.path).writeAsString(_text(l10n, format));
+      final saved = await saveTextFile(
+        suggestedName: '${_baseName(l10n)}.${format.extension}',
+        text: _text(l10n, format),
+        types: const [],
+      );
+      if (!saved) return;
       messenger?.showSnackBar(
         SnackBar(
           content: Text(l10n.exportedAs(format.label)),

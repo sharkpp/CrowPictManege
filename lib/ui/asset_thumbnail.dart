@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/models.dart';
 import '../domain/orientation.dart';
 import '../domain/supported_formats.dart';
+import '../platform/platform.dart';
 import '../state/library.dart';
 
 /// 対象のサムネイル。
@@ -74,16 +74,18 @@ class _AssetThumbnailState extends ConsumerState<AssetThumbnail> {
 
     // 埋め込みプレビューは 160px 前後しかないことが多い。表示がそれより大きい
     // ときは、まず埋め込みを出してから復号したものに差し替える。
-    final upgrade =
+    // パスから直に復号できないプラットフォーム（Web）では、読んだバイト列で出す。
+    final provider =
         widget.asset.kind == AssetKind.image &&
-        isDecodableByFlutter(widget.asset.path) &&
-        (bytes == null || pixels > _embeddedThumbnailPixels);
+            isDecodableByFlutter(widget.asset.path) &&
+            (bytes == null || pixels > _embeddedThumbnailPixels)
+        ? imageProviderFor(widget.asset.path)
+        : null;
 
-    if (upgrade) {
-      return Image.file(
-        File(widget.asset.path),
+    if (provider != null) {
+      return Image(
+        image: ResizeImage(provider, width: pixels),
         fit: widget.fit,
-        cacheWidth: pixels,
         gaplessPlayback: true,
         frameBuilder: (context, child, frame, wasSynchronous) {
           if (frame != null || wasSynchronous) return child;

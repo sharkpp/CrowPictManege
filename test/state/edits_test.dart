@@ -13,6 +13,8 @@ import 'package:crow_pict_manege/state/settings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/memory_catalog.dart';
+
 /// 積む → 見通す → 書き戻す → 読み直す、を実ファイルで通しに確かめる。
 void main() {
   late Directory root;
@@ -42,7 +44,7 @@ void main() {
   }
 
   setUp(() {
-    database = CatalogDatabase.memory();
+    database = memoryCatalog();
     root = Directory.systemTemp.createTempSync('crow_pict_manege_edits');
     backups = Directory('${root.path}/../backups_${root.path.hashCode}')
       ..createSync();

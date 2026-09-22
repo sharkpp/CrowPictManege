@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 
-import '../adapters/desktop_watcher.dart';
 import '../domain/models.dart';
 import '../domain/supported_formats.dart';
+import '../platform/platform.dart';
 import '../ports/watcher_port.dart';
 import '../services/sorter.dart';
 import 'grouping.dart';
@@ -15,8 +14,8 @@ import 'library.dart';
 import 'settings.dart';
 import 'sorting.dart';
 
-final watcherPortProvider = Provider<WatcherPort>(
-  (ref) => const DesktopWatcher(),
+final watcherPortProvider = Provider<WatcherPort?>(
+  (ref) => createWatcherPort(),
 );
 
 /// 監視の様子（SPEC FR-S8）。
@@ -68,6 +67,8 @@ class WatchNotifier extends Notifier<WatchState> {
       }
     }
     final watcher = ref.read(watcherPortProvider);
+    // 監視できないプラットフォームでは、設定に残っていても張らない（SPEC §8）。
+    if (watcher == null) return;
     for (final path in folders) {
       _subscriptions.putIfAbsent(
         path,
@@ -88,7 +89,8 @@ class WatchNotifier extends Notifier<WatchState> {
     final kind = kindForExtension(path);
     if (kind == null) return;
     final rules = ref.read(sortRulesProvider);
-    if (rules.isEmpty) return;
+    final files = createFileOps();
+    if (rules.isEmpty || files == null) return;
 
     final asset = await _assetOf(path, kind);
     if (asset == null) return;
@@ -98,13 +100,14 @@ class WatchNotifier extends Notifier<WatchState> {
       rules: rules,
       fallbackRoot: p.dirname(path),
       source: ref.read(assetSourceProvider),
+      files: files,
       grouping: ref.read(groupOptionsProvider),
     );
     final entry = plan.entries.singleOrNull;
     if (entry == null) return;
 
     if (entry.disposition.writes) {
-      await runSort(plan);
+      await runSort(plan, files: files);
       _handled++;
       state = WatchState(
         folders: state.folders,
@@ -129,18 +132,14 @@ class WatchNotifier extends Notifier<WatchState> {
 
   /// 現れたファイルを 1 件の対象として読む。読めなければ見送る。
   Future<MediaAsset?> _assetOf(String path, AssetKind kind) async {
-    final FileStat stat;
-    try {
-      stat = File(path).statSync();
-    } on FileSystemException {
-      return null;
-    }
+    final facts = await ref.read(assetSourceProvider).facts(path);
+    if (facts == null) return null;
     final asset = MediaAsset(
       path: path,
       name: p.basename(path),
       kind: kind,
-      size: stat.size,
-      fileModifiedAt: stat.modified,
+      size: facts.size,
+      fileModifiedAt: facts.modifiedAt,
     );
     try {
       return asset.withSummary(

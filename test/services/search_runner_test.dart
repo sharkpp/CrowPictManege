@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/crowexif_metadata.dart';
 import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
@@ -10,6 +9,8 @@ import 'package:crowexif/crowexif.dart';
 import 'package:crowexif/crowexif_io.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/memory_catalog.dart';
+
 /// 走査しながらの検索（SPEC FR-Q1〜FR-Q3）。
 void main() {
   late Directory root;
@@ -17,7 +18,7 @@ void main() {
   late DriftCatalog catalog;
 
   setUp(() {
-    catalog = DriftCatalog(CatalogDatabase.memory());
+    catalog = DriftCatalog(memoryCatalog());
     root = Directory.systemTemp.createTempSync('crow_search_test');
     bookmarked = Directory.systemTemp.createTempSync('crow_search_bookmark');
     final source = File('test/fixtures/base.jpg').readAsBytesSync();

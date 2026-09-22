@@ -1,13 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-
-import '../adapters/crowexif_writer.dart';
 import '../domain/edit.dart';
 import '../domain/edit_plan.dart';
 import '../domain/models.dart';
 import '../domain/supported_formats.dart';
+import '../platform/platform.dart';
 import '../ports/metadata_write_port.dart';
 import '../services/parallel.dart';
 import 'library.dart';
@@ -184,12 +181,6 @@ class ApplyState {
   int get succeeded => receipts.length;
 }
 
-/// 原本の控えを置く既定の場所（SPEC FR-E6-2）。
-Future<String> defaultBackupDirectory() async {
-  final directory = await getApplicationSupportDirectory();
-  return p.join(directory.path, 'backups');
-}
-
 class ApplyNotifier extends Notifier<ApplyState> {
   @override
   ApplyState build() => const ApplyState();
@@ -197,9 +188,10 @@ class ApplyNotifier extends Notifier<ApplyState> {
   /// 見通しのとおりに書き込む。1 件の失敗で処理は止めない（SPEC FR-E7）。
   Future<void> apply(EditPreview preview) async {
     if (state.running || preview.isEmpty) return;
-    state = ApplyState(running: true, total: preview.count);
-
     final port = await _port();
+    // 書けないプラットフォームでは適用を出していない（SPEC §8）。
+    if (port == null) return;
+    state = ApplyState(running: true, total: preview.count);
     final receipts = <WriteReceipt>[];
     final failures = <String, WriteFailure>{};
     var done = 0;
@@ -243,10 +235,10 @@ class ApplyNotifier extends Notifier<ApplyState> {
   /// 直前の適用単位を控えから戻す（SPEC FR-E6-4）。
   Future<void> undo() async {
     if (!state.canUndo) return;
+    final port = await _port();
+    if (port == null) return;
     final receipts = state.receipts;
     state = ApplyState(running: true, total: receipts.length);
-
-    final port = await _port();
     var done = 0;
     for (final receipt in receipts) {
       if (receipt.canUndo) await port.undo(receipt);
@@ -263,9 +255,9 @@ class ApplyNotifier extends Notifier<ApplyState> {
   /// 結果の表示を閉じる。
   void dismiss() => state = const ApplyState();
 
-  Future<MetadataWritePort> _port() async {
+  Future<MetadataWritePort?> _port() async {
     final settings = ref.read(settingsProvider);
-    return CrowexifWriter(
+    return createMetadataWriter(
       backupDirectory: settings.backupEnabled
           ? (settings.backupDirectory ?? await defaultBackupDirectory())
           : null,

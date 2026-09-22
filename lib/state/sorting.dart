@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../domain/sort_rule.dart';
+import '../platform/platform.dart';
 import '../services/sorter.dart';
 import 'grouping.dart';
 import 'library.dart';
@@ -85,7 +86,9 @@ class SortNotifier extends Notifier<SortState> {
     if (state.planning || state.running) return;
     final rules = ref.read(sortRulesProvider);
     final root = ref.read(libraryProvider).rootPath;
-    if (rules.isEmpty || root == null) return;
+    final files = createFileOps();
+    // 置ける場所を持たないプラットフォームでは仕分けを出していない（SPEC §8）。
+    if (rules.isEmpty || root == null || files == null) return;
 
     state = const SortState(planning: true);
     final plan = await planSort(
@@ -93,6 +96,7 @@ class SortNotifier extends Notifier<SortState> {
       rules: rules,
       fallbackRoot: root,
       source: ref.read(assetSourceProvider),
+      files: files,
       // 区切りの時間とまとめる半径は、まとめ方で選んだものを使い回す。
       grouping: ref.read(groupOptionsProvider),
     );
@@ -102,11 +106,13 @@ class SortNotifier extends Notifier<SortState> {
   /// ドライランのとおりに置く（SPEC FR-S1）。
   Future<void> run() async {
     final plan = state.plan;
-    if (plan == null || state.running) return;
+    final files = createFileOps();
+    if (plan == null || state.running || files == null) return;
     state = SortState(plan: plan, running: true, total: plan.writes.length);
 
     final result = await runSort(
       plan,
+      files: files,
       onProgress: (done, total) => state = SortState(
         plan: plan,
         running: true,
@@ -124,10 +130,13 @@ class SortNotifier extends Notifier<SortState> {
   /// 直前の実行を取り消す（SPEC FR-S5）。
   Future<void> undo() async {
     final result = state.result;
-    if (result == null || !result.canUndo || state.running) return;
+    final files = createFileOps();
+    if (result == null || !result.canUndo || state.running || files == null) {
+      return;
+    }
     state = SortState(plan: state.plan, running: true);
 
-    final restored = await undoSort(result);
+    final restored = await undoSort(result, files: files);
     state = SortState(undone: restored);
 
     final root = ref.read(libraryProvider).rootPath;

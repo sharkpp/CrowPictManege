@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 
 import '../domain/filter.dart';
@@ -9,6 +7,7 @@ import '../domain/path_template.dart';
 import '../domain/sort_rule.dart';
 import '../domain/transfer.dart';
 import '../ports/asset_source_port.dart';
+import '../ports/file_ops_port.dart';
 import 'file_hasher.dart';
 
 /// 1 件をどう扱うか（SPEC FR-S3）。
@@ -101,6 +100,7 @@ Future<SortPlan> planSort({
   required List<SortRule> rules,
   required String fallbackRoot,
   required AssetSourcePort source,
+  required FileOpsPort files,
   GroupOptions grouping = const GroupOptions(),
   String Function(GeoPoint point)? placeName,
 }) async {
@@ -163,12 +163,12 @@ Future<SortPlan> planSort({
       continue;
     }
 
-    final entry = await _resolve(asset, rule, target, taken, source);
+    final entry = await _resolve(asset, rule, target, taken, source, files);
     entries.add(entry);
     if (entry.disposition.writes) {
       taken.add(entry.destination);
       final directory = p.dirname(entry.destination);
-      if (!Directory(directory).existsSync()) directories.add(directory);
+      if (!await files.exists(directory)) directories.add(directory);
     }
   }
 
@@ -182,8 +182,9 @@ Future<SortPlanEntry> _resolve(
   String target,
   Set<String> taken,
   AssetSourcePort source,
+  FileOpsPort files,
 ) async {
-  final occupied = taken.contains(target) || File(target).existsSync();
+  final occupied = taken.contains(target) || await files.exists(target);
   if (!occupied) {
     return SortPlanEntry(
       asset: asset,
@@ -220,7 +221,7 @@ Future<SortPlanEntry> _resolve(
     CollisionPolicy.serial => SortPlanEntry(
       asset: asset,
       rule: rule,
-      destination: _nextFreeName(target, taken),
+      destination: await _nextFreeName(files, target, taken),
       disposition: SortDisposition.serial,
     ),
   };
@@ -239,13 +240,17 @@ Future<bool> _sameContent(
 }
 
 /// まだ使われていない名前を作る。`photo.jpg` が埋まっていれば `photo (2).jpg`。
-String _nextFreeName(String target, Set<String> taken) {
+Future<String> _nextFreeName(
+  FileOpsPort files,
+  String target,
+  Set<String> taken,
+) async {
   final directory = p.dirname(target);
   final base = p.basenameWithoutExtension(target);
   final extension = p.extension(target);
   var serial = 2;
   var candidate = p.join(directory, '$base ($serial)$extension');
-  while (taken.contains(candidate) || File(candidate).existsSync()) {
+  while (taken.contains(candidate) || await files.exists(candidate)) {
     serial++;
     candidate = p.join(directory, '$base ($serial)$extension');
   }
@@ -317,6 +322,7 @@ class SortRunResult {
 /// 1 件ごとに [onProgress] を呼ぶ。失敗しても次へ進む（SPEC NFR-3）。
 Future<SortRunResult> runSort(
   SortPlan plan, {
+  required FileOpsPort files,
   void Function(int done, int total)? onProgress,
 }) async {
   final writes = plan.writes;
@@ -326,21 +332,20 @@ Future<SortRunResult> runSort(
 
   for (final entry in writes) {
     try {
-      await Directory(p.dirname(entry.destination)).create(recursive: true);
-      final file = File(entry.asset.path);
-      if (!file.existsSync()) {
+      await files.createDirectory(p.dirname(entry.destination));
+      if (!await files.exists(entry.asset.path)) {
         failures[entry.asset.path] = SortFailure.sourceUnreadable;
         continue;
       }
       // 上書きは、置き換える先を先に消してから置く。
-      if (entry.disposition == SortDisposition.overwrite) {
-        final target = File(entry.destination);
-        if (target.existsSync()) await target.delete();
+      if (entry.disposition == SortDisposition.overwrite &&
+          await files.exists(entry.destination)) {
+        await files.delete(entry.destination);
       }
       if (entry.mode == ExportMode.move) {
-        await _move(file, entry.destination);
+        await files.move(entry.asset.path, entry.destination);
       } else {
-        await file.copy(entry.destination);
+        await files.copy(entry.asset.path, entry.destination);
       }
       operations.add(
         SortOperation(
@@ -349,7 +354,7 @@ Future<SortRunResult> runSort(
           mode: entry.mode,
         ),
       );
-    } on FileSystemException {
+    } on Object {
       failures[entry.asset.path] = SortFailure.destinationUnwritable;
     } finally {
       done++;
@@ -364,28 +369,18 @@ Future<SortRunResult> runSort(
 ///
 /// 複製は元が残っているので戻すものがない。元の場所が既に埋まっている
 /// 場合は触らない。上書きで消してしまわないためである。
-Future<int> undoSort(SortRunResult result) async {
+Future<int> undoSort(SortRunResult result, {required FileOpsPort files}) async {
   var restored = 0;
   for (final operation in result.operations) {
     if (!operation.canUndo) continue;
-    if (File(operation.source).existsSync()) continue;
+    if (await files.exists(operation.source)) continue;
     try {
-      await Directory(p.dirname(operation.source)).create(recursive: true);
-      await _move(File(operation.destination), operation.source);
+      await files.createDirectory(p.dirname(operation.source));
+      await files.move(operation.destination, operation.source);
       restored++;
-    } on FileSystemException {
+    } on Object {
       continue;
     }
   }
   return restored;
-}
-
-/// 入れ物をまたぐ移動は付け替えられない。写してから消す。
-Future<void> _move(File file, String destination) async {
-  try {
-    await file.rename(destination);
-  } on FileSystemException {
-    await file.copy(destination);
-    await file.delete();
-  }
 }

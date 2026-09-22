@@ -1,8 +1,7 @@
-import 'dart:io';
-
 import 'package:path/path.dart' as p;
 
 import '../domain/transfer.dart';
+import '../ports/file_ops_port.dart';
 
 /// 1 件の書き出しに失敗した理由。
 enum ExportFailure {
@@ -21,37 +20,33 @@ enum ExportFailure {
 /// 既にあるファイルは上書きしない。名前に連番を足して別の名前で置く。
 /// 書き出しで元の素材を失わないためである。
 Future<String> exportFile(
+  FileOpsPort files,
   String source,
   String destination,
   ExportMode mode,
 ) async {
-  final target = uniquePathIn(destination, p.basename(source));
-  final file = File(source);
+  final target = await uniquePathIn(files, destination, p.basename(source));
   if (mode == ExportMode.move) {
-    try {
-      // 同じ入れ物の中なら付け替えるだけで済む。
-      await file.rename(target);
-      return target;
-    } on FileSystemException {
-      // 入れ物をまたぐ移動は付け替えられない。写してから消す。
-      await file.copy(target);
-      await file.delete();
-      return target;
-    }
+    await files.move(source, target);
+  } else {
+    await files.copy(source, target);
   }
-  await file.copy(target);
   return target;
 }
 
 /// [directory] の中で、まだ使われていない名前を作る。
 ///
 /// `photo.jpg` が既にあれば `photo (2).jpg`、それもあれば `photo (3).jpg`。
-String uniquePathIn(String directory, String name) {
+Future<String> uniquePathIn(
+  FileOpsPort files,
+  String directory,
+  String name,
+) async {
   final base = p.basenameWithoutExtension(name);
   final extension = p.extension(name);
   var candidate = p.join(directory, name);
   var serial = 2;
-  while (File(candidate).existsSync() || Directory(candidate).existsSync()) {
+  while (await files.exists(candidate)) {
     candidate = p.join(directory, '$base ($serial)$extension');
     serial++;
   }

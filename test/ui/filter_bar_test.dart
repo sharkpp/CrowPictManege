@@ -1,4 +1,3 @@
-import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/domain/filter.dart';
 import 'package:crow_pict_manege/state/places.dart';
@@ -7,6 +6,8 @@ import 'package:crow_pict_manege/ui/filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/memory_catalog.dart';
 
 import 'localized_app.dart';
 
@@ -17,7 +18,7 @@ void main() {
       overrides: [
         // 設定はプロセス内に閉じたカタログへ残す（アプリ領域を触らない）。
         catalogProvider.overrideWith((ref) {
-          final catalog = DriftCatalog(CatalogDatabase.memory());
+          final catalog = DriftCatalog(memoryCatalog());
           ref.onDispose(catalog.close);
           return catalog;
         }),

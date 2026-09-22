@@ -3,12 +3,13 @@ import 'package:path/path.dart' as p;
 
 import '../adapters/catalog_database.dart';
 import '../adapters/drift_catalog.dart';
+import '../platform/platform.dart';
 import '../domain/places.dart';
 import '../ports/catalog_port.dart';
 
 /// カタログ（設定・ブックマーク・履歴）。プロセスで 1 つだけ開く。
 final catalogProvider = Provider<CatalogPort>((ref) {
-  final catalog = DriftCatalog(CatalogDatabase.appSupport());
+  final catalog = DriftCatalog(CatalogDatabase(openCatalogExecutor()));
   ref.onDispose(catalog.close);
   return catalog;
 });
