@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/services/image_hasher.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,8 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('同じ画像からは同じハッシュができる', () async {
     const path = 'test/fixtures/base.jpg';
-    final first = await perceptualHashOfFile(path);
-    final second = await perceptualHashOfFile(path);
+    final first = await perceptualHashOfAsset(const FileSystemSource(), path);
+    final second = await perceptualHashOfAsset(const FileSystemSource(), path);
 
     expect(first, isNotNull);
     expect(second, first);
@@ -19,6 +20,9 @@ void main() {
       ..writeAsBytesSync([0, 1, 2, 3]);
     addTearDown(broken.deleteSync);
 
-    expect(await perceptualHashOfFile(broken.path), isNull);
+    expect(
+      await perceptualHashOfAsset(const FileSystemSource(), broken.path),
+      isNull,
+    );
   });
 }

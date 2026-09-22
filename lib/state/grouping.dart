@@ -20,9 +20,8 @@ class GroupOptionsNotifier extends Notifier<GroupOptions> {
       state = change(state);
 
   /// 1 段目を変える。まとめない指定にしたら 2 段目も外す。
-  void setPrimary(GroupKey key) => state = key.isNone
-      ? const GroupOptions()
-      : state.copyWith(primary: key);
+  void setPrimary(GroupKey key) =>
+      state = key.isNone ? const GroupOptions() : state.copyWith(primary: key);
 
   void setSecondary(GroupKey key) => state = state.copyWith(secondary: key);
 

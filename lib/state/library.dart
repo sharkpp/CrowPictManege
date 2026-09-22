@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,6 +12,7 @@ import '../domain/folder_view.dart';
 import '../domain/merge.dart';
 import '../domain/models.dart';
 import '../domain/settings.dart';
+import '../ports/asset_source_port.dart';
 import '../ports/metadata_port.dart';
 import '../services/parallel.dart';
 import '../services/summary_loader.dart';
@@ -27,6 +26,11 @@ import 'settings.dart';
 
 final metadataPortProvider = Provider<MetadataPort>(
   (ref) => const CrowexifMetadata(),
+);
+
+/// 対象の取得元（SPEC §7.1）。プラットフォームごとに実装が変わる。
+final assetSourceProvider = Provider<AssetSourcePort>(
+  (ref) => const FileSystemSource(),
 );
 
 final thumbnailCacheProvider = Provider<ThumbnailCache>(
@@ -146,7 +150,7 @@ class LibraryNotifier extends Notifier<LibraryState> {
     final found = <MediaAsset>[];
     var lastPublish = DateTime.now();
     try {
-      await for (final asset in scanDirectory(root)) {
+      await for (final asset in ref.read(assetSourceProvider).scan(root)) {
         if (generation != _generation) return;
         found.add(asset);
         // 走査中も一覧を出す。表示の更新は間引く。
@@ -158,12 +162,6 @@ class LibraryNotifier extends Notifier<LibraryState> {
       }
     } on FolderUnavailable catch (error) {
       state = LibraryState(rootPath: root, failure: error.toError());
-      return;
-    } on FileSystemException catch (error) {
-      state = LibraryState(
-        rootPath: root,
-        failure: FolderError(FolderFailure.unreadable, detail: error.message),
-      );
       return;
     }
     if (generation != _generation) return;
@@ -293,18 +291,14 @@ class LibraryNotifier extends Notifier<LibraryState> {
       final asset = assets[i];
       if (!targets.contains(asset.path)) continue;
 
-      final FileStat stat;
-      try {
-        stat = File(asset.path).statSync();
-      } on FileSystemException {
-        continue;
-      }
+      final facts = await ref.read(assetSourceProvider).facts(asset.path);
+      if (facts == null) continue;
       final reloaded = MediaAsset(
         path: asset.path,
         name: asset.name,
         kind: asset.kind,
-        size: stat.size,
-        fileModifiedAt: stat.modified,
+        size: facts.size,
+        fileModifiedAt: facts.modifiedAt,
       );
 
       AssetSummary? summary;

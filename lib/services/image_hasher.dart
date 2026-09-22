@@ -1,27 +1,35 @@
-import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 
 import '../domain/perceptual_hash.dart';
+import '../ports/asset_source_port.dart';
 
-/// 画像ファイルから知覚ハッシュを作る（SPEC FR-Q4）。
+/// 画像から知覚ハッシュを作る（SPEC FR-Q4）。
 ///
-/// 復号は Isolate で行い、UI を止めない。埋め込みサムネイルがあればそれを使い、
-/// 原寸の復号を避ける。
-Future<int?> perceptualHashOfFile(String path, {Uint8List? thumbnail}) {
+/// 復号は別スレッドで行い、UI を止めない（Web は 1 本しかないのでその場で行う）。
+/// 埋め込みサムネイルがあればそれを使い、原寸の復号を避ける。
+Future<int?> perceptualHashOfAsset(
+  AssetSourcePort source,
+  String path, {
+  Uint8List? thumbnail,
+}) async {
   if (thumbnail != null && thumbnail.isNotEmpty) {
-    return Isolate.run(() => _hashBytes(thumbnail));
+    return compute(perceptualHashOfBytes, thumbnail);
   }
-  return Isolate.run(() {
-    final bytes = File(path).readAsBytesSync();
-    return _hashBytes(bytes);
-  });
+  final Uint8List bytes;
+  try {
+    bytes = await source.readBytes(path);
+  } on Object {
+    // 読めないファイルは似ているかどうかを問えない（SPEC NFR-3）。
+    return null;
+  }
+  return compute(perceptualHashOfBytes, bytes);
 }
 
-/// [perceptualHashOfFile] の同期版。Isolate の中から呼ぶ。
-int? _hashBytes(Uint8List bytes) {
+/// バイト列から知覚ハッシュを作る。別スレッドの入口になる。
+int? perceptualHashOfBytes(Uint8List bytes) {
   // image は JPEG・PNG・GIF・BMP・WebP・TIFF を読む。
   // 読めない形式・壊れたファイルは null とし、走査を止めない（SPEC NFR-3）。
   final img.Image? decoded;

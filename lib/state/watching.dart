@@ -97,6 +97,7 @@ class WatchNotifier extends Notifier<WatchState> {
       assets: [asset],
       rules: rules,
       fallbackRoot: p.dirname(path),
+      source: ref.read(assetSourceProvider),
       grouping: ref.read(groupOptionsProvider),
     );
     final entry = plan.entries.singleOrNull;

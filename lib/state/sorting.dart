@@ -92,6 +92,7 @@ class SortNotifier extends Notifier<SortState> {
       assets: ref.read(displayedAssetsProvider),
       rules: rules,
       fallbackRoot: root,
+      source: ref.read(assetSourceProvider),
       // 区切りの時間とまとめる半径は、まとめ方で選んだものを使い回す。
       grouping: ref.read(groupOptionsProvider),
     );

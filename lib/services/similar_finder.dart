@@ -1,6 +1,7 @@
 import '../domain/cached_asset.dart';
 import '../domain/models.dart';
 import '../domain/perceptual_hash.dart';
+import '../ports/asset_source_port.dart';
 import '../ports/catalog_port.dart';
 import 'image_hasher.dart';
 import 'parallel.dart';
@@ -16,6 +17,7 @@ Stream<SearchProgress> findSimilar({
   required Set<String> seeds,
   required int threshold,
   required CatalogPort catalog,
+  required AssetSourcePort source,
   int concurrency = 4,
 }) async* {
   // 動画は種にも結果にも含めない（SPEC FR-Q6）。
@@ -51,7 +53,8 @@ Stream<SearchProgress> findSimilar({
       final computed = await mapWithConcurrency(
         missing,
         concurrency,
-        (asset) => perceptualHashOfFile(
+        (asset) => perceptualHashOfAsset(
+          source,
           asset.path,
           thumbnail: cached[asset.path]?.thumbnail,
         ),

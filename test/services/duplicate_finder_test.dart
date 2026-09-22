@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/domain/duplicates.dart';
+import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/services/duplicate_finder.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,8 +34,11 @@ void main() {
     );
   }
 
-  Future<DuplicateProgress> run(List<MediaAsset> assets) =>
-      findDuplicates(candidates: assets, catalog: catalog).last;
+  Future<DuplicateProgress> run(List<MediaAsset> assets) => findDuplicates(
+    candidates: assets,
+    catalog: catalog,
+    source: const FileSystemSource(),
+  ).last;
 
   test('同じ内容のファイルを組にする', () async {
     final a = write('a.jpg', [1, 2, 3]);

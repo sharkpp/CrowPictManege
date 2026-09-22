@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crow_pict_manege/domain/content_hash.dart';
+import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/services/file_hasher.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -22,8 +23,14 @@ void main() {
     write('b.bin', bytes);
 
     expect(
-      await contentHashOfFile(p.join(root.path, 'a.bin')),
-      await contentHashOfFile(p.join(root.path, 'b.bin')),
+      await contentHashOfAsset(
+        const FileSystemSource(),
+        p.join(root.path, 'a.bin'),
+      ),
+      await contentHashOfAsset(
+        const FileSystemSource(),
+        p.join(root.path, 'b.bin'),
+      ),
     );
   });
 
@@ -32,8 +39,16 @@ void main() {
     write('b.bin', List<int>.filled(1000, 2));
 
     expect(
-      await contentHashOfFile(p.join(root.path, 'a.bin')),
-      isNot(await contentHashOfFile(p.join(root.path, 'b.bin'))),
+      await contentHashOfAsset(
+        const FileSystemSource(),
+        p.join(root.path, 'a.bin'),
+      ),
+      isNot(
+        await contentHashOfAsset(
+          const FileSystemSource(),
+          p.join(root.path, 'b.bin'),
+        ),
+      ),
     );
   });
 
@@ -46,18 +61,38 @@ void main() {
     write('b.bin', b);
 
     expect(
-      await contentHashOfFile(p.join(root.path, 'a.bin')),
-      isNot(await contentHashOfFile(p.join(root.path, 'b.bin'))),
+      await contentHashOfAsset(
+        const FileSystemSource(),
+        p.join(root.path, 'a.bin'),
+      ),
+      isNot(
+        await contentHashOfAsset(
+          const FileSystemSource(),
+          p.join(root.path, 'b.bin'),
+        ),
+      ),
     );
   });
 
   test('読めないファイルは null を返す', () async {
-    expect(await contentHashOfFile(p.join(root.path, 'いない.bin')), isNull);
+    expect(
+      await contentHashOfAsset(
+        const FileSystemSource(),
+        p.join(root.path, 'いない.bin'),
+      ),
+      isNull,
+    );
   });
 
   test('空のファイルもハッシュを作れる', () async {
     write('empty.bin', const []);
-    expect(await contentHashOfFile(p.join(root.path, 'empty.bin')), isNotNull);
+    expect(
+      await contentHashOfAsset(
+        const FileSystemSource(),
+        p.join(root.path, 'empty.bin'),
+      ),
+      isNotNull,
+    );
   });
 
   test('大きさが違えば中身が同じでも別のハッシュになる', () {

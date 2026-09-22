@@ -1,7 +1,7 @@
-import '../adapters/file_system_source.dart';
 import '../domain/cached_asset.dart';
 import '../domain/models.dart';
 import '../domain/search.dart';
+import '../ports/asset_source_port.dart';
 import '../ports/catalog_port.dart';
 import '../ports/metadata_port.dart';
 import 'parallel.dart';
@@ -32,6 +32,7 @@ Stream<SearchProgress> runSearch({
   required SearchQuery query,
   required MetadataPort metadata,
   required CatalogPort catalog,
+  required AssetSourcePort source,
   int concurrency = 4,
 }) async* {
   if (!query.isActive || roots.isEmpty) {
@@ -91,7 +92,7 @@ Stream<SearchProgress> runSearch({
   }
 
   for (final root in roots) {
-    await for (final asset in scanDirectory(root)) {
+    await for (final asset in source.scan(root)) {
       if (!seen.add(asset.path)) continue;
       chunk.add(asset);
       if (chunk.length < _chunkSize) continue;

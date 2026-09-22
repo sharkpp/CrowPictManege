@@ -8,6 +8,7 @@ import '../domain/models.dart';
 import '../domain/path_template.dart';
 import '../domain/sort_rule.dart';
 import '../domain/transfer.dart';
+import '../ports/asset_source_port.dart';
 import 'file_hasher.dart';
 
 /// 1 件をどう扱うか（SPEC FR-S3）。
@@ -99,6 +100,7 @@ Future<SortPlan> planSort({
   required List<MediaAsset> assets,
   required List<SortRule> rules,
   required String fallbackRoot,
+  required AssetSourcePort source,
   GroupOptions grouping = const GroupOptions(),
   String Function(GeoPoint point)? placeName,
 }) async {
@@ -161,7 +163,7 @@ Future<SortPlan> planSort({
       continue;
     }
 
-    final entry = await _resolve(asset, rule, target, taken);
+    final entry = await _resolve(asset, rule, target, taken, source);
     entries.add(entry);
     if (entry.disposition.writes) {
       taken.add(entry.destination);
@@ -179,6 +181,7 @@ Future<SortPlanEntry> _resolve(
   SortRule rule,
   String target,
   Set<String> taken,
+  AssetSourcePort source,
 ) async {
   final occupied = taken.contains(target) || File(target).existsSync();
   if (!occupied) {
@@ -191,7 +194,8 @@ Future<SortPlanEntry> _resolve(
   }
 
   // 同じ内容なら、どの方針であっても置き直す意味がない。
-  if (!taken.contains(target) && await _sameContent(asset.path, target)) {
+  if (!taken.contains(target) &&
+      await _sameContent(source, asset.path, target)) {
     return SortPlanEntry(
       asset: asset,
       rule: rule,
@@ -223,10 +227,14 @@ Future<SortPlanEntry> _resolve(
 }
 
 /// 内容ハッシュが一致するか（SPEC FR-S4）。読めなければ違うものとして扱う。
-Future<bool> _sameContent(String source, String target) async {
-  final left = await contentHashOfFile(source);
+Future<bool> _sameContent(
+  AssetSourcePort source,
+  String path,
+  String target,
+) async {
+  final left = await contentHashOfAsset(source, path);
   if (left == null) return false;
-  final right = await contentHashOfFile(target);
+  final right = await contentHashOfAsset(source, target);
   return right != null && left == right;
 }
 

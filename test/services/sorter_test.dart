@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/domain/filter.dart';
 import 'package:crow_pict_manege/domain/models.dart';
 import 'package:crow_pict_manege/domain/sort_rule.dart';
@@ -64,6 +65,7 @@ void main() {
       assets: assets,
       rules: [rule()],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
 
     expect(plan.writes, hasLength(1));
@@ -92,6 +94,7 @@ void main() {
         ),
       ],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
 
     expect(plan.writes, hasLength(1));
@@ -111,6 +114,7 @@ void main() {
         rule(template: 'second/{basename}.{ext}'),
       ],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(plan.writes.single.destination, endsWith('first/a.jpg'));
   });
@@ -125,6 +129,7 @@ void main() {
       assets: assets,
       rules: [rule()],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(plan.entries.single.disposition, SortDisposition.duplicate);
     expect(plan.writes, isEmpty);
@@ -142,6 +147,7 @@ void main() {
       assets: assets,
       rules: [rule()],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(skipped.entries.single.disposition, SortDisposition.collision);
 
@@ -149,6 +155,7 @@ void main() {
       assets: assets,
       rules: [rule(collision: CollisionPolicy.serial)],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(serial.writes.single.destination, endsWith('a (2).jpg'));
 
@@ -156,6 +163,7 @@ void main() {
       assets: assets,
       rules: [rule(collision: CollisionPolicy.overwrite)],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(overwrite.writes.single.destination, existing.path);
   });
@@ -170,6 +178,7 @@ void main() {
       assets: assets,
       rules: [rule(collision: CollisionPolicy.serial)],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(plan.writes, hasLength(2));
     expect(plan.writes.first.destination, endsWith('03/a.jpg'));
@@ -182,6 +191,7 @@ void main() {
       assets: assets,
       rules: [rule(destination: root.path)],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(plan.entries.single.disposition, SortDisposition.inPlace);
   });
@@ -192,6 +202,7 @@ void main() {
       assets: assets,
       rules: [rule()],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     final result = await runSort(plan);
 
@@ -207,6 +218,7 @@ void main() {
       assets: assets,
       rules: [rule(mode: ExportMode.move)],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     final result = await runSort(plan);
 
@@ -224,6 +236,7 @@ void main() {
       assets: assets,
       rules: [rule()],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     File(assets.single.path).deleteSync();
 
@@ -242,6 +255,7 @@ void main() {
       assets: assets,
       rules: [rule(template: '{session}/{basename}.{ext}')],
       fallbackRoot: root.path,
+      source: const FileSystemSource(),
     );
     expect(plan.writes.first.destination, endsWith('1/a.jpg'));
     expect(plan.writes.last.destination, endsWith('2/b.jpg'));

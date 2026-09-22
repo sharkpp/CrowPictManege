@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:crow_pict_manege/adapters/catalog_database.dart';
 import 'package:crow_pict_manege/adapters/crowexif_metadata.dart';
+import 'package:crow_pict_manege/adapters/file_system_source.dart';
 import 'package:crow_pict_manege/adapters/drift_catalog.dart';
 import 'package:crow_pict_manege/domain/search.dart';
 import 'package:crow_pict_manege/services/search_runner.dart';
@@ -45,6 +46,7 @@ void main() {
         query: query,
         metadata: const CrowexifMetadata(),
         catalog: catalog,
+        source: const FileSystemSource(),
       ).last;
 
   test('ファイル名で下位フォルダまで探す', () async {

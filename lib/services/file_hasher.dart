@@ -1,31 +1,32 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import '../domain/content_hash.dart';
+import '../ports/asset_source_port.dart';
 
-/// ファイルの内容ハッシュを作る（SPEC §4.1、FR-B9）。
+/// 対象の内容ハッシュを作る（SPEC §4.1、FR-B9）。
 ///
 /// 全体は読まず、大きさと先頭・末尾のブロックだけを見る。ブロック 2 つ分に
-/// 収まる小さいファイルはそのまま全体を読む。読めなければ null を返し、
+/// 収まる小さいものはそのまま全体を読む。読めなければ null を返し、
 /// 走査は止めない（SPEC NFR-3）。
-Future<String?> contentHashOfFile(String path) async {
-  RandomAccessFile? file;
+Future<String?> contentHashOfAsset(AssetSourcePort source, String path) async {
   try {
-    file = await File(path).open();
-    final size = await file.length();
+    final facts = await source.facts(path);
+    if (facts == null) return null;
+    final size = facts.size;
 
     if (size <= contentHashBlockSize * 2) {
-      final all = await file.read(size);
+      final all = await source.readBytes(path);
       return contentHashOf(size: size, head: all, tail: Uint8List(0));
     }
 
-    final head = await file.read(contentHashBlockSize);
-    await file.setPosition(size - contentHashBlockSize);
-    final tail = await file.read(contentHashBlockSize);
+    final head = await source.readRange(path, 0, contentHashBlockSize);
+    final tail = await source.readRange(
+      path,
+      size - contentHashBlockSize,
+      contentHashBlockSize,
+    );
     return contentHashOf(size: size, head: head, tail: tail);
   } on Object {
     return null;
-  } finally {
-    await file?.close();
   }
 }

@@ -1,6 +1,7 @@
 import '../domain/cached_asset.dart';
 import '../domain/duplicates.dart';
 import '../domain/models.dart';
+import '../ports/asset_source_port.dart';
 import '../ports/catalog_port.dart';
 import 'file_hasher.dart';
 import 'parallel.dart';
@@ -26,6 +27,7 @@ class DuplicateProgress {
 Stream<DuplicateProgress> findDuplicates({
   required List<MediaAsset> candidates,
   required CatalogPort catalog,
+  required AssetSourcePort source,
   int concurrency = 4,
 }) async* {
   if (candidates.length < 2) {
@@ -66,7 +68,7 @@ Stream<DuplicateProgress> findDuplicates({
       final computed = await mapWithConcurrency(
         missing,
         concurrency,
-        (asset) => contentHashOfFile(asset.path),
+        (asset) => contentHashOfAsset(source, asset.path),
         onError: (_, _) => null,
       );
       final toStore = <CachedAsset>[];

@@ -105,6 +105,7 @@ class SearchNotifier extends Notifier<SearchState> {
           query: query,
           metadata: ref.read(metadataPortProvider),
           catalog: ref.read(catalogProvider),
+          source: ref.read(assetSourceProvider),
         ).listen((progress) {
           state = SearchState(
             results: progress.results,
@@ -136,6 +137,7 @@ class SearchNotifier extends Notifier<SearchState> {
           seeds: seeds,
           threshold: distance,
           catalog: ref.read(catalogProvider),
+          source: ref.read(assetSourceProvider),
         ).listen((progress) {
           state = SearchState(
             results: progress.results,
@@ -166,6 +168,7 @@ class SearchNotifier extends Notifier<SearchState> {
         findDuplicates(
           candidates: ref.read(libraryProvider).assets,
           catalog: ref.read(catalogProvider),
+          source: ref.read(assetSourceProvider),
         ).listen((progress) {
           state = SearchState(
             results: flattenDuplicates(progress.groups),
