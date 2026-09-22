@@ -6,6 +6,7 @@ import 'package:media_kit/media_kit.dart';
 
 import '../adapters/crowexif_bytes_metadata.dart';
 import '../adapters/web_directory_source.dart';
+import '../adapters/web_metadata_writer.dart';
 import '../ports/asset_source_port.dart';
 import '../ports/file_ops_port.dart';
 import '../ports/metadata_port.dart';
@@ -19,8 +20,10 @@ import 'capabilities.dart';
 /// できない機能は画面から隠さず、理由を添えて無効にする。
 const platformCapabilities = PlatformCapabilities(
   folderPicker: true,
-  // 許可ディレクトリ内への書き戻しは W4 で入れる。
-  writeMetadata: false,
+  // 許可ディレクトリ内なら書き戻せる（SPEC §8）。
+  writeMetadata: true,
+  // 利用者のフォルダへ勝手に控えを置かない。取り消しは出さない。
+  backupOriginals: false,
   setFileTimes: false,
   exportFiles: false,
   transferToApps: false,
@@ -34,6 +37,8 @@ const platformCapabilities = PlatformCapabilities(
   parallel: false,
   // ブラウザの再生器は 1 コマ送りを持たない。
   videoFrameStep: false,
+  // 1 本のスレッドで走査するので、際限なく取り込まない（SPEC §7.3）。
+  maxScan: 20000,
 );
 
 /// 取得元は 1 つだけ持つ。
@@ -49,7 +54,7 @@ MetadataPort createMetadataPort() => CrowexifBytesMetadata(_source);
 MetadataWritePort? createMetadataWriter({
   String? backupDirectory,
   int backupGenerations = 3,
-}) => null;
+}) => WebMetadataWriter(_source);
 
 FileOpsPort? createFileOps() => null;
 

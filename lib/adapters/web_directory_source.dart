@@ -108,6 +108,20 @@ class WebDirectorySource implements AssetSourcePort {
     }
   }
 
+  /// 走査で見つけた 1 件へ書き戻す（SPEC §8、許可ディレクトリ内）。
+  ///
+  /// ブラウザは一時ファイルへ書いてから置き換える。途中で中断しても、
+  /// 半端な中身のファイルは残らない。
+  Future<void> writeBytes(String path, Uint8List bytes) async {
+    final handle = _files[path];
+    if (handle == null) {
+      throw StateError('走査していない対象は書けない: $path');
+    }
+    final stream = await handle.createWritable().toDart;
+    await stream.write(bytes.toJS).toDart;
+    await stream.close().toDart;
+  }
+
   Future<web.File> _blobOf(String path) async {
     final handle = _files[path];
     if (handle == null) {

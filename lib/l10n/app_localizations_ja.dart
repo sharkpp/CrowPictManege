@@ -1504,4 +1504,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get capabilityUnavailable => 'この環境では使えません';
+
+  @override
+  String get statusStopScan => '中断';
+
+  @override
+  String statusScanTruncated(int count) {
+    return '上限 $count 件で打ち切りました';
+  }
 }

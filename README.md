@@ -42,9 +42,12 @@ $ flutter gen-l10n
 $ dart run build_runner build
 ```
 
-Web 版は `flutter build web` で組み立てる。カタログは WebAssembly 版 SQLite を使い、
-`web/sqlite3.wasm` と `web/drift_worker.js` を配布物に含める。できることは
-プラットフォームごとに違う（SPEC §8）。使えない機能は隠さず、理由を添えて無効にする。
+Web 版は `flutter build web` で組み立てる。フォルダは File System Access API の
+ディレクトリハンドルで開き、カタログは WebAssembly 版 SQLite に置く
+（`web/sqlite3.wasm` と `web/drift_worker.js` を配布物に含める）。
+許可したフォルダの中なら書き戻しもできるが、原本の控えは取れないので取り消しは無い。
+できることはプラットフォームごとに違う（SPEC §8）。使えない機能は隠さず、
+理由を添えて無効にする。
 
 ## いまできること
 

@@ -264,13 +264,19 @@ class _BackupSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(l10n.settingsSectionBackup, style: theme.textTheme.labelLarge),
+        // 控えを取れない環境では、隠さず理由を添えて触れなくする（SPEC §8）。
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.settingsBackupEnabled),
-          value: settings.backupEnabled,
-          onChanged: (value) => notifier.update(
-            (current) => current.copyWith(backupEnabled: value),
-          ),
+          subtitle: platformCapabilities.backupOriginals
+              ? null
+              : Text(l10n.capabilityUnavailable),
+          value: platformCapabilities.backupOriginals && settings.backupEnabled,
+          onChanged: platformCapabilities.backupOriginals
+              ? (value) => notifier.update(
+                  (current) => current.copyWith(backupEnabled: value),
+                )
+              : null,
         ),
         Row(
           children: [

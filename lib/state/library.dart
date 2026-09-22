@@ -98,6 +98,7 @@ class LibraryState {
     this.scanning = false,
     this.analyzed = 0,
     this.errorCount = 0,
+    this.truncated = false,
     this.failure,
   });
 
@@ -112,6 +113,9 @@ class LibraryState {
 
   final int errorCount;
 
+  /// 走査の上限に達して打ち切った（SPEC §7.3）。
+  final bool truncated;
+
   /// 走査そのものが成立しなかった場合の理由。
   /// フォルダを開けなかった理由。開けていれば null。
   final FolderError? failure;
@@ -124,6 +128,7 @@ class LibraryState {
     bool? scanning,
     int? analyzed,
     int? errorCount,
+    bool? truncated,
     FolderError? failure,
   }) => LibraryState(
     rootPath: rootPath ?? this.rootPath,
@@ -131,6 +136,7 @@ class LibraryState {
     scanning: scanning ?? this.scanning,
     analyzed: analyzed ?? this.analyzed,
     errorCount: errorCount ?? this.errorCount,
+    truncated: truncated ?? this.truncated,
     failure: failure,
   );
 }
@@ -149,11 +155,18 @@ class LibraryNotifier extends Notifier<LibraryState> {
     state = LibraryState(rootPath: root, scanning: true);
 
     final found = <MediaAsset>[];
+    // 1 本のスレッドで走査する環境では上限を設ける（SPEC §7.3）。
+    final limit = platformCapabilities.maxScan;
+    var truncated = false;
     var lastPublish = DateTime.now();
     try {
       await for (final asset in ref.read(assetSourceProvider).scan(root)) {
         if (generation != _generation) return;
         found.add(asset);
+        if (limit != null && found.length >= limit) {
+          truncated = true;
+          break;
+        }
         // 走査中も一覧を出す。表示の更新は間引く。
         final now = DateTime.now();
         if (now.difference(lastPublish) > const Duration(milliseconds: 200)) {
@@ -166,9 +179,16 @@ class LibraryNotifier extends Notifier<LibraryState> {
       return;
     }
     if (generation != _generation) return;
-    state = state.copyWith(assets: List.of(found));
+    state = state.copyWith(assets: List.of(found), truncated: truncated);
 
     await _analyze(generation);
+  }
+
+  /// 走査を途中でやめる（SPEC §7.3）。読めた分はそのまま残す。
+  void stop() {
+    if (!state.scanning) return;
+    _generation++;
+    state = state.copyWith(scanning: false);
   }
 
   Future<void> _analyze(int generation) async {

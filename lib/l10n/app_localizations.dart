@@ -2755,6 +2755,18 @@ abstract class AppLocalizations {
   /// In ja, this message translates to:
   /// **'この環境では使えません'**
   String get capabilityUnavailable;
+
+  /// No description provided for @statusStopScan.
+  ///
+  /// In ja, this message translates to:
+  /// **'中断'**
+  String get statusStopScan;
+
+  /// 走査の上限に達したことを示す（SPEC §7.3、Web）
+  ///
+  /// In ja, this message translates to:
+  /// **'上限 {count} 件で打ち切りました'**
+  String statusScanTruncated(int count);
 }
 
 class _AppLocalizationsDelegate

@@ -442,5 +442,7 @@
   "writeDestinationHintOriginal": "Rewrites the metadata in the original file.",
   "writeDestinationHintSidecar": "Leaves the original file untouched and writes the .xmp next to it. The list keeps showing the file's own values.",
   "writeDestinationXmpOnly": "A sidecar can only hold XMP",
-  "capabilityUnavailable": "Not available on this platform"
+  "capabilityUnavailable": "Not available on this platform",
+  "statusStopScan": "Stop",
+  "statusScanTruncated": "Stopped at the limit of {count}"
 }

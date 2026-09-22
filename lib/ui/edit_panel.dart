@@ -1030,7 +1030,10 @@ class _ConfirmDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final backup = ref.watch(settingsProvider).backupEnabled;
+    // 控えを取れない環境では、設定に関わらず取れない（SPEC §8）。
+    final backup =
+        platformCapabilities.backupOriginals &&
+        ref.watch(settingsProvider).backupEnabled;
 
     return AlertDialog(
       title: Text(l10n.editConfirmTitle),

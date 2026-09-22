@@ -26,6 +26,7 @@ import 'capabilities.dart';
 const platformCapabilities = PlatformCapabilities(
   folderPicker: true,
   writeMetadata: true,
+  backupOriginals: true,
   setFileTimes: true,
   exportFiles: true,
   transferToApps: true,

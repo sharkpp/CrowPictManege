@@ -582,12 +582,20 @@ class _StatusBar extends ConsumerWidget {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
           if (state.scanning) const SizedBox(width: 8),
+          // 走査は途中でやめられる（SPEC §7.3）。
+          if (state.scanning)
+            TextButton(
+              onPressed: ref.read(libraryProvider.notifier).stop,
+              child: Text(l10n.statusStopScan),
+            ),
           Flexible(
             child: Text(
               // 絞り込みが効いている間は、出している件数と全体の両方を出す。
               '${shown == state.total ? l10n.itemCount(state.total) : l10n.itemCountFiltered(shown, state.total)}'
               '${state.scanning ? l10n.statusAnalyzed(state.analyzed) : ''}'
-              '${selected > 0 ? l10n.statusSelected(selected) : ''}',
+              '${selected > 0 ? l10n.statusSelected(selected) : ''}'
+              // 上限で打ち切ったことは隠さない（SPEC §7.3）。
+              '${state.truncated ? ' · ${l10n.statusScanTruncated(state.total)}' : ''}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: theme.textTheme.bodySmall,

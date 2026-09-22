@@ -1625,4 +1625,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get capabilityUnavailable => 'Not available on this platform';
+
+  @override
+  String get statusStopScan => 'Stop';
+
+  @override
+  String statusScanTruncated(int count) {
+    return 'Stopped at the limit of $count';
+  }
 }

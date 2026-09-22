@@ -1143,5 +1143,15 @@
   "writeDestinationHintOriginal": "元のファイルのメタ情報を書き換えます。",
   "writeDestinationHintSidecar": "元のファイルには触れず、隣の .xmp に書きます。一覧の表示は変わりません。",
   "writeDestinationXmpOnly": "サイドカーには XMP しか置けません",
-  "capabilityUnavailable": "この環境では使えません"
+  "capabilityUnavailable": "この環境では使えません",
+  "statusStopScan": "中断",
+  "statusScanTruncated": "上限 {count} 件で打ち切りました",
+  "@statusScanTruncated": {
+    "description": "走査の上限に達したことを示す（SPEC §7.3、Web）",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }
