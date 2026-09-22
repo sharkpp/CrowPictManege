@@ -29,13 +29,13 @@ class CachedAsset {
   final String? error;
 
   /// 類似画像検索の知覚ハッシュ（SPEC FR-Q6）。未計算なら null。
-  final int? perceptualHash;
+  final String? perceptualHash;
 
   /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
   final String? contentHash;
 
   CachedAsset copyWith({
-    int? perceptualHash,
+    String? perceptualHash,
     String? contentHash,
     Uint8List? thumbnail,
   }) => CachedAsset(

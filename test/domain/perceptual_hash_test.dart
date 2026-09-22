@@ -33,8 +33,22 @@ void main() {
   });
 
   test('距離は違うビットの数', () {
-    expect(hammingDistance(0, 0), 0);
-    expect(hammingDistance(0x0F, 0x00), 4);
-    expect(hammingDistance(0x1, 0x2), 2);
+    expect(hammingDistance('0000000000000000', '0000000000000000'), 0);
+    expect(hammingDistance('000000000000000f', '0000000000000000'), 4);
+    expect(hammingDistance('0000000000000001', '0000000000000002'), 2);
+    // 上位 32 ビットの違いも数える（ブラウザでも同じ値になること）。
+    expect(hammingDistance('8000000000000000', '0000000000000000'), 1);
+    expect(hammingDistance('ffffffffffffffff', '0000000000000000'), 64);
+  });
+
+  test('ハッシュは 16 桁の 16 進で持つ', () {
+    final hash = differenceHash(gradient());
+    expect(hash, hasLength(dHashDigits));
+    expect(RegExp(r'^[0-9a-f]{16}$').hasMatch(hash), isTrue);
+  });
+
+  test('読めない値はまったく似ていないものとして扱う', () {
+    expect(hammingDistance('', '0000000000000000'), dHashBits);
+    expect(hammingDistance('zzzzzzzzzzzzzzzz', '0000000000000000'), dHashBits);
   });
 }

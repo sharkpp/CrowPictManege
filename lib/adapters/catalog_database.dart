@@ -43,7 +43,7 @@ class CachedAssetEntries extends Table {
   TextColumn get summary => text().nullable()();
   BlobColumn get thumbnail => blob().nullable()();
   TextColumn get error => text().nullable()();
-  IntColumn get perceptualHash => integer().nullable()();
+  TextColumn get perceptualHash => text().nullable()();
 
   /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
   TextColumn get contentHash => text().nullable()();
@@ -62,7 +62,7 @@ class CatalogDatabase extends _$CatalogDatabase {
   CatalogDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -73,6 +73,11 @@ class CatalogDatabase extends _$CatalogDatabase {
       // 3: 重複検出の内容ハッシュ（FR-B9）を足した。
       if (from < 3) {
         await m.addColumn(cachedAssetEntries, cachedAssetEntries.contentHash);
+      }
+      // 4: 知覚ハッシュを 16 進の桁で持つようにした（ブラウザでも同じ値に
+      // なるようにするため）。前の形の値は読み替えず、作り直させる。
+      if (from < 4) {
+        await m.alterTable(TableMigration(cachedAssetEntries));
       }
     },
   );

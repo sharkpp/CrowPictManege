@@ -18,11 +18,11 @@ void main() {
   final candidates = [seed, near, far];
 
   final hashes = {
-    seed.path: 0x0F0F0F0F0F0F0F0F,
+    seed.path: '0f0f0f0f0f0f0f0f',
     // 2 ビットだけ違う。
-    near.path: 0x0F0F0F0F0F0F0F0C,
+    near.path: '0f0f0f0f0f0f0f0c',
     // 全ビット違う。
-    far.path: 0xF0F0F0F0F0F0F0F0,
+    far.path: 'f0f0f0f0f0f0f0f0',
   };
 
   test('種に近い順に並び、閾値を超えるものは外れる', () {
@@ -51,7 +51,7 @@ void main() {
   test('ハッシュが無い対象は結果に入らない', () {
     final results = rankBySimilarity(
       candidates,
-      {seed.path: 0},
+      {seed.path: '0000000000000000'},
       {seed.path},
       8,
     );

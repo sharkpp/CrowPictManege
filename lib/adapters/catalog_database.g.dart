@@ -759,11 +759,11 @@ class $CachedAssetEntriesTable extends CachedAssetEntries
     'perceptualHash',
   );
   @override
-  late final GeneratedColumn<int> perceptualHash = GeneratedColumn<int>(
+  late final GeneratedColumn<String> perceptualHash = GeneratedColumn<String>(
     'perceptual_hash',
     aliasedName,
     true,
-    type: DriftSqlType.int,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _contentHashMeta = const VerificationMeta(
@@ -917,7 +917,7 @@ class $CachedAssetEntriesTable extends CachedAssetEntries
         data['${effectivePrefix}error'],
       ),
       perceptualHash: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
+        DriftSqlType.string,
         data['${effectivePrefix}perceptual_hash'],
       ),
       contentHash: attachedDatabase.typeMapping.read(
@@ -947,7 +947,7 @@ class CachedAssetEntry extends DataClass
   final String? summary;
   final Uint8List? thumbnail;
   final String? error;
-  final int? perceptualHash;
+  final String? perceptualHash;
 
   /// 重複検出の内容ハッシュ（SPEC §4.1、FR-B9）。未計算なら null。
   final String? contentHash;
@@ -979,7 +979,7 @@ class CachedAssetEntry extends DataClass
       map['error'] = Variable<String>(error);
     }
     if (!nullToAbsent || perceptualHash != null) {
-      map['perceptual_hash'] = Variable<int>(perceptualHash);
+      map['perceptual_hash'] = Variable<String>(perceptualHash);
     }
     if (!nullToAbsent || contentHash != null) {
       map['content_hash'] = Variable<String>(contentHash);
@@ -1024,7 +1024,7 @@ class CachedAssetEntry extends DataClass
       summary: serializer.fromJson<String?>(json['summary']),
       thumbnail: serializer.fromJson<Uint8List?>(json['thumbnail']),
       error: serializer.fromJson<String?>(json['error']),
-      perceptualHash: serializer.fromJson<int?>(json['perceptualHash']),
+      perceptualHash: serializer.fromJson<String?>(json['perceptualHash']),
       contentHash: serializer.fromJson<String?>(json['contentHash']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1039,7 +1039,7 @@ class CachedAssetEntry extends DataClass
       'summary': serializer.toJson<String?>(summary),
       'thumbnail': serializer.toJson<Uint8List?>(thumbnail),
       'error': serializer.toJson<String?>(error),
-      'perceptualHash': serializer.toJson<int?>(perceptualHash),
+      'perceptualHash': serializer.toJson<String?>(perceptualHash),
       'contentHash': serializer.toJson<String?>(contentHash),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1052,7 +1052,7 @@ class CachedAssetEntry extends DataClass
     Value<String?> summary = const Value.absent(),
     Value<Uint8List?> thumbnail = const Value.absent(),
     Value<String?> error = const Value.absent(),
-    Value<int?> perceptualHash = const Value.absent(),
+    Value<String?> perceptualHash = const Value.absent(),
     Value<String?> contentHash = const Value.absent(),
     DateTime? updatedAt,
   }) => CachedAssetEntry(
@@ -1138,7 +1138,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
   final Value<String?> summary;
   final Value<Uint8List?> thumbnail;
   final Value<String?> error;
-  final Value<int?> perceptualHash;
+  final Value<String?> perceptualHash;
   final Value<String?> contentHash;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -1176,7 +1176,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     Expression<String>? summary,
     Expression<Uint8List>? thumbnail,
     Expression<String>? error,
-    Expression<int>? perceptualHash,
+    Expression<String>? perceptualHash,
     Expression<String>? contentHash,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -1202,7 +1202,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
     Value<String?>? summary,
     Value<Uint8List?>? thumbnail,
     Value<String?>? error,
-    Value<int?>? perceptualHash,
+    Value<String?>? perceptualHash,
     Value<String?>? contentHash,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -1243,7 +1243,7 @@ class CachedAssetEntriesCompanion extends UpdateCompanion<CachedAssetEntry> {
       map['error'] = Variable<String>(error.value);
     }
     if (perceptualHash.present) {
-      map['perceptual_hash'] = Variable<int>(perceptualHash.value);
+      map['perceptual_hash'] = Variable<String>(perceptualHash.value);
     }
     if (contentHash.present) {
       map['content_hash'] = Variable<String>(contentHash.value);
@@ -1419,7 +1419,16 @@ class $$SettingEntriesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$SettingEntriesTable, SettingEntry>(table),
+                  BaseReferences<
+                    _$CatalogDatabase,
+                    $SettingEntriesTable,
+                    SettingEntry
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1587,7 +1596,16 @@ class $$BookmarkEntriesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$BookmarkEntriesTable, BookmarkEntry>(table),
+                  BaseReferences<
+                    _$CatalogDatabase,
+                    $BookmarkEntriesTable,
+                    BookmarkEntry
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1732,7 +1750,16 @@ class $$VisitEntriesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$VisitEntriesTable, VisitEntry>(table),
+                  BaseReferences<
+                    _$CatalogDatabase,
+                    $VisitEntriesTable,
+                    VisitEntry
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),
@@ -1764,7 +1791,7 @@ typedef $$CachedAssetEntriesTableCreateCompanionBuilder =
       Value<String?> summary,
       Value<Uint8List?> thumbnail,
       Value<String?> error,
-      Value<int?> perceptualHash,
+      Value<String?> perceptualHash,
       Value<String?> contentHash,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -1777,7 +1804,7 @@ typedef $$CachedAssetEntriesTableUpdateCompanionBuilder =
       Value<String?> summary,
       Value<Uint8List?> thumbnail,
       Value<String?> error,
-      Value<int?> perceptualHash,
+      Value<String?> perceptualHash,
       Value<String?> contentHash,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -1822,7 +1849,7 @@ class $$CachedAssetEntriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get perceptualHash => $composableBuilder(
+  ColumnFilters<String> get perceptualHash => $composableBuilder(
     column: $table.perceptualHash,
     builder: (column) => ColumnFilters(column),
   );
@@ -1877,7 +1904,7 @@ class $$CachedAssetEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get perceptualHash => $composableBuilder(
+  ColumnOrderings<String> get perceptualHash => $composableBuilder(
     column: $table.perceptualHash,
     builder: (column) => ColumnOrderings(column),
   );
@@ -1922,7 +1949,7 @@ class $$CachedAssetEntriesTableAnnotationComposer
   GeneratedColumn<String> get error =>
       $composableBuilder(column: $table.error, builder: (column) => column);
 
-  GeneratedColumn<int> get perceptualHash => $composableBuilder(
+  GeneratedColumn<String> get perceptualHash => $composableBuilder(
     column: $table.perceptualHash,
     builder: (column) => column,
   );
@@ -1982,7 +2009,7 @@ class $$CachedAssetEntriesTableTableManager
                 Value<String?> summary = const Value.absent(),
                 Value<Uint8List?> thumbnail = const Value.absent(),
                 Value<String?> error = const Value.absent(),
-                Value<int?> perceptualHash = const Value.absent(),
+                Value<String?> perceptualHash = const Value.absent(),
                 Value<String?> contentHash = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -2006,7 +2033,7 @@ class $$CachedAssetEntriesTableTableManager
                 Value<String?> summary = const Value.absent(),
                 Value<Uint8List?> thumbnail = const Value.absent(),
                 Value<String?> error = const Value.absent(),
-                Value<int?> perceptualHash = const Value.absent(),
+                Value<String?> perceptualHash = const Value.absent(),
                 Value<String?> contentHash = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -2023,7 +2050,18 @@ class $$CachedAssetEntriesTableTableManager
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map(
+                (e) => (
+                  e.readTable<$CachedAssetEntriesTable, CachedAssetEntry>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$CatalogDatabase,
+                    $CachedAssetEntriesTable,
+                    CachedAssetEntry
+                  >(db, table, e),
+                ),
+              )
               .toList(),
           prefetchHooksCallback: null,
         ),

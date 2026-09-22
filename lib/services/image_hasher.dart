@@ -8,7 +8,7 @@ import '../ports/asset_source_port.dart';
 ///
 /// 復号は別スレッドで行い、UI を止めない（Web は 1 本しかないのでその場で行う）。
 /// 埋め込みサムネイルがあればそれを使い、原寸の復号を避ける。
-Future<int?> perceptualHashOfAsset(
+Future<String?> perceptualHashOfAsset(
   AssetSourcePort source,
   String path, {
   Uint8List? thumbnail,
@@ -27,7 +27,7 @@ Future<int?> perceptualHashOfAsset(
 }
 
 /// バイト列から知覚ハッシュを作る。別スレッドの入口になる。
-int? perceptualHashOfBytes(Uint8List bytes) {
+String? perceptualHashOfBytes(Uint8List bytes) {
   // image は JPEG・PNG・GIF・BMP・WebP・TIFF を読む。
   // 読めない形式・壊れたファイルは null とし、走査を止めない（SPEC NFR-3）。
   final img.Image? decoded;

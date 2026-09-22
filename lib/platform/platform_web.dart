@@ -36,9 +36,15 @@ const platformCapabilities = PlatformCapabilities(
   videoFrameStep: false,
 );
 
-AssetSourcePort createAssetSource() => WebDirectorySource();
+/// 取得元は 1 つだけ持つ。
+///
+/// 開いたフォルダのハンドルはこの中にある。選ぶ側と走査する側で別の実体を
+/// 持つと、選んだフォルダを走査できない。
+final _source = WebDirectorySource();
 
-MetadataPort createMetadataPort() => CrowexifBytesMetadata(createAssetSource());
+AssetSourcePort createAssetSource() => _source;
+
+MetadataPort createMetadataPort() => CrowexifBytesMetadata(_source);
 
 MetadataWritePort? createMetadataWriter({
   String? backupDirectory,
@@ -67,8 +73,7 @@ QueryExecutor openCatalogExecutor() => LazyDatabase(() async {
 Future<String?> defaultBackupDirectory() async => null;
 
 /// 開くフォルダを選ばせる（SPEC FR-B1）。
-Future<String?> pickDirectory({String? confirmText}) =>
-    (createAssetSource() as WebDirectorySource).pickDirectory();
+Future<String?> pickDirectory({String? confirmText}) => _source.pickDirectory();
 
 /// ブラウザの再生器は 1 コマ送りを持たない（SPEC §8）。
 Future<void> stepVideoFrame(Player player, {required bool forward}) async {}

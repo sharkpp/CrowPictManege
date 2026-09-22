@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../domain/places.dart';
 import '../l10n/l10n.dart';
+import '../platform/platform.dart';
 import '../state/navigation.dart';
 import '../state/places.dart';
 import 'format.dart';
@@ -41,15 +42,18 @@ class StartView extends ConsumerWidget {
             Center(
               child: Text(l10n.startHint, style: theme.textTheme.bodyMedium),
             ),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(
-                l10n.startDropHint,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.outline,
+            // 落とせないプラットフォームでは、その道があるように書かない（SPEC §8）。
+            if (platformCapabilities.dropOntoWindow) ...[
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  l10n.startDropHint,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
                 ),
               ),
-            ),
+            ],
             if (message != null) ...[
               const SizedBox(height: 8),
               Center(

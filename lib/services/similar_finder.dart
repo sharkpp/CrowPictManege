@@ -30,7 +30,7 @@ Stream<SearchProgress> findSimilar({
     return;
   }
 
-  final hashes = <String, int>{};
+  final hashes = <String, String>{};
   var scanned = 0;
 
   for (var start = 0; start < images.length; start += _chunkSize) {
@@ -101,7 +101,7 @@ Stream<SearchProgress> findSimilar({
 /// 種そのものは結果の先頭に来る（距離 0）。
 List<MediaAsset> rankBySimilarity(
   List<MediaAsset> candidates,
-  Map<String, int> hashes,
+  Map<String, String> hashes,
   Set<String> seeds,
   int threshold,
 ) {
