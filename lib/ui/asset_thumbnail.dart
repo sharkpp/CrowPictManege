@@ -74,7 +74,7 @@ class _AssetThumbnailState extends ConsumerState<AssetThumbnail> {
 
     // 埋め込みプレビューは 160px 前後しかないことが多い。表示がそれより大きい
     // ときは、まず埋め込みを出してから復号したものに差し替える。
-    // パスから直に復号できないプラットフォーム（Web）では、読んだバイト列で出す。
+    // どこから復号するか（パスかバイト列か）はプラットフォームが決める。
     final provider =
         widget.asset.kind == AssetKind.image &&
             isDecodableByFlutter(widget.asset.path) &&

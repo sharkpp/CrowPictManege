@@ -10,7 +10,6 @@ class PlatformCapabilities {
     required this.exportFiles,
     required this.transferToApps,
     required this.watchFolders,
-    required this.decodeFromPath,
     required this.dropOntoWindow,
     required this.dragOut,
     required this.saveToFile,
@@ -40,9 +39,6 @@ class PlatformCapabilities {
 
   /// フォルダを監視して自動で仕分けられる（SPEC FR-S8）。
   final bool watchFolders;
-
-  /// パスから直に復号できる。できない場合はバイト列を読んでから復号する。
-  final bool decodeFromPath;
 
   /// ウィンドウへのフォルダのドロップを受け取れる（SPEC FR-B16）。
   final bool dropOntoWindow;

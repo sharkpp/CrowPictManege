@@ -4,6 +4,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
 
+import '../adapters/asset_bytes_image.dart';
 import '../adapters/crowexif_bytes_metadata.dart';
 import '../adapters/web_directory_source.dart';
 import '../adapters/web_metadata_writer.dart';
@@ -13,6 +14,7 @@ import '../ports/metadata_port.dart';
 import '../ports/metadata_write_port.dart';
 import '../ports/transfer_port.dart';
 import '../ports/watcher_port.dart';
+import '../services/thumbnail_cache.dart';
 import 'capabilities.dart';
 
 /// Web でできること（SPEC §8）。
@@ -28,8 +30,6 @@ const platformCapabilities = PlatformCapabilities(
   exportFiles: false,
   transferToApps: false,
   watchFolders: false,
-  // ブラウザはパスからファイルを開けない。バイト列を読んでから復号する。
-  decodeFromPath: false,
   dropOntoWindow: false,
   dragOut: false,
   saveToFile: false,
@@ -80,11 +80,15 @@ Future<String?> defaultBackupDirectory() async => null;
 /// 開くフォルダを選ばせる（SPEC FR-B1）。
 Future<String?> pickDirectory({String? confirmText}) => _source.pickDirectory();
 
+/// ブラウザの再生器からは 1 枚取り出せない（SPEC §8）。
+/// 動画は種別のアイコンのまま出す。
+PosterFrameReader? createPosterFrameReader() => null;
+
 /// ブラウザの再生器は 1 コマ送りを持たない（SPEC §8）。
 Future<void> stepVideoFrame(Player player, {required bool forward}) async {}
 
-/// ブラウザはパスでファイルを開けない。読んだバイト列から出す（SPEC §8）。
-ImageProvider? imageProviderFor(String path) => null;
+/// ブラウザはパスでファイルを開けない。読んだバイト列から復号する（SPEC FR-B5）。
+ImageProvider? imageProviderFor(String path) => AssetBytesImage(_source, path);
 
 /// ブラウザは別のアプリを起こせない（SPEC §8）。
 Future<String?> pickApplication({String? confirmText}) async => null;

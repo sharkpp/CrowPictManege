@@ -20,6 +20,8 @@ import '../ports/metadata_port.dart';
 import '../ports/metadata_write_port.dart';
 import '../ports/transfer_port.dart';
 import '../ports/watcher_port.dart';
+import '../services/thumbnail_cache.dart';
+import '../services/video_frame.dart';
 import 'capabilities.dart';
 
 /// デスクトップ（Windows / macOS）でできること（SPEC §8）。
@@ -31,7 +33,6 @@ const platformCapabilities = PlatformCapabilities(
   exportFiles: true,
   transferToApps: true,
   watchFolders: true,
-  decodeFromPath: true,
   dropOntoWindow: true,
   dragOut: true,
   saveToFile: true,
@@ -76,6 +77,11 @@ Future<String?> defaultBackupDirectory() async {
 /// 開くフォルダを選ばせる（SPEC FR-B1）。選ばなければ null。
 Future<String?> pickDirectory({String? confirmText}) =>
     getDirectoryPath(confirmButtonText: confirmText);
+
+/// 動画の代表フレームの取り出し（SPEC FR-B5、FR-B6）。
+///
+/// libmpv で開いて 1 枚取り出す。取り出せない環境では null（種別のアイコンのまま）。
+PosterFrameReader? createPosterFrameReader() => videoPosterFrame;
 
 /// 動画を 1 コマ進める／戻す（SPEC FR-B7）。
 ///

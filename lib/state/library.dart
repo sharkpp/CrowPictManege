@@ -16,7 +16,6 @@ import '../ports/metadata_port.dart';
 import '../services/parallel.dart';
 import '../services/summary_loader.dart';
 import '../services/thumbnail_cache.dart';
-import '../services/video_frame.dart';
 import 'filters.dart';
 import 'map_view.dart';
 import 'places.dart';
@@ -38,7 +37,8 @@ final thumbnailCacheProvider = Provider<ThumbnailCache>(
   (ref) => ThumbnailCache(
     ref.watch(metadataPortProvider),
     // 動画は埋め込みプレビューを持たないことが多い。代表フレームを取り出す。
-    poster: videoPosterFrame,
+    // 取り出せないプラットフォームでは種別のアイコンのまま出す（SPEC §8）。
+    poster: createPosterFrameReader(),
     storePoster: (path, bytes) => _storePosterFrame(ref, path, bytes),
   ),
 );
