@@ -1,0 +1,41 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.47.5
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # crowexif は ../crowexif の path 依存なので、隣に並べて取り出す。
+      - uses: actions/checkout@v4
+        with:
+          path: CrowPictManege
+      - uses: actions/checkout@v4
+        with:
+          repository: sharkpp/crowexif
+          path: crowexif
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        working-directory: CrowPictManege
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: CrowPictManege
+        run: flutter analyze
+
+      - name: Test
+        working-directory: CrowPictManege
+        run: flutter test
