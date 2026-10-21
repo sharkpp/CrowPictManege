@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.47.5
+  APP_NAME: Crow Exif Manage
+  # 手動実行のときに付け直すタグ。
+  MANUAL_TAG: manual-build
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      build_name: ${{ steps.tag.outputs.build_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide tag
+        id: tag
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            tag="$GITHUB_REF_NAME"
+            echo "build_name=${tag#v}" >> "$GITHUB_OUTPUT"
+          else
+            tag="$MANUAL_TAG"
+            # 手動のときは pubspec.yaml の version を使う。
+            echo "build_name=" >> "$GITHUB_OUTPUT"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN で push したタグは新たなワークフローを起動しない。
+      - name: Move manual-build tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git tag -f "$MANUAL_TAG" "$GITHUB_SHA"
+          git push -f origin "refs/tags/$MANUAL_TAG"
+
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macos
+          - os: windows-latest
+            platform: windows
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # crowexif は ../crowexif の path 依存なので、隣に並べて取り出す。
+      - uses: actions/checkout@v4
+        with:
+          path: CrowPictManege
+      - uses: actions/checkout@v4
+        with:
+          repository: sharkpp/crowexif
+          path: crowexif
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Build
+        working-directory: CrowPictManege
+        env:
+          BUILD_NAME: ${{ needs.prepare.outputs.build_name }}
+        run: |
+          args=(--release --build-number "$GITHUB_RUN_NUMBER")
+          if [ -n "$BUILD_NAME" ]; then args+=(--build-name "$BUILD_NAME"); fi
+          flutter build ${{ matrix.platform }} "${args[@]}"
+
+      - name: Package (macOS)
+        if: matrix.platform == 'macos'
+        working-directory: CrowPictManege
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          mkdir -p dist dmg
+          cp -R "build/macos/Build/Products/Release/$APP_NAME.app" dmg/
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname "$APP_NAME" -srcfolder dmg -ov -format UDZO \
+            "dist/CrowExifManage-$TAG-macos.dmg"
+
+      - name: Package (Windows)
+        if: matrix.platform == 'windows'
+        working-directory: CrowPictManege
+        shell: pwsh
+        env:
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path build/windows/x64/runner/Release/* `
+            -DestinationPath "dist/CrowExifManage-$env:TAG-windows-x64.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: CrowPictManege/dist/*
+          if-no-files-found: error
+
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.prepare.outputs.tag }}
+        run: |
+          if [ "$TAG" = "$MANUAL_TAG" ]; then
+            # 前回の手動ビルドのリリースを消して作り直す（タグは prepare で付け直し済み）。
+            gh release delete "$TAG" --yes || true
+            gh release create "$TAG" dist/* --prerelease \
+              --title "Manual build" \
+              --notes "Built from ${GITHUB_SHA} by workflow_dispatch."
+          else
+            gh release create "$TAG" dist/* --verify-tag --generate-notes --title "$TAG"
+          fi
